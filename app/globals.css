@@ -1,26 +1,56 @@
 @import "tailwindcss";
 
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
-}
-
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+  --background: #050b1a; /* Deep navy blue */
+  --foreground: #e0e6ff; /* Soft bluish-white text */
 }
 
 @media (prefers-color-scheme: dark) {
   :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
+    --background: #050b1a;
+    --foreground: #e0e6ff;
   }
 }
 
 body {
   background: var(--background);
   color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  font-family: "Josefin Sans", Arial, Helvetica, sans-serif;
+  margin: 0;
+  padding: 0;
+  min-height: 100vh;
+  overflow-x: hidden;
+}
+
+/* Remove top margin issue globally */
+main, #__next, #root {
+  margin-top: 0 !important;
+  padding-top: 0 !important;
+}
+
+/* Scrollbar styling */
+::-webkit-scrollbar {
+  width: 6px;
+}
+::-webkit-scrollbar-thumb {
+  background: rgba(80, 120, 255, 0.4);
+  border-radius: 10px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(100, 160, 255, 0.6);
+}
+
+/* Selection color */
+::selection {
+  background: rgba(80, 120, 255, 0.3);
+  color: #fff;
+}
+
+/* Smooth fade-in */
+* {
+  transition: all 0.25s ease;
+}
+
+.Toastify__toast-container {
+  margin-bottom: 70px !important;
 }
