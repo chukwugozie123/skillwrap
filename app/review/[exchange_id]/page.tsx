@@ -30,7 +30,7 @@ type User = {
 export default function ReviewPage() {
   const { exchange_id } = useParams();
   const router = useRouter();
-  const API_URL = process.env.NEXT_PUBLIC_API_URL
+  const API_URL = process.env.NEXT_PUBLIC_API_URL as string;
 
   const [user, setUser] = useState<User | null>(null);
   const [exchange, setExchange] = useState<Exchange | null>(null);
@@ -45,55 +45,57 @@ export default function ReviewPage() {
 
   /* ================= LOAD USER ================= */
   useEffect(() => {
-    fetch(`${API_URL}/auth/profile`, { credentials: "include" })
-      .then((r) => r.json())
-      .then((data) => {
+    const fetchUser = async () => {
+      try {
+        const res = await fetch(`${API_URL}/auth/profile`, { credentials: "include" });
+        const data = await res.json();
         if (!data?.user) throw new Error("Invalid user data");
         setUser(data.user);
-      })
-      .catch(() => router.replace("/login"));
+      } catch {
+        router.replace("/login");
+      }
+    };
+    fetchUser();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [router]);
 
   /* ================= LOAD EXCHANGE ================= */
   useEffect(() => {
     if (!exchange_id) return;
 
-    fetch(`${API_URL}/exchange/${exchange_id}`, { credentials: "include" })
-      .then((r) => r.json())
-      .then((data) => {
+    const fetchExchange = async () => {
+      try {
+        const res = await fetch(`${API_URL}/exchange/${exchange_id}`, { credentials: "include" });
+        const data = await res.json();
         if (!data?.exchange) {
           router.replace("/dashboard");
           return;
         }
         setExchange(data.exchange);
+      } catch {
+        router.replace("/dashboard");
+      } finally {
         setLoading(false);
-      })
-      .catch(() => router.replace("/dashboard"));
+      }
+    };
+
+    fetchExchange();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [exchange_id, router]);
 
   if (loading || !user || !exchange) return null;
 
   /* ================= REVIEW LOGIC ================= */
   const isFromUser = user.user_id === exchange.from_user_id;
-
-  // Who you are reviewing (can't review your own skill)
   const receiverName = isFromUser ? exchange.to_fullname : exchange.from_fullname;
   const receiverUsername = isFromUser ? exchange.to_username : exchange.from_username;
-
-  // Skill you received (only this can be reviewed)
-  const skillReviewedTitle = isFromUser
-    ? exchange.skill_requested_title
-    : exchange.skill_offered_title;
-
-  const skillReviewedId = isFromUser
-    ? exchange.skill_requested_id
-    : exchange.skill_offered_id;
-
+  const skillReviewedTitle = isFromUser ? exchange.skill_requested_title : exchange.skill_offered_title;
+  const skillReviewedId = isFromUser ? exchange.skill_requested_id : exchange.skill_offered_id;
   const to_user_id = isFromUser ? exchange.to_user_id : exchange.from_user_id;
 
   /* ================= SUBMIT REVIEW ================= */
   const submitReview = async () => {
-    if (!rating || !review) {
+    if (!rating || !review.trim()) {
       setError("Rating and review are required");
       return;
     }
@@ -102,7 +104,6 @@ export default function ReviewPage() {
     setError("");
 
     try {
-      // Submit review to backend
       const res = await fetch(`${API_URL}/reviews`, {
         method: "POST",
         credentials: "include",
@@ -125,7 +126,6 @@ export default function ReviewPage() {
         return;
       }
 
-      // Send notification to the other user
       await fetch(`${API_URL}/send-notification`, {
         method: "POST",
         credentials: "include",
@@ -140,10 +140,7 @@ export default function ReviewPage() {
 
       setSuccess("🎉 Review submitted successfully");
 
-      // Redirect after short delay
-      setTimeout(() => {
-        router.replace("/dashboard");
-      }, 1200);
+      setTimeout(() => router.replace("/dashboard"), 1200);
     } catch (err) {
       console.error(err);
       setError("Server error while submitting review");
@@ -158,15 +155,12 @@ export default function ReviewPage() {
         <h1 className="text-3xl font-bold text-green-400 mb-2">
           🎉 Exchange Completed
         </h1>
-
         <p className="text-gray-300 mb-6">
           You successfully received <span className="text-blue-400">{skillReviewedTitle}</span>
         </p>
-
         <p className="text-sm text-gray-400 mb-4">
           Reviewing as <span className="text-blue-300 font-medium">@{user.username}</span>
         </p>
-
         <button
           onClick={() => setShowReview(true)}
           className="w-full py-3 rounded-xl bg-gradient-to-r from-blue-500 to-purple-600 font-semibold"
@@ -200,9 +194,7 @@ export default function ReviewPage() {
                 <button
                   key={i}
                   onClick={() => setRating(i)}
-                  className={`text-4xl transition ${
-                    i <= rating ? "text-yellow-400" : "text-gray-600"
-                  }`}
+                  className={`text-4xl transition ${i <= rating ? "text-yellow-400" : "text-gray-600"}`}
                 >
                   ★
                 </button>

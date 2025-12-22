@@ -1741,8 +1741,6 @@
 
 
 
-
-
 "use client";
 
 import { useEffect, useState, useRef, useCallback } from "react";
@@ -1782,11 +1780,10 @@ export default function ChatPage() {
   const [exchange, setExchange] = useState<ExchangeDetails | null>(null);
 
   const bottomRef = useRef<HTMLDivElement>(null);
-  const countdownTimer = useRef<NodeJS.Timeout>();
+  const countdownTimer = useRef<NodeJS.Timeout | null>(null);
   const router = useRouter();
   const params = useParams();
   const { exchange_id } = params as { exchange_id: string };
-
   const API_URL = process.env.NEXT_PUBLIC_API_URL;
 
   // ---------- Fetch exchange details ----------
@@ -1817,7 +1814,12 @@ export default function ChatPage() {
     if (stored) setMessages(JSON.parse(stored));
   }, [room]);
 
-  // ---------- Socket listeners ----------
+  // ---------- Scroll to bottom ----------
+  const scrollToBottom = useCallback(() => {
+    bottomRef.current?.scrollIntoView({ behavior: "smooth" });
+  }, []);
+
+  // ---------- Handle incoming messages ----------
   const handleIncomingMessage = useCallback(
     (msg: Message) => {
       setMessages((prev) => {
@@ -1827,7 +1829,7 @@ export default function ChatPage() {
         return updated;
       });
     },
-    [room]
+    [room, scrollToBottom]
   );
 
   const handleUserJoined = useCallback(
@@ -1844,13 +1846,54 @@ export default function ChatPage() {
     [handleIncomingMessage]
   );
 
+  // ---------- Countdown ----------
+  const startCountdown = useCallback(
+    (startTimeISO: string, mins: number) => {
+      const endTime = new Date(new Date(startTimeISO).getTime() + mins * 60000).getTime();
+
+      countdownTimer.current = setInterval(async () => {
+        const now = new Date().getTime();
+        const distance = endTime - now;
+
+        if (distance <= 0) {
+          clearInterval(countdownTimer.current!);
+          setCountdown("00:00:00");
+
+          if (exchange_id) {
+            await fetch(`${API_URL}/exchange/update-status`, {
+              method: "POST",
+              credentials: "include",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({ exchange_id, exchange_status: "completed" }),
+            });
+          }
+
+          router.push(`/review/${exchange_id}`);
+          return;
+        }
+
+        const hours = Math.floor(distance / (1000 * 60 * 60));
+        const minutes = Math.floor((distance % (1000 * 60 * 60)) / (1000 * 60));
+        const seconds = Math.floor((distance % (1000 * 60)) / 1000);
+
+        setCountdown(
+          `${String(hours).padStart(2, "0")}:${String(minutes).padStart(2, "0")}:${String(
+            seconds
+          ).padStart(2, "0")}`
+        );
+      }, 1000);
+    },
+    [API_URL, exchange_id, router]
+  );
+
   const handleStartExchange = useCallback(
     (data: { startTime: string; duration: number }) => {
       startCountdown(data.startTime, data.duration);
     },
-    []
+    [startCountdown]
   );
 
+  // ---------- Socket listeners ----------
   useEffect(() => {
     if (!room) return;
 
@@ -1868,43 +1911,7 @@ export default function ChatPage() {
     };
   }, [room, handleIncomingMessage, handleUserJoined, handleUserLeft, handleStartExchange]);
 
-  // ---------- Countdown ----------
-  const startCountdown = (startTimeISO: string, mins: number) => {
-    const endTime = new Date(new Date(startTimeISO).getTime() + mins * 60000).getTime();
-
-    countdownTimer.current = setInterval(async () => {
-      const now = new Date().getTime();
-      const distance = endTime - now;
-
-      if (distance <= 0) {
-        countdownTimer.current && clearInterval(countdownTimer.current);
-        setCountdown("00:00:00");
-
-        if (exchange_id) {
-          await fetch(`${API_URL}/exchange/update-status`, {
-            method: "POST",
-            credentials: "include",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ exchange_id, exchange_status: "completed" }),
-          });
-        }
-
-        router.push(`/review/${exchange_id}`);
-        return;
-      }
-
-      const hours = Math.floor(distance / (1000 * 60 * 60));
-      const minutes = Math.floor((distance % (1000 * 60 * 60)) / (1000 * 60));
-      const seconds = Math.floor((distance % (1000 * 60)) / 1000);
-
-      setCountdown(
-        `${String(hours).padStart(2, "0")}:${String(minutes).padStart(2, "0")}:${String(
-          seconds
-        ).padStart(2, "0")}`
-      );
-    }, 1000);
-  };
-
+  // ---------- Join room ----------
   const joinRoom = (user: string, roomName: string) => {
     socket.emit("join-room", { username: user, room: roomName });
   };
@@ -1919,6 +1926,7 @@ export default function ChatPage() {
     joinRoom(username, room);
   };
 
+  // ---------- Send message ----------
   const handleMessage = (msg: string, imageUrl?: string) => {
     if (!msg.trim() && !imageUrl) return;
     const data: Message = { sender: username, message: msg, timestamp: new Date().toISOString(), imageUrl };
@@ -1926,9 +1934,7 @@ export default function ChatPage() {
     socket.emit("message", { ...data, room });
   };
 
-  const scrollToBottom = () => bottomRef.current?.scrollIntoView({ behavior: "smooth" });
-
-  // ---------- Quit Exchange ----------
+  // ---------- Quit exchange ----------
   const confirmQuit = async () => {
     if (!exchange_id) return;
 
