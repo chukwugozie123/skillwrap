@@ -30,7 +30,10 @@ type User = {
 export default function ReviewPage() {
   const { exchange_id } = useParams();
   const router = useRouter();
-  const API_URL = process.env.NEXT_PUBLIC_API_URL as string;
+
+
+  // const API_URL = process.env.NEXT_PUBLIC_API_URL as string;
+    const API_URL = "http://localhost:5000";
 
   const [user, setUser] = useState<User | null>(null);
   const [exchange, setExchange] = useState<Exchange | null>(null);

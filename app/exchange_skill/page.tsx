@@ -4,6 +4,7 @@ import { useEffect, useState, useMemo } from "react";
 import { useRouter } from "next/navigation";
 
 interface Skill {
+  skill_id: number;
   id: number;
   title: string;
   user_id: number;
@@ -19,7 +20,8 @@ export default function ExchangePage() {
   const [loading, setLoading] = useState(true);
   const [fetchingSkills, setFetchingSkills] = useState(true);
 
-  const API_URL = useMemo(() => process.env.NEXT_PUBLIC_API_URL, []);
+  // const API_URL = useMemo(() => process.env.NEXT_PUBLIC_API_URL, []);
+  const API_URL = 'http://localhost:5000';
 
   // ================= AUTH CHECK =================
   useEffect(() => {
@@ -75,6 +77,7 @@ export default function ExchangePage() {
       return;
     }
 
+    console.log(requestedSkill)
     try {
       const res = await fetch(`${API_URL}/exchange-skill`, {
         method: "POST",
@@ -82,7 +85,7 @@ export default function ExchangePage() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           toUserId: requestedSkill.user_id,
-          skillRequestedId: requestedSkill.id,
+          skillRequestedId: requestedSkill.skill_id || requestedSkill.id,
           offeredSkillId: selectedMySkillId,
         }),
       });

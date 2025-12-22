@@ -31,6 +31,7 @@ export default function SkillDetailsPage() {
   const [liked, setLiked] = useState(false);
 
   const API_URL = "http://localhost:5000";
+    // const API_URL = process.env.NEXT_PUBLIC_API_URL as string;
 
   useEffect(() => {
     async function fetchSkill() {
@@ -133,12 +134,18 @@ export default function SkillDetailsPage() {
 
           {/* Actions */}
           <div className="flex flex-col sm:flex-row gap-4 mt-10">
-            <button
-              onClick={() => router.push(`/exchange?skill=${skill.id}`)}
-              className="flex-1 py-3 rounded-xl bg-gradient-to-r from-cyan-500 to-blue-600 font-semibold shadow-lg hover:opacity-90 transition"
-            >
-              🤝 Request Skill Exchange
-            </button>
+                     <button
+                onClick={() => {
+                  sessionStorage.setItem(
+                    "selectedSkill",
+                    JSON.stringify(skill)
+                  );
+                  router.push("/exchange_skill");
+                }}
+                              className="flex-1 py-3 rounded-xl bg-gradient-to-r from-cyan-500 to-blue-600 font-semibold shadow-lg hover:opacity-90 transition"
+              >
+                🤝 Request Exchange
+              </button>
 
             <button
               onClick={() => router.back()}
