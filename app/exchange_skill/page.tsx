@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useMemo } from "react";
 import { useRouter } from "next/navigation";
 
 interface Skill {
@@ -17,19 +17,24 @@ export default function ExchangePage() {
   const [selectedMySkillId, setSelectedMySkillId] = useState<number | null>(null);
   const [message, setMessage] = useState("");
   const [loading, setLoading] = useState(true);
+  const [fetchingSkills, setFetchingSkills] = useState(true);
 
- const API_URL = process.env.NEXT_PUBLIC_API_URL;
+  const API_URL = useMemo(() => process.env.NEXT_PUBLIC_API_URL, []);
 
   // ================= AUTH CHECK =================
   useEffect(() => {
     async function checkAuth() {
-      const res = await fetch(`${API_URL}/auth/profile`, {
-        credentials: "include",
-      });
-      if (!res.ok) router.replace("/login");
+      try {
+        const res = await fetch(`${API_URL}/auth/profile`, {
+          credentials: "include",
+        });
+        if (!res.ok) router.replace("/login");
+      } catch {
+        router.replace("/login");
+      }
     }
     checkAuth();
-  }, [router]);
+  }, [router, API_URL]);
 
   // ================= GET REQUESTED SKILL =================
   useEffect(() => {
@@ -45,6 +50,7 @@ export default function ExchangePage() {
   // ================= FETCH MY SKILLS =================
   useEffect(() => {
     async function fetchMySkills() {
+      setFetchingSkills(true);
       try {
         const res = await fetch(`${API_URL}/view-skill`, {
           credentials: "include",
@@ -53,10 +59,12 @@ export default function ExchangePage() {
         setMySkills(data.skills || []);
       } catch {
         setMySkills([]);
+      } finally {
+        setFetchingSkills(false);
       }
     }
     fetchMySkills();
-  }, []);
+  }, [API_URL]);
 
   // ================= SEND EXCHANGE REQUEST =================
   const handleSubmit = async (e: React.FormEvent) => {
@@ -100,7 +108,7 @@ export default function ExchangePage() {
       </h1>
 
       <div className="w-full max-w-lg bg-white/10 backdrop-blur-2xl p-8 rounded-2xl border border-white/20 shadow-[0_0_40px_rgba(0,160,255,0.3)]">
-        {loading ? (
+        {(loading || fetchingSkills) ? (
           <p className="text-center text-cyan-300 animate-pulse">Loading...</p>
         ) : (
           <form onSubmit={handleSubmit} className="space-y-6">

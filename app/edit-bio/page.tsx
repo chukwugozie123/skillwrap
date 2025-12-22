@@ -3,14 +3,15 @@
 import { useState } from "react";
 import { ArrowLeft } from "lucide-react";
 import Link from "next/link";
+import Image from "next/image";
 
 export default function EditBio() {
   const [username, setUsername] = useState("John Doe");
   const [bio, setBio] = useState("Hey! I'm using this app.");
   const [image, setImage] = useState("/default-avatar.png");
 
-  const handleImg = (e: any) => {
-    const file = e.target.files[0];
+  const handleImg = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
     if (file) {
       const imgURL = URL.createObjectURL(file);
       setImage(imgURL);
@@ -32,10 +33,12 @@ export default function EditBio() {
       <div className="bg-white w-full max-w-md p-6 rounded-2xl shadow">
         {/* Image Upload */}
         <div className="flex flex-col items-center">
-          <img
+          <Image
             src={image}
             alt="avatar"
-            className="w-24 h-24 rounded-full object-cover mb-3"
+            width={96}
+            height={96}
+            className="rounded-full object-cover mb-3"
           />
 
           <label className="text-blue-600 cursor-pointer">

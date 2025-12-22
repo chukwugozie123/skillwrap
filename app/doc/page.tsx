@@ -18,7 +18,7 @@ export default function SkillWarpDocs() {
         </h1>
 
         <p className="text-center text-gray-300 text-lg md:text-xl leading-relaxed mb-12">
-          SkillWarp is the **next-generation skill exchange platform** — where learning, teaching, and connecting
+          SkillWarp is the <strong>next-generation skill exchange platform</strong> — where learning, teaching, and connecting
           feel effortless, fast, and exciting.  
           <span className="text-blue-300 block mt-2">
             One place. Infinite skills. Zero barriers.
@@ -31,9 +31,9 @@ export default function SkillWarpDocs() {
             What is SkillWarp?
           </h2>
           <p className="text-gray-300 leading-relaxed">
-            SkillWarp is a social learning platform where users can **offer their skills**, 
-            **request skills**, and **connect instantly** with others who can help them grow.
-            Whether it’s coding, cooking, writing, editing, fitness training, design, or 
+            SkillWarp is a social learning platform where users can <strong>offer their skills</strong>, 
+            <strong>request skills</strong>, and <strong>connect instantly</strong> with others who can help them grow.
+            Whether it&apos;s coding, cooking, writing, editing, fitness training, design, or 
             anything unique — SkillWarp lets you turn your knowledge into value.
           </p>
 
@@ -71,13 +71,55 @@ export default function SkillWarpDocs() {
             </li>
             <li className="bg-white/10 p-4 rounded-xl border border-white/10 hover:bg-white/20 transition-all">
               <span className="font-semibold text-white">4. Explore & Request:</span>{" "}
-              Browse other skills and request an exchange.
-            </li>
-            <li className="bg-white/10 p-4 rounded-xl border border-white/10 hover:bg-white/20 transition-all">
-              <span className="font-semibold text-white">5. Chat & Exchange:</span>{" "}
-              Once accepted, a private chat opens automatically.
+              Browse other skills and request an exchange with confidence.
             </li>
           </ul>
+        </section>
+
+        {/* Skill Exchange Step-by-Step */}
+        <section className="mb-14">
+          <h2 className="text-3xl font-semibold text-blue-300 mb-4">How to Exchange Skills Step-by-Step</h2>
+          <p className="text-gray-300 leading-relaxed mb-4">
+            Skill exchanges are simple and seamless. Follow these steps for a smooth experience:
+          </p>
+
+          <ol className="list-decimal list-inside space-y-4 text-gray-300">
+            <li>
+              <strong>Request an Exchange:</strong> 
+              Browse skills you want to learn and click <em>&quot;Exchange&quot;</em> to send a request.  
+              The other user receives a notification instantly.
+            </li>
+            <li>
+              <strong>Get Accepted & Copy Room Code:</strong> 
+              Once the other user accepts your request, you&apos;ll get a unique room code.  
+              Copy this code to enter the chat room.
+            </li>
+            <li>
+              <strong>Enter the Chat Room:</strong> 
+              Paste the room code in the chat entry box and join your private exchange space.  
+              Here, you can start interacting safely and effectively.
+            </li>
+            <li>
+              <strong>Set Time or Duration:</strong> 
+              Coordinate with the other user on how long the exchange session will last.  
+              You can use built-in timers or agree on milestones.
+            </li>
+            <li>
+              <strong>Exchange Skills:</strong> 
+              Teach, learn, share tips, ask questions, and make the session as productive as possible.  
+              Remember, collaboration is key.
+            </li>
+            <li>
+              <strong>Leave a Review:</strong> 
+              After a successful exchange, leave feedback.  
+              Reviews help the community grow and maintain trust.  
+              Be honest, polite, and constructive.
+            </li>
+          </ol>
+
+          <p className="text-gray-400 mt-4">
+            💡 <strong>Pro Tip:</strong> Keep your profile up-to-date and respond to requests promptly for a better exchange experience.
+          </p>
         </section>
 
         {/* Where to go */}
@@ -96,27 +138,10 @@ export default function SkillWarpDocs() {
         <section className="mb-14">
           <h2 className="text-3xl font-semibold text-red-400 mb-4">Where NOT to Go</h2>
           <ul className="space-y-4 text-gray-300">
-            <li className="bg-red-500/10 border border-red-500/20 p-4 rounded-xl">Don't share sensitive private information.</li>
-            <li className="bg-red-500/10 border border-red-500/20 p-4 rounded-xl">Don't create fake or joke skills.</li>
-            <li className="bg-red-500/10 border border-red-500/20 p-4 rounded-xl">Don't send repeated spam requests.</li>
+            <li className="bg-red-500/10 border border-red-500/20 p-4 rounded-xl">Don&apos;t share sensitive private information.</li>
+            <li className="bg-red-500/10 border border-red-500/20 p-4 rounded-xl">Don&apos;t create fake or joke skills.</li>
+            <li className="bg-red-500/10 border border-red-500/20 p-4 rounded-xl">Don&apos;t send repeated spam requests.</li>
             <li className="bg-red-500/10 border border-red-500/20 p-4 rounded-xl">Some backend routes are protected — frontend handles everything.</li>
-          </ul>
-        </section>
-
-        {/* Exchanges */}
-        <section className="mb-16">
-          <h2 className="text-3xl font-semibold text-blue-300 mb-4">How Exchanges Work</h2>
-          <p className="text-gray-300 leading-relaxed">
-            When you find a skill you want, click <strong>Exchange</strong>.  
-            The user receives your request instantly.  
-            If accepted:
-          </p>
-
-          <ul className="space-y-3 mt-4 text-gray-300">
-            <li>✔ A private chat opens</li>
-            <li>✔ You can begin teaching or learning immediately</li>
-            <li>✔ Your dashboard updates in real-time</li>
-            <li>✔ You can exchange multiple skills at once</li>
           </ul>
         </section>
 
@@ -126,7 +151,7 @@ export default function SkillWarpDocs() {
             Ready to Unlock New Skills?
           </h2>
           <p className="text-gray-300 text-lg mb-6">
-            Join thousands of learners and creators on SkillWarp.
+            Join thousands of learners and creators on SkillWarp today.
           </p>
           <a
             href="/signup"

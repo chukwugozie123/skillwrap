@@ -224,16 +224,11 @@
 
 
 
-
-
-
-
-
 "use client";
 
 import Link from "next/link";
 import ProfilePicture from "@/components/profilePicture/page";
-import { Pencil, UserPlus, MessageCircle } from "lucide-react"; // removed unused icons
+import { Pencil, UserPlus, MessageCircle } from "lucide-react";
 import { useEffect, useState } from "react";
 
 type User = {
@@ -263,7 +258,7 @@ export default function ModernProfilePage() {
       setUser(data.req?.user || data.user);
     };
     fetchUser();
-  }, [API_URL]); // included API_URL for lint
+  }, [API_URL]);
 
   if (!user) {
     return <p className="text-center text-red-500 mt-10">No user found</p>;
@@ -271,7 +266,7 @@ export default function ModernProfilePage() {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-[#030712] via-[#0a1224] to-[#000000] text-white relative overflow-hidden">
-      {/* Background glow */}
+      {/* Background Glow */}
       <div className="absolute inset-0 -z-10">
         <div className="absolute top-0 left-0 w-72 h-72 bg-blue-600/30 rounded-full blur-3xl animate-pulse"></div>
         <div className="absolute bottom-0 right-0 w-72 h-72 bg-purple-600/20 rounded-full blur-3xl animate-pulse delay-300"></div>
@@ -291,7 +286,7 @@ export default function ModernProfilePage() {
               <p className="text-blue-300 text-lg">@{user.username}</p>
               <p className="text-gray-300">{user.email}</p>
 
-              {/* Bio edit icon */}
+              {/* Bio + Edit */}
               <div className="mt-3 flex items-center justify-center md:justify-start gap-2">
                 <span className="text-gray-400">{user.bio ? user.bio : "No bio added."}</span>
                 <Link
@@ -301,10 +296,38 @@ export default function ModernProfilePage() {
                   <Pencil className="w-4 h-4" />
                 </Link>
               </div>
+
+              {/* Stats */}
+              <div className="mt-4 flex justify-center md:justify-start gap-6 text-gray-300">
+                <div>
+                  <p className="font-semibold text-white">{user.projects ?? 0}</p>
+                  <p className="text-sm">Projects</p>
+                </div>
+                <div>
+                  <p className="font-semibold text-white">{user.followers ?? 0}</p>
+                  <p className="text-sm">Followers</p>
+                </div>
+                <div>
+                  <p className="font-semibold text-white">{user.following ?? 0}</p>
+                  <p className="text-sm">Following</p>
+                </div>
+              </div>
+
+              {/* Action Buttons */}
+              <div className="mt-4 flex justify-center md:justify-start gap-4">
+                <button className="flex items-center gap-2 px-4 py-2 bg-blue-600 hover:bg-blue-500 rounded-lg shadow-md transition">
+                  <UserPlus className="w-5 h-5" />
+                  Follow
+                </button>
+                <button className="flex items-center gap-2 px-4 py-2 bg-green-600 hover:bg-green-500 rounded-lg shadow-md transition">
+                  <MessageCircle className="w-5 h-5" />
+                  Message
+                </button>
+              </div>
             </div>
           </div>
 
-          {/* Rest of profile UI ... (stats, buttons) */}
+          {/* Additional content could go here */}
         </div>
       </div>
     </div>
