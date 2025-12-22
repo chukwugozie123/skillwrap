@@ -47,7 +47,10 @@ type ProfileResponse = {
 export default function ProfilePage() {
   const { username } = useParams();
   const router = useRouter();
-  const API_URL = process.env.NEXT_PUBLIC_API_URL;
+
+  // const API_URL = process.env.NEXT_PUBLIC_API_URL;
+  const API_URL = 'http://localhost:5000'
+
   const [data, setData] = useState<ProfileResponse | null>(null);
   const [loading, setLoading] = useState(true);
 
@@ -146,6 +149,28 @@ export default function ProfilePage() {
                         <span className="px-3 py-1 bg-purple-500/10 rounded-full">{skill.category}</span>
                         <span>{skill.review_count} reviews</span>
                       </div>
+
+                                    <button
+                onClick={() => {
+                  sessionStorage.setItem(
+                    "selectedSkill",
+                    JSON.stringify(skill)
+                  );
+                  router.push("/exchange_skill");
+                }}
+                className="w-full py-2 rounded-xl bg-gradient-to-r from-blue-500 to-cyan-500 
+                font-semibold text-white shadow-lg hover:shadow-cyan-400/50 
+                hover:scale-[1.03] active:scale-95 transition-all duration-200"
+              >
+                🤝 Request Exchange
+              </button>
+{/* 
+                             <button
+              onClick={() => router.push(`/exchange?skill=${skill.skill_id}`)}
+              className="flex-1 py-3 rounded-xl bg-gradient-to-r from-cyan-500 to-blue-600 font-semibold shadow-lg hover:opacity-90 transition"
+            >
+              🤝 Request Skill Exchange
+            </button> */}
 
                       {/* ================= REVIEWS ================= */}
                       {filteredReviews.length > 0 ? (

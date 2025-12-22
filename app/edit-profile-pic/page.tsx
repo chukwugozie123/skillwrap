@@ -59,7 +59,8 @@ export default function UploadPic() {
   const [message, setMessage] = useState("");
   const [loading, setLoading] = useState(false);
 
-   const API_URL = process.env.NEXT_PUBLIC_API_URL;
+  //  const API_URL = process.env.NEXT_PUBLIC_API_URL;
+  const API_URL = 'http://localhost:5000';
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();

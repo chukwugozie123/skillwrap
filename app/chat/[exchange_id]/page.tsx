@@ -1784,7 +1784,10 @@ export default function ChatPage() {
   const router = useRouter();
   const params = useParams();
   const { exchange_id } = params as { exchange_id: string };
-  const API_URL = process.env.NEXT_PUBLIC_API_URL;
+
+
+  // const API_URL = process.env.NEXT_PUBLIC_API_URL;
+  const API_URL = 'http://localhost:5000';
 
   // ---------- Fetch exchange details ----------
   useEffect(() => {

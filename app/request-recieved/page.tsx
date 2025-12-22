@@ -27,6 +27,9 @@ export default function ReceivedRequests({ currentUserId }: { currentUserId: num
   const [acceptedReqId, setAcceptedReqId] = useState<string | null>(null);
 
   const router = useRouter();
+
+  
+  // const API_URL = process.env.NEXT_PUBLIC_API_URL;
   const API_URL = "http://localhost:5000";
 
   // Generate frontend room code
@@ -95,6 +98,8 @@ export default function ReceivedRequests({ currentUserId }: { currentUserId: num
             roomCode: newRoom,
           }),
         });
+
+        console.log(req.exchange_id);
 
         showPopup(true);
 
