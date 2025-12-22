@@ -1,31 +1,3 @@
-// "use client";
-
-// import { useEffect, useState } from "react";
-// import { useRouter, useParams } from "next/navigation";
-
-
-
-// export default function ReviewPage() {
-//     const params = useParams();
-//     const userId = params.id;
-  
-//   const router = useRouter();
-//   const API_URL = "http://localhost:5000";
-
-//   const [information, setInformation] = useState("")
-
-//   useEffect(() => {
-//     async function load() {
-//         const res = await fetch(`${API_URL}/profile/${userId}`)
-//     }
-
-    
-    
-//   }, [])
-
-// }
-
-
 
 
 

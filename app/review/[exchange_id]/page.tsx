@@ -30,7 +30,7 @@ type User = {
 export default function ReviewPage() {
   const { exchange_id } = useParams();
   const router = useRouter();
-  const API_URL = "http://localhost:5000";
+  const API_URL = process.env.NEXT_PUBLIC_API_URL
 
   const [user, setUser] = useState<User | null>(null);
   const [exchange, setExchange] = useState<Exchange | null>(null);
@@ -52,7 +52,7 @@ export default function ReviewPage() {
         setUser(data.user);
       })
       .catch(() => router.replace("/login"));
-  }, []);
+  }, [router]);
 
   /* ================= LOAD EXCHANGE ================= */
   useEffect(() => {
@@ -69,7 +69,7 @@ export default function ReviewPage() {
         setLoading(false);
       })
       .catch(() => router.replace("/dashboard"));
-  }, [exchange_id]);
+  }, [exchange_id, router]);
 
   if (loading || !user || !exchange) return null;
 
@@ -93,64 +93,63 @@ export default function ReviewPage() {
 
   /* ================= SUBMIT REVIEW ================= */
   const submitReview = async () => {
-  if (!rating || !review) {
-    setError("Rating and review are required");
-    return;
-  }
-
-  setSubmitting(true);
-  setError("");
-
-  try {
-    // Submit review to backend
-    const res = await fetch(`${API_URL}/reviews`, {
-      method: "POST",
-      credentials: "include",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        exchange_id: exchange.exchange_id,
-        from_user_id: user.user_id,
-        to_user_id,
-        skill_id: skillReviewedId,
-        rating,
-        review_text: review,
-      }),
-    });
-
-    const data = await res.json();
-
-    if (!res.ok) {
-      setError(data.message || "You already reviewed this exchange");
-      setSubmitting(false);
+    if (!rating || !review) {
+      setError("Rating and review are required");
       return;
     }
 
-    // Send notification to the other user
-    await fetch(`${API_URL}/send-notification`, {
-      method: "POST",
-      credentials: "include",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        exchange_id: exchange.exchange_id,
-        receiverId: to_user_id,
-        message: `${user.fullname} (@${user.username}) has left a ${rating}-star review on your skill "${skillReviewedTitle}".`,
-        metadata: exchange.exchange_id,
-      }),
-    });
+    setSubmitting(true);
+    setError("");
 
-    setSuccess("🎉 Review submitted successfully");
+    try {
+      // Submit review to backend
+      const res = await fetch(`${API_URL}/reviews`, {
+        method: "POST",
+        credentials: "include",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          exchange_id: exchange.exchange_id,
+          from_user_id: user.user_id,
+          to_user_id,
+          skill_id: skillReviewedId,
+          rating,
+          review_text: review,
+        }),
+      });
 
-    // Redirect after short delay
-    setTimeout(() => {
-      router.replace("/dashboard");
-    }, 1200);
-  } catch (err) {
-    console.error(err);
-    setError("Server error while submitting review");
-    setSubmitting(false);
-  }
-};
+      const data = await res.json();
 
+      if (!res.ok) {
+        setError(data.message || "You already reviewed this exchange");
+        setSubmitting(false);
+        return;
+      }
+
+      // Send notification to the other user
+      await fetch(`${API_URL}/send-notification`, {
+        method: "POST",
+        credentials: "include",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          exchange_id: exchange.exchange_id,
+          receiverId: to_user_id,
+          message: `${user.fullname} (@${user.username}) has left a ${rating}-star review on your skill "${skillReviewedTitle}".`,
+          metadata: exchange.exchange_id,
+        }),
+      });
+
+      setSuccess("🎉 Review submitted successfully");
+
+      // Redirect after short delay
+      setTimeout(() => {
+        router.replace("/dashboard");
+      }, 1200);
+    } catch (err) {
+      console.error(err);
+      setError("Server error while submitting review");
+      setSubmitting(false);
+    }
+  };
 
   /* ================= UI ================= */
   return (
@@ -188,12 +187,8 @@ export default function ReviewPage() {
             </button>
 
             <h2 className="text-2xl font-bold text-blue-400 mb-2">
-              Review {receiverName}
+              Review {receiverName} (@{receiverUsername})
             </h2>
-
-            <p className="text-xs text-gray-400 mb-2">
-              Reviewing as <span className="text-blue-300 font-medium">@{user.username}</span>
-            </p>
 
             <p className="text-sm text-gray-400 mb-4">
               Skill reviewed: {skillReviewedTitle}
@@ -223,6 +218,7 @@ export default function ReviewPage() {
             />
 
             {error && <p className="text-red-400 text-sm mb-3">{error}</p>}
+            {success && <p className="text-green-400 text-sm mb-3">{success}</p>}
 
             <button
               onClick={submitReview}
@@ -237,6 +233,3 @@ export default function ReviewPage() {
     </div>
   );
 }
-
-
-// see help me send the right thing to the bakcend noifications please and imporve the messgae am sending

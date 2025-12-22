@@ -531,20 +531,34 @@
 
 
 
-
 "use client";
 import { useEffect, useState } from "react";
 import Link from "next/link";
+import Image from "next/image"; // use Next.js optimized Image
 import { motion } from "framer-motion";
 import {
-  Home, Layers, Inbox, CheckCircle, Activity, BarChart3, LogOut, Settings,
+  Home, Layers, Inbox, CheckCircle, Activity, LogOut, Settings,
   Menu, X, Mail, Calendar, User, MessageCircle
 } from "lucide-react";
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL;
 
+interface User {
+  username: string;
+  fullname: string;
+  email: string;
+  img_url?: string;
+  created_at: string;
+}
+
+interface Stats {
+  createdSkills: number;
+  sendRequests: number;
+  receivedRequests: number;
+}
+
 // ---------------- FETCH USER PROFILE ----------------
-async function fetchUserProfile() {
+async function fetchUserProfile(): Promise<User | null> {
   try {
     const res = await fetch(`${API_URL}/auth/profile`, {
       credentials: "include",
@@ -552,7 +566,7 @@ async function fetchUserProfile() {
     });
     if (!res.ok) throw new Error("Failed to fetch profile");
     const data = await res.json();
-    return data.req?.user || data.user;
+    return data.req?.user || data.user || null;
   } catch (err) {
     console.error(err);
     return null;
@@ -560,10 +574,10 @@ async function fetchUserProfile() {
 }
 
 export default function DashboardPage() {
-  const [user, setUser] = useState<any>(null);
+  const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
   const [sidebarOpen, setSidebarOpen] = useState(false);
-  const [stats, setStats] = useState({ createdSkills: 0, sendRequests: 0, receivedRequests: 0 });
+  const [stats, setStats] = useState<Stats>({ createdSkills: 0, sendRequests: 0, receivedRequests: 0 });
   const [unread, setUnread] = useState(0);
 
   // ---------------- FETCH DATA ----------------
@@ -611,7 +625,6 @@ export default function DashboardPage() {
     }
   }
 
-  // ---------------- STAT CARDS ----------------
   const statCards = [
     { title: "Requests Received", value: stats.receivedRequests, icon: <Inbox />, color: "from-blue-500 to-purple-500" },
     { title: "Request Sent", value: stats.sendRequests, icon: <CheckCircle />, color: "from-green-500 to-teal-500" },
@@ -625,13 +638,13 @@ export default function DashboardPage() {
 
   return (
     <main className="h-screen flex bg-gradient-to-br from-[#030712] via-[#0b1220] to-[#1e1b4b] text-white overflow-hidden">
-      {/* ---------------- SIDEBAR ---------------- */}
+      {/* SIDEBAR */}
       <aside className={`fixed sm:static inset-y-0 left-0 z-40 bg-white/10 backdrop-blur-xl border-r border-white/10 shadow-2xl w-64 transform transition-transform duration-500 ease-in-out
         ${sidebarOpen ? "translate-x-0" : "-translate-x-full sm:translate-x-0"} overflow-y-auto`}>
         <div className="flex items-center justify-between px-6 py-5 border-b border-white/10">
           <div className="flex items-center gap-3">
             {loading ? <div className="w-8 h-8 bg-gray-600 rounded-full animate-pulse" /> :
-              <img src={user?.img_url ? `${API_URL}/uploads/${user.img_url}` : "/default-avatar.png"} alt="avatar" className="w-9 h-9 rounded-full border border-white/20" />}
+              <Image src={user?.img_url ? `${API_URL}/uploads/${user.img_url}` : "/default-avatar.png"} alt="avatar" width={36} height={36} className="rounded-full border border-white/20" />}
             <span className="font-semibold text-lg truncate">{loading ? "Loading..." : user?.fullname || "Guest User"}</span>
           </div>
           <button className="sm:hidden text-gray-300" onClick={() => setSidebarOpen(false)}>
@@ -663,7 +676,7 @@ export default function DashboardPage() {
         </nav>
       </aside>
 
-      {/* ---------------- MAIN CONTENT ---------------- */}
+      {/* MAIN CONTENT */}
       <section className="flex-1 p-6 sm:p-10 overflow-y-auto sm:overflow-hidden relative">
         <button onClick={() => setSidebarOpen(true)} className="sm:hidden absolute top-6 left-6 bg-white/10 p-2 rounded-lg border border-white/10">
           <Menu className="w-5 h-5 text-blue-300" />
@@ -673,13 +686,13 @@ export default function DashboardPage() {
           <>
             {/* PROFILE CARD */}
             <motion.div initial={{ opacity: 0, y: -30 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.7 }} className="bg-white/5 border border-white/10 backdrop-blur-xl rounded-3xl p-8 mb-8 shadow-2xl flex flex-col sm:flex-row items-center sm:items-start gap-6">
-              <img src={user?.img_url ? `${API_URL}/uploads/${user.img_url}` : "/default-avatar.png"} alt="Profile" className="w-24 h-24 rounded-full border-2 border-blue-400 shadow-md" />
+              <Image src={user?.img_url ? `${API_URL}/uploads/${user.img_url}` : "/default-avatar.png"} alt="Profile" width={96} height={96} className="rounded-full border-2 border-blue-400 shadow-md" />
               <div className="flex-1">
                 <h1 className="text-2xl font-bold text-blue-300">{user?.fullname}</h1>
                 <p className="text-gray-400 text-sm">@{user?.username}</p>
                 <div className="flex flex-wrap items-center gap-4 mt-3 text-sm text-gray-400">
                   <span className="flex items-center gap-1"><Mail className="w-4 h-4 text-blue-400" /> {user?.email}</span>
-                  <span className="flex items-center gap-1"><Calendar className="w-4 h-4 text-blue-400" /> Joined: {new Date(user.created_at).toLocaleString()}</span>
+                  <span className="flex items-center gap-1"><Calendar className="w-4 h-4 text-blue-400" /> Joined: {new Date(user!.created_at).toLocaleDateString()}</span>
                 </div>
               </div>
               <Link href="/create-skill" className="px-5 py-2 bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-500 hover:to-purple-500 rounded-xl font-medium text-white shadow-md transition-all">+ Create Skill</Link>
