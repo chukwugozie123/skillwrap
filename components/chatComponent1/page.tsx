@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import dynamic from "next/dynamic";
+import Image from "next/image";
 
 const EmojiPicker = dynamic(() => import("emoji-picker-react"), { ssr: false });
 
@@ -26,30 +27,61 @@ export default function ChatForm({ onSendMessage }: ChatFormProps) {
   function handleImageUpload(e: React.ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0];
     if (!file) return;
+
     const reader = new FileReader();
     reader.onload = (event) => setImageUrl(event.target?.result as string);
     reader.readAsDataURL(file);
   }
 
   return (
-    <form onSubmit={handleSubmit} className="flex flex-col gap-2">
+    <form onSubmit={handleSubmit} className="flex flex-col gap-2 relative">
       {imageUrl && (
-        <div className="relative">
-          <img src={imageUrl} className="w-24 h-24 object-cover rounded-lg border border-blue-400" />
-          <button type="button" className="absolute -top-2 -right-2 bg-red-600 rounded-full px-2 text-xs" onClick={() => setImageUrl(null)}>✕</button>
+        <div className="relative w-24 h-24">
+          <Image
+            src={imageUrl}
+            alt="Uploaded preview"
+            fill
+            className="object-cover rounded-lg border border-blue-400"
+          />
+          <button
+            type="button"
+            className="absolute -top-2 -right-2 bg-red-600 rounded-full px-2 text-xs"
+            onClick={() => setImageUrl(null)}
+          >
+            ✕
+          </button>
         </div>
       )}
 
       <div className="flex gap-2 items-center">
-        <button type="button" className="text-2xl text-yellow-400" onClick={() => setShowEmoji(!showEmoji)}>😀</button>
+        <button
+          type="button"
+          className="text-2xl text-yellow-400"
+          onClick={() => setShowEmoji(!showEmoji)}
+        >
+          😀
+        </button>
+
         {showEmoji && (
           <div className="absolute bottom-16 left-10 z-50">
-            <EmojiPicker onEmojiClick={(emojiData) => setMessage(prev => prev + emojiData.emoji)} />
+            <EmojiPicker
+              onEmojiClick={(emojiData) =>
+                setMessage((prev) => prev + emojiData.emoji)
+              }
+            />
           </div>
         )}
 
-        <input type="file" accept="image/*" onChange={handleImageUpload} className="hidden" id="fileInput" />
-        <label htmlFor="fileInput" className="cursor-pointer text-xl text-blue-400">📎</label>
+        <input
+          type="file"
+          accept="image/*"
+          onChange={handleImageUpload}
+          className="hidden"
+          id="fileInput"
+        />
+        <label htmlFor="fileInput" className="cursor-pointer text-xl text-blue-400">
+          📎
+        </label>
 
         <input
           type="text"
@@ -58,14 +90,16 @@ export default function ChatForm({ onSendMessage }: ChatFormProps) {
           onChange={(e) => setMessage(e.target.value)}
           className="flex-1 px-4 py-2 rounded-lg bg-white/5 border border-white/10 text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
         />
-        <button type="submit" className="px-4 py-2 bg-blue-600 hover:bg-blue-700 rounded-lg text-white font-medium">Send</button>
+        <button
+          type="submit"
+          className="px-4 py-2 bg-blue-600 hover:bg-blue-700 rounded-lg text-white font-medium"
+        >
+          Send
+        </button>
       </div>
     </form>
   );
 }
-
-
-
 
 
 

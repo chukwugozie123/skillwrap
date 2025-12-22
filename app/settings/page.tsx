@@ -3,21 +3,36 @@
 import { useEffect, useState } from "react";
 import { Edit3, LogOut, User, ChevronRight, KeyRound } from "lucide-react";
 import Link from "next/link";
+import Image from "next/image";
+
+// ================= TYPES =================
+interface UserType {
+  id: number;
+  username: string;
+  fullname: string;
+  email: string;
+  avatar?: string;
+  bio?: string;
+}
 
 export default function SettingsPage() {
   const [openPopup, setOpenPopup] = useState(false);
-  const [user, setUser] = useState<any>(null);
+  const [user, setUser] = useState<UserType | null>(null);
 
   // Fetch user from backend
   useEffect(() => {
     async function load() {
-      const res = await fetch("http://localhost:5000/auth/profile", {
-        credentials: "include",
-      });
+      try {
+        const res = await fetch("http://localhost:5000/auth/profile", {
+          credentials: "include",
+        });
+        if (!res.ok) throw new Error("Failed to fetch user");
 
-      if (!res.ok) return;
-      const data = await res.json();
-      setUser(data.req?.user || data.user);
+        const data = await res.json();
+        setUser(data.req?.user || data.user);
+      } catch (err) {
+        console.error(err);
+      }
     }
     load();
   }, []);
@@ -46,9 +61,12 @@ export default function SettingsPage() {
 
       {/* PROFILE CARD */}
       <div className="max-w-lg mx-auto bg-white/5 border border-white/10 backdrop-blur-xl p-6 rounded-3xl shadow-xl flex gap-4 items-center">
-        <img
+        <Image
           src={user.avatar || "/default-avatar.png"}
-          className="w-16 h-16 rounded-full border border-blue-500/40 shadow-lg"
+          alt={`${user.fullname}'s avatar`}
+          width={64}
+          height={64}
+          className="rounded-full border border-blue-500/40 shadow-lg"
         />
 
         <div>

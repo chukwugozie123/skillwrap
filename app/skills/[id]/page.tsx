@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import Link from "next/link";
+import Image from "next/image";
 import { motion } from "framer-motion";
 import { Star, Heart } from "lucide-react";
 
@@ -42,8 +43,12 @@ export default function SkillDetailsPage() {
 
         const data = await res.json();
         setSkill(data.skill);
-      } catch (err: any) {
-        setError(err.message);
+      } catch (err: unknown) {
+        if (err instanceof Error) {
+          setError(err.message);
+        } else {
+          setError("Unknown error occurred");
+        }
       } finally {
         setLoading(false);
       }
@@ -85,11 +90,12 @@ export default function SkillDetailsPage() {
         className="relative max-w-5xl mx-auto bg-white/10 backdrop-blur-2xl border border-white/20 rounded-3xl shadow-xl overflow-hidden"
       >
         {/* Image */}
-        <div className="relative h-[380px]">
-          <img
+        <div className="relative h-[380px] w-full">
+          <Image
             src={`${API_URL}/uploads/${skill.skill_img}`}
             alt={skill.title}
-            className="w-full h-full object-cover"
+            fill
+            className="object-cover"
           />
           <div className="absolute inset-0 bg-gradient-to-t from-[#020617] via-transparent" />
 
@@ -98,9 +104,7 @@ export default function SkillDetailsPage() {
             className="absolute top-6 right-6 p-3 rounded-full bg-white/10 border border-white/30 backdrop-blur-lg hover:scale-110 transition"
           >
             <Heart
-              className={`w-6 h-6 ${
-                liked ? "fill-pink-500 text-pink-500" : "text-white"
-              }`}
+              className={`w-6 h-6 ${liked ? "fill-pink-500 text-pink-500" : "text-white"}`}
             />
           </button>
         </div>
@@ -119,9 +123,7 @@ export default function SkillDetailsPage() {
             <span className="text-sm text-gray-400">(Top rated)</span>
           </div>
 
-          <p className="mt-6 text-gray-300 leading-relaxed">
-            {skill.description}
-          </p>
+          <p className="mt-6 text-gray-300 leading-relaxed">{skill.description}</p>
 
           <div className="flex flex-wrap gap-6 mt-6 text-sm font-medium text-gray-300">
             <span>📂 {skill.category}</span>

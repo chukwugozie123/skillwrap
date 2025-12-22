@@ -79,45 +79,52 @@
 // }
 
 
-
-
 "use client";
+
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 
-export default function Edit_skill({ skill }: any) {
+// ================= TYPES =================
+interface SkillType {
+  id: number;
+  title: string;
+  category: string;
+  description: string;
+  level: string;
+}
+
+interface EditSkillProps {
+  skill: SkillType;
+}
+
+export default function EditSkill({ skill }: EditSkillProps) {
   const [title, setTitle] = useState(skill.title);
   const [category, setCategory] = useState(skill.category);
   const [description, setDesc] = useState(skill.description);
   const [level, setLevel] = useState(skill.level);
   const [message, setMessage] = useState("");
 
-       const router = useRouter()
+  const router = useRouter();
 
-        useEffect(()=>{
-          if (message === '✅ Skill updated successfully!') {
-           router.push("/skills") 
-          }
-        }, [message, router])
+  useEffect(() => {
+    if (message === "✅ Skill updated successfully!") {
+      router.push("/skills");
+    }
+  }, [message, router]);
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
 
     try {
-      const res = await fetch(
-        
-        `http://localhost:5000/skill/${skill.id}/edit-skill`,
-        {
-          method: "PATCH",
-          headers: { "Content-Type": "application/json" },
-          credentials: "include",
-          body: JSON.stringify({ title, category, description, level }),
-        }
-      );
+      const res = await fetch(`http://localhost:5000/skill/${skill.id}/edit-skill`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        credentials: "include",
+        body: JSON.stringify({ title, category, description, level }),
+      });
 
       const data = await res.json();
-
 
       if (res.ok) {
         setMessage("✅ Skill updated successfully!");
@@ -129,7 +136,6 @@ export default function Edit_skill({ skill }: any) {
       setMessage("Network error — please try again");
     }
   }
-
 
   return (
     <div className="flex items-center justify-center min-h-screen bg-gradient-to-br from-[#0a0f1c] via-[#0f1e3a] to-[#0a0f1c] text-white relative overflow-hidden">
@@ -191,7 +197,11 @@ export default function Edit_skill({ skill }: any) {
         </button>
       </form>
 
-      <Link href={"/"}><button>Go back</button></Link>
+      <Link href="/">
+        <button className="absolute bottom-10 left-10 px-4 py-2 bg-blue-600 rounded-lg hover:opacity-90 transition">
+          Go back
+        </button>
+      </Link>
     </div>
   );
 }

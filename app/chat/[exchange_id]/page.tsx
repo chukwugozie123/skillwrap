@@ -1743,12 +1743,9 @@
 
 
 
-
-
-
 "use client";
 
-import { useEffect, useState, useRef } from "react";
+import { useEffect, useState, useRef, useCallback } from "react";
 import { useRouter, useParams } from "next/navigation";
 import { socket } from "@/lib/socketClient";
 import ChatForm from "@/components/chatComponent1/page";
@@ -1776,24 +1773,21 @@ interface ExchangeDetails {
 }
 
 export default function ChatPage() {
-  const [room, setRoom] = useState<string>("");
+  const [room, setRoom] = useState("");
   const [joined, setJoined] = useState(false);
   const [messages, setMessages] = useState<Message[]>([]);
-  const [username, setUsername] = useState<string>("");
-  const [countdown, setCountdown] = useState<string>("");
+  const [username, setUsername] = useState("");
+  const [countdown, setCountdown] = useState("");
   const [quitPopup, setQuitPopup] = useState(false);
   const [exchange, setExchange] = useState<ExchangeDetails | null>(null);
 
   const bottomRef = useRef<HTMLDivElement>(null);
+  const countdownTimer = useRef<NodeJS.Timeout>();
   const router = useRouter();
   const params = useParams();
-  const { exchange_id } = params;
+  const { exchange_id } = params as { exchange_id: string };
 
   const API_URL = process.env.NEXT_PUBLIC_API_URL;
-
-  console.log(API_URL)
-
-  let countdownTimer: NodeJS.Timeout;
 
   // ---------- Fetch exchange details ----------
   useEffect(() => {
@@ -1801,7 +1795,9 @@ export default function ChatPage() {
 
     const fetchExchange = async () => {
       try {
-        const res = await fetch(`${API_URL}/exchange/${exchange_id}`, { credentials: "include" });
+        const res = await fetch(`${API_URL}/exchange/${exchange_id}`, {
+          credentials: "include",
+        });
         if (!res.ok) throw new Error("Failed to fetch exchange");
         const data = await res.json();
         setExchange(data.exchange);
@@ -1812,7 +1808,7 @@ export default function ChatPage() {
     };
 
     fetchExchange();
-  }, [exchange_id]);
+  }, [exchange_id, API_URL, router]);
 
   // ---------- Load messages from localStorage ----------
   useEffect(() => {
@@ -1822,6 +1818,39 @@ export default function ChatPage() {
   }, [room]);
 
   // ---------- Socket listeners ----------
+  const handleIncomingMessage = useCallback(
+    (msg: Message) => {
+      setMessages((prev) => {
+        const updated = [...prev, msg];
+        localStorage.setItem(`chatMessages_${room}`, JSON.stringify(updated));
+        scrollToBottom();
+        return updated;
+      });
+    },
+    [room]
+  );
+
+  const handleUserJoined = useCallback(
+    (data: { message: string; timestamp: string }) => {
+      handleIncomingMessage({ ...data, sender: "system", system: true });
+    },
+    [handleIncomingMessage]
+  );
+
+  const handleUserLeft = useCallback(
+    (data: { message: string; timestamp: string }) => {
+      handleIncomingMessage({ ...data, sender: "system", system: true });
+    },
+    [handleIncomingMessage]
+  );
+
+  const handleStartExchange = useCallback(
+    (data: { startTime: string; duration: number }) => {
+      startCountdown(data.startTime, data.duration);
+    },
+    []
+  );
+
   useEffect(() => {
     if (!room) return;
 
@@ -1835,58 +1864,22 @@ export default function ChatPage() {
       socket.off("user_joined", handleUserJoined);
       socket.off("user_left", handleUserLeft);
       socket.off("start_exchange", handleStartExchange);
-      clearInterval(countdownTimer);
+      countdownTimer.current && clearInterval(countdownTimer.current);
     };
-  }, [room]);
-
-  const handleIncomingMessage = (msg: Message) => {
-    setMessages((prev) => {
-      const updated = [...prev, msg];
-      localStorage.setItem(`chatMessages_${room}`, JSON.stringify(updated));
-      scrollToBottom();
-      return updated;
-    });
-  };
-
-  const handleUserJoined = (data: { message: string; timestamp: string }) => {
-    handleIncomingMessage({ ...data, sender: "system", system: true });
-  };
-
-  const handleUserLeft = (data: { message: string; timestamp: string }) => {
-    handleIncomingMessage({ ...data, sender: "system", system: true });
-  };
-
-  const handleStartExchange = (data: { startTime: string; duration: number }) => {
-    startCountdown(data.startTime, data.duration);
-  };
-
-  const joinRoom = (user: string, roomName: string) => {
-    socket.emit("join-room", { username: user, room: roomName });
-  };
-
-  const handleJoin = () => {
-    if (!username || !room || !exchange) return;
-    if (username !== exchange.from_username && username !== exchange.to_username) {
-      alert("You are not allowed to join this chat.");
-      return;
-    }
-    setJoined(true);
-    joinRoom(username, room);
-  };
+  }, [room, handleIncomingMessage, handleUserJoined, handleUserLeft, handleStartExchange]);
 
   // ---------- Countdown ----------
   const startCountdown = (startTimeISO: string, mins: number) => {
     const endTime = new Date(new Date(startTimeISO).getTime() + mins * 60000).getTime();
 
-    countdownTimer = setInterval(async () => {
+    countdownTimer.current = setInterval(async () => {
       const now = new Date().getTime();
       const distance = endTime - now;
 
       if (distance <= 0) {
-        clearInterval(countdownTimer);
+        countdownTimer.current && clearInterval(countdownTimer.current);
         setCountdown("00:00:00");
 
-        // Mark exchange as completed
         if (exchange_id) {
           await fetch(`${API_URL}/exchange/update-status`, {
             method: "POST",
@@ -1903,10 +1896,27 @@ export default function ChatPage() {
       const hours = Math.floor(distance / (1000 * 60 * 60));
       const minutes = Math.floor((distance % (1000 * 60 * 60)) / (1000 * 60));
       const seconds = Math.floor((distance % (1000 * 60)) / 1000);
+
       setCountdown(
-        `${String(hours).padStart(2, "0")}:${String(minutes).padStart(2, "0")}:${String(seconds).padStart(2, "0")}`
+        `${String(hours).padStart(2, "0")}:${String(minutes).padStart(2, "0")}:${String(
+          seconds
+        ).padStart(2, "0")}`
       );
     }, 1000);
+  };
+
+  const joinRoom = (user: string, roomName: string) => {
+    socket.emit("join-room", { username: user, room: roomName });
+  };
+
+  const handleJoin = () => {
+    if (!username || !room || !exchange) return;
+    if (username !== exchange.from_username && username !== exchange.to_username) {
+      alert("You are not allowed to join this chat.");
+      return;
+    }
+    setJoined(true);
+    joinRoom(username, room);
   };
 
   const handleMessage = (msg: string, imageUrl?: string) => {
@@ -1934,7 +1944,6 @@ export default function ChatPage() {
     localStorage.removeItem(`chatMessages_${room}`);
 
     socket.emit("leave-room", room);
-
     router.push(`/review/${exchange_id}`);
   };
 

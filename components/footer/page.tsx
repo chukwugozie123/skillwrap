@@ -1,16 +1,16 @@
 "use client";
 import { motion } from "framer-motion";
 import Link from "next/link";
-import {
-  Mail,
-  Github,
-  Twitter,
-  Linkedin,
-  Globe,
-  UserCircle2,
-} from "lucide-react";
+import Image from "next/image";
+import { Github, Twitter, Linkedin, Globe } from "lucide-react";
 
-export default function Footer({ user }: { user?: any }) {
+interface User {
+  fullname: string;
+  email: string;
+  img_url?: string;
+}
+
+export default function Footer({ user }: { user?: User }) {
   return (
     <footer className="w-full bg-white/5 border-t border-white/10 backdrop-blur-xl text-white mt-16">
       <div className="max-w-7xl mx-auto px-6 py-10 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-10">
@@ -111,11 +111,14 @@ export default function Footer({ user }: { user?: any }) {
                 Logged in as
               </h3>
               <div className="flex items-center gap-3 bg-white/10 border border-white/10 rounded-2xl p-3">
-                <img
-                  src={user?.img_url || "/default-avatar.png"}
-                  alt="user"
-                  className="w-10 h-10 rounded-full border border-white/10"
-                />
+                <div className="relative w-10 h-10 rounded-full overflow-hidden border border-white/10">
+                  <Image
+                    src={user.img_url || "/default-avatar.png"}
+                    alt={`${user.fullname} avatar`}
+                    fill
+                    className="object-cover"
+                  />
+                </div>
                 <div>
                   <p className="text-sm font-medium">{user.fullname}</p>
                   <p className="text-xs text-gray-400">{user.email}</p>
