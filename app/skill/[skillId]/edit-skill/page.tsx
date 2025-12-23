@@ -35,8 +35,8 @@ interface Props {
   params: { skillId: string };
 }
 
-  // const API_URL = process.env.NEXT_PUBLIC_API_URL as string;
-  const API_URL = "http://localhost:5000";
+  const API_URL = process.env.NEXT_PUBLIC_API_URL as string;
+  // const API_URL = "http://localhost:5000";
 
 export default async function Edits({ params }: Props) {
   const { skillId } = params;

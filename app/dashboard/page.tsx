@@ -541,8 +541,8 @@ import {
   Menu, X, Mail, Calendar, User, MessageCircle
 } from "lucide-react";
 
-// const API_URL = process.env.NEXT_PUBLIC_API_URL;
-const API_URL = 'http://localhost:5000'
+const API_URL = process.env.NEXT_PUBLIC_API_URL;
+// const API_URL = 'http://localhost:5000'
 
 interface User {
   username: string;
