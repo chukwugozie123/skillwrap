@@ -4,8 +4,8 @@ import EditProfile from "@/components/edit_profile/page"
 export default async function EditPage() {
 
 
-  //  const API_URL = process.env.NEXT_PUBLIC_API_URL;
-  const API_URL = 'http://localhost:5000'
+   const API_URL = process.env.NEXT_PUBLIC_API_URL;
+  // const API_URL = 'http://localhost:5000'
 
   const cookieStore = await cookies();
   const cookieHeader = cookieStore

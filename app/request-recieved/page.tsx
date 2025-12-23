@@ -29,8 +29,8 @@ export default function ReceivedRequests({ currentUserId }: { currentUserId: num
   const router = useRouter();
 
   
-  // const API_URL = process.env.NEXT_PUBLIC_API_URL;
-  const API_URL = "http://localhost:5000";
+  const API_URL = process.env.NEXT_PUBLIC_API_URL;
+  // const API_URL = "http://localhost:5000";
 
   // Generate frontend room code
   const generateRoomCode = () => Math.floor(100000 + Math.random() * 900000).toString();
@@ -95,6 +95,7 @@ export default function ReceivedRequests({ currentUserId }: { currentUserId: num
             receiverId: req.from_user_id,
             message: `Your skill exchange request for "${req.requested_skill_title}" was ACCEPTED. A private chat room is now available.`,
             metadata: req.exchange_id,
+
             roomCode: newRoom,
           }),
         });

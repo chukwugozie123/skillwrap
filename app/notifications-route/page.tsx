@@ -22,8 +22,8 @@ export default function NotificationList() {
 
   const unreadCount = notif.filter((n) => !n.read).length;
 
-  // const API_URL = process.env.NEXT_PUBLIC_API_URL;
-  const API_URL = 'http://localhost:5000'
+  const API_URL = process.env.NEXT_PUBLIC_API_URL;
+  // const API_URL = 'http://localhost:5000'
 
   // ================= LOAD NOTIFICATIONS =================
   const loadNotifs = useCallback(async () => {

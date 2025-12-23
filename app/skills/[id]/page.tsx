@@ -30,8 +30,8 @@ export default function SkillDetailsPage() {
   const [error, setError] = useState("");
   const [liked, setLiked] = useState(false);
 
-  const API_URL = "http://localhost:5000";
-    // const API_URL = process.env.NEXT_PUBLIC_API_URL as string;
+  // const API_URL = "http://localhost:5000";
+    const API_URL = process.env.NEXT_PUBLIC_API_URL as string;
 
   useEffect(() => {
     async function fetchSkill() {

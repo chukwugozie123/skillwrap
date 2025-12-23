@@ -20,8 +20,8 @@ export default function ExchangePage() {
   const [loading, setLoading] = useState(true);
   const [fetchingSkills, setFetchingSkills] = useState(true);
 
-  // const API_URL = useMemo(() => process.env.NEXT_PUBLIC_API_URL, []);
-  const API_URL = 'http://localhost:5000';
+  const API_URL = useMemo(() => process.env.NEXT_PUBLIC_API_URL, []);
+  // const API_URL = 'http://localhost:5000';
 
   // ================= AUTH CHECK =================
   useEffect(() => {

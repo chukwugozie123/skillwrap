@@ -16,6 +16,9 @@ export default function UploadPic() {
   const [message, setMessage] = useState("");
   const [loading, setLoading] = useState(false);
 
+
+  const API_URL = process.env.NEXT_PUBLIC_API_URL 
+
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
 
@@ -32,7 +35,7 @@ export default function UploadPic() {
       setLoading(true);
       setMessage("Uploading skill... ⏳");
 
-      const res = await fetch("http://localhost:5000/create-skill", {
+      const res = await fetch(`${API_URL}/create-skill`, {
         method: "POST",
         body: formData,
         credentials: "include",

@@ -28,8 +28,8 @@ export default function RequestPage() {
   const [popup, setPopup] = useState(false);
   const [loadingNotif, setLoadingNotif] = useState(false);
 
-    // const API_URL = process.env.NEXT_PUBLIC_API_URL;
-  const API_URL = "http://localhost:5000";
+    const API_URL = process.env.NEXT_PUBLIC_API_URL;
+  // const API_URL = "http://localhost:5000";
 
   // ✅ Load Requests
   useEffect(() => {
