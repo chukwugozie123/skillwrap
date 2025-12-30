@@ -19,6 +19,9 @@ type ExchangeRequest = {
   created_at: string;
 };
 
+// Move API_URL outside the component to avoid dependency warnings
+const API_URL = process.env.NEXT_PUBLIC_API_URL;
+
 export default function ReceivedRequests({ currentUserId }: { currentUserId: number }) {
   const [requests, setRequests] = useState<ExchangeRequest[]>([]);
   const [loading, setLoading] = useState(true);
@@ -27,10 +30,6 @@ export default function ReceivedRequests({ currentUserId }: { currentUserId: num
   const [acceptedReqId, setAcceptedReqId] = useState<string | null>(null);
 
   const router = useRouter();
-
-  
-  const API_URL = process.env.NEXT_PUBLIC_API_URL;
-  // const API_URL = "http://localhost:5000";
 
   // Generate frontend room code
   const generateRoomCode = () => Math.floor(100000 + Math.random() * 900000).toString();
@@ -66,11 +65,10 @@ export default function ReceivedRequests({ currentUserId }: { currentUserId: num
       autoClose: 1500,
       transition: Slide,
       theme: "dark",
-      onClose: () => router.push(`/chat/${req.exchange_id}`), // redirect after toast
+      onClose: () => router.push(`/chat/${req.exchange_id}`),
     });
 
     try {
-      // Update exchange status
       const res = await fetch(`${API_URL}/update-exchange-status`, {
         method: "PATCH",
         credentials: "include",
@@ -85,7 +83,6 @@ export default function ReceivedRequests({ currentUserId }: { currentUserId: num
       const data = await res.json();
 
       if (data.success) {
-        // Send notification
         await fetch(`${API_URL}/send-notification`, {
           method: "POST",
           credentials: "include",
@@ -95,12 +92,9 @@ export default function ReceivedRequests({ currentUserId }: { currentUserId: num
             receiverId: req.from_user_id,
             message: `Your skill exchange request for "${req.requested_skill_title}" was ACCEPTED. A private chat room is now available.`,
             metadata: req.exchange_id,
-
             roomCode: newRoom,
           }),
         });
-
-        console.log(req.exchange_id);
 
         showPopup(true);
 

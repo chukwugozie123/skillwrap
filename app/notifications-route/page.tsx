@@ -23,7 +23,6 @@ export default function NotificationList() {
   const unreadCount = notif.filter((n) => !n.read).length;
 
   const API_URL = process.env.NEXT_PUBLIC_API_URL;
-  // const API_URL = 'http://localhost:5000'
 
   // ================= LOAD NOTIFICATIONS =================
   const loadNotifs = useCallback(async () => {
@@ -34,7 +33,7 @@ export default function NotificationList() {
         credentials: "include",
       });
       const data = await res.json();
-      console.log(data.notifications, notif, 'sdasdsa')
+      console.log(data.notifications, "notifications loaded");
       if (data.success) setNotif(data.notifications);
     } catch (err) {
       console.error(err);
@@ -77,7 +76,7 @@ export default function NotificationList() {
   // ================= EFFECT =================
   useEffect(() => {
     loadNotifs();
-  }, [loadNotifs]); // ✅ include loadNotifs as dependency
+  }, [loadNotifs]);
 
   return (
     <div className="p-6 bg-[#020417]/50 rounded-3xl border border-white/10 backdrop-blur-3xl shadow-2xl max-w-4xl mx-auto">
@@ -135,12 +134,6 @@ export default function NotificationList() {
                     </button>
                   </div>
                 )}
-
-                            <Link href={`chat/${n.exchange_id}`}>
-                    <button className="mt-4 w-full px-4 py-2 text-sm rounded-lg bg-blue-600 hover:bg-blue-500 transition-all shadow-md font-semibold">
-                      Start Chatting
-                    </button>
-                  </Link>
 
                 {/* CHAT BUTTON */}
                 {isAccepted && n.exchange_id && (

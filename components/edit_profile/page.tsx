@@ -1,16 +1,30 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, FormEvent } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 
-export default function EditProfile({ initialProfile }) {
+// Define the profile type
+type Profile = {
+  fullname: string;
+  username: string;
+  email: string;
+};
+
+// Define props type
+interface EditProfileProps {
+  initialProfile: Profile;
+}
+
+export default function EditProfile({ initialProfile }: EditProfileProps) {
   const [fullname, setFullname] = useState(initialProfile.fullname);
   const [username, setUsername] = useState(initialProfile.username);
   const [email, setEmail] = useState(initialProfile.email);
   const [message, setMessage] = useState("");
 
-  async function handleSubmit(e) {
+  const router = useRouter();
+
+  async function handleSubmit(e: FormEvent<HTMLFormElement>) {
     e.preventDefault();
 
     try {
@@ -23,7 +37,6 @@ export default function EditProfile({ initialProfile }) {
 
       const data = await res.json();
 
-
       if (res.ok) {
         setMessage("Profile updated!");
       } else {
@@ -35,13 +48,11 @@ export default function EditProfile({ initialProfile }) {
     }
   }
 
-        const router = useRouter()
-              useEffect(()=>{
-          if (message === "Profile updated!") {
-           router.push("/profile") 
-          }
-        }, [message, router])
-
+  useEffect(() => {
+    if (message === "Profile updated!") {
+      router.push("/profile");
+    }
+  }, [message, router]);
 
   return (
     <div className="flex items-center justify-center min-h-screen bg-gradient-to-br from-[#0a0f1c] via-[#0f1e3a] to-[#0a0f1c] text-white relative overflow-hidden">
@@ -51,7 +62,6 @@ export default function EditProfile({ initialProfile }) {
 
       {/* main glass card */}
       <div className="relative w-full max-w-md p-8 rounded-2xl shadow-2xl backdrop-blur-2xl bg-white/10 border border-white/10">
-        {/* subtle lighting layer */}
         <div className="absolute inset-0 rounded-2xl bg-gradient-to-br from-purple-500/10 via-transparent to-cyan-500/10 blur-xl"></div>
 
         <h1 className="text-3xl font-semibold text-center text-cyan-100 mb-6 tracking-wide">
@@ -68,10 +78,7 @@ export default function EditProfile({ initialProfile }) {
           </p>
         )}
 
-        <form
-          onSubmit={handleSubmit}
-          className="flex flex-col gap-5 relative z-10"
-        >
+        <form onSubmit={handleSubmit} className="flex flex-col gap-5 relative z-10">
           <input
             type="text"
             value={fullname}
@@ -101,7 +108,10 @@ export default function EditProfile({ initialProfile }) {
             Save Changes
           </button>
         </form>
-        <Link href={"/dashboard"}><button>Go back</button></Link>
+
+        <Link href={"/dashboard"}>
+          <button className="mt-4 text-sm text-cyan-400 hover:underline">Go back</button>
+        </Link>
       </div>
     </div>
   );

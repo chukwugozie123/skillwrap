@@ -1,3 +1,4 @@
+// ./app/layout.tsx
 import type { Metadata } from "next";
 import Navbar from "@/components/navbar/page";
 import Footer from "@/components/footer/page";
@@ -18,17 +19,16 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en">
-      <body className="bg-white text-black">
+      <body className="bg-white text-black min-h-screen flex flex-col">
         {/* Navbar */}
         <Navbar />
 
-        {/* Main content */}
-        <main>{children}</main>
+        {/* Main content grows to fill remaining space */}
+        <main className="flex-1">{children}</main>
 
         {/* Footer */}
-        {/* <Footer /> */}
+        <Footer />
       </body>
     </html>
   );
 }
-

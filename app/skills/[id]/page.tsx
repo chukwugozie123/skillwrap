@@ -15,7 +15,6 @@ type Skill = {
   level: string;
   skill_img: string;
   created_at: string;
-
   user_id: number;
   username: string;
   fullname: string;
@@ -30,33 +29,25 @@ export default function SkillDetailsPage() {
   const [error, setError] = useState("");
   const [liked, setLiked] = useState(false);
 
-  // const API_URL = "http://localhost:5000";
-    const API_URL = process.env.NEXT_PUBLIC_API_URL as string;
+  const API_URL = process.env.NEXT_PUBLIC_API_URL as string;
 
   useEffect(() => {
     async function fetchSkill() {
       try {
-        const res = await fetch(`${API_URL}/skills/${id}`, {
-          cache: "no-store",
-        });
-
+        const res = await fetch(`${API_URL}/skills/${id}`, { cache: "no-store" });
         if (!res.ok) throw new Error("Failed to fetch skill");
-
         const data = await res.json();
         setSkill(data.skill);
       } catch (err: unknown) {
-        if (err instanceof Error) {
-          setError(err.message);
-        } else {
-          setError("Unknown error occurred");
-        }
+        if (err instanceof Error) setError(err.message);
+        else setError("Unknown error occurred");
       } finally {
         setLoading(false);
       }
     }
 
     if (id) fetchSkill();
-  }, [id]);
+  }, [id, API_URL]); // ✅ added API_URL
 
   if (loading) {
     return (
@@ -78,7 +69,6 @@ export default function SkillDetailsPage() {
 
   return (
     <div className="relative min-h-screen px-6 py-16 bg-gradient-to-br from-[#020617] via-[#071a36] to-[#020617] text-white overflow-hidden font-['Josefin_Sans']">
-
       {/* Glow Orbs */}
       <div className="absolute -top-40 -left-40 w-[400px] h-[400px] bg-blue-700/30 blur-[160px]" />
       <div className="absolute bottom-0 right-0 w-[400px] h-[400px] bg-purple-700/20 blur-[160px]" />
@@ -134,18 +124,15 @@ export default function SkillDetailsPage() {
 
           {/* Actions */}
           <div className="flex flex-col sm:flex-row gap-4 mt-10">
-                     <button
-                onClick={() => {
-                  sessionStorage.setItem(
-                    "selectedSkill",
-                    JSON.stringify(skill)
-                  );
-                  router.push("/exchange_skill");
-                }}
-                              className="flex-1 py-3 rounded-xl bg-gradient-to-r from-cyan-500 to-blue-600 font-semibold shadow-lg hover:opacity-90 transition"
-              >
-                🤝 Request Exchange
-              </button>
+            <button
+              onClick={() => {
+                sessionStorage.setItem("selectedSkill", JSON.stringify(skill));
+                router.push("/exchange_skill");
+              }}
+              className="flex-1 py-3 rounded-xl bg-gradient-to-r from-cyan-500 to-blue-600 font-semibold shadow-lg hover:opacity-90 transition"
+            >
+              🤝 Request Exchange
+            </button>
 
             <button
               onClick={() => router.back()}

@@ -28,8 +28,7 @@ export default function RequestPage() {
   const [popup, setPopup] = useState(false);
   const [loadingNotif, setLoadingNotif] = useState(false);
 
-    const API_URL = process.env.NEXT_PUBLIC_API_URL;
-  // const API_URL = "http://localhost:5000";
+  const API_URL = process.env.NEXT_PUBLIC_API_URL;
 
   // ✅ Load Requests
   useEffect(() => {
@@ -47,7 +46,7 @@ export default function RequestPage() {
     }
 
     loadRequests();
-  }, []);
+  }, [API_URL]); // ✅ added API_URL to dependency array
 
   // ✅ Open popup + load notification for a specific exchange
   async function handleDetails(req: RequestItem) {
@@ -61,7 +60,6 @@ export default function RequestPage() {
       });
       const data = await res.json();
 
-      // Find notification where metadata matches exchange_id
       const notif: Notification | undefined = data.notifications?.find(
         (n: Notification) => Number(n.metadata) === Number(req.exchange_id)
       );
@@ -75,11 +73,10 @@ export default function RequestPage() {
     }
   }
 
-  // Copy room code to clipboard
   const copyCodeToClipboard = () => {
     if (selectedNotif?.roomid) {
       navigator.clipboard.writeText(String(selectedNotif.roomid));
-      alert("Room ID copied!"); // simple feedback
+      alert("Room ID copied!");
     }
   };
 
@@ -105,7 +102,6 @@ export default function RequestPage() {
       {popup && (
         <div className="fixed inset-0 bg-black/60 backdrop-blur-xl flex justify-center items-center z-50 px-4">
           <div className="w-full max-w-md bg-white/10 border border-white/20 rounded-2xl p-8 shadow-xl relative animate-fadeIn">
-            {/* Close Button */}
             <button
               onClick={() => setPopup(false)}
               className="absolute top-4 right-4 text-gray-300 hover:text-white"
@@ -144,7 +140,6 @@ export default function RequestPage() {
                   </span>
                 </p>
 
-                {/* Go to chat */}
                 {selectedNotif.roomid && (
                   <Link
                     href="/chat"
