@@ -1,7 +1,7 @@
 "use client";
 
-import { useRouter } from "next/navigation";
 import { useEffect } from "react";
+import { useRouter } from "next/navigation";
 import { useFormState, useFormStatus } from "react-dom";
 
 interface FormState {
@@ -10,26 +10,41 @@ interface FormState {
   success?: boolean;
 }
 
-async function FormSubmit(prevState: FormState, formData: FormData) {
-  const data = Object.fromEntries(formData.entries()) as {
-    emailOrUsername: string;
-    password: string;
-  };
-
-  const res = await fetch("http://localhost:5000/auth/login", {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    credentials: "include", // 🔑 sends + saves the session cookie
-    body: JSON.stringify(data),
-  });
-
-  return res.json();
-}
-
 function LoginForm() {
-  const [state, formAction] = useFormState<FormState>(FormSubmit, { message: "" });
-  const { pending } = useFormStatus();
   const router = useRouter();
+
+  // Use useFormState with a single-argument callback
+  const [state, formAction] = useFormState<FormState>(async (prevState) => {
+    const form = document.querySelector("form") as HTMLFormElement;
+    if (!form) return prevState;
+
+    const formData = new FormData(form);
+    const data = Object.fromEntries(formData.entries()) as {
+      emailOrUsername: string;
+      password: string;
+    };
+
+    try {
+      const res = await fetch("http://localhost:5000/auth/login", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        credentials: "include",
+        body: JSON.stringify(data),
+      });
+
+      const json = await res.json();
+
+      if (json.success) {
+        return { ...prevState, success: true, message: json.message || "" };
+      } else {
+        return { ...prevState, success: false, error: json.message || "Login failed" };
+      }
+    } catch (err) {
+      return { ...prevState, success: false, error: "Server error" };
+    }
+  }, { message: "" });
+
+  const { pending } = useFormStatus();
 
   useEffect(() => {
     if (state?.success) {
