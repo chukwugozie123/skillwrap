@@ -46,7 +46,7 @@ export default function Skills() {
     };
 
     fetchSkills();
-  }, []);
+  }, [API_URL]);
 
   /* ================= UI ================= */
   return (
