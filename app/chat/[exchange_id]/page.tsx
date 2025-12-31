@@ -1,399 +1,286 @@
-// "use client";
-
-// import { useEffect, useState, useRef } from "react";
-// import { socket } from "@/lib/socketClient";
-// import Link from "next/link";
-// import ChatForm from "@/components/chatComponent1/page";
-// import ChatMessage from "@/components/chatComponent2/page";
-
-// // Countdown timer component
-// function Countdown({ endTime }: { endTime: number }) {
-//   const [timeLeft, setTimeLeft] = useState(endTime - Date.now());
-
-//   useEffect(() => {
-//     const interval = setInterval(() => {
-//       setTimeLeft(endTime - Date.now());
-//     }, 1000);
-
-//     return () => clearInterval(interval);
-//   }, [endTime]);
-
-//   if (timeLeft <= 0) return <span className="text-red-400 font-semibold">Time's up!</span>;
-
-//   const minutes = Math.floor(timeLeft / 1000 / 60);
-//   const seconds = Math.floor((timeLeft / 1000) % 60);
-
-//   return (
-//     <span className="text-cyan-300 font-semibold">{minutes.toString().padStart(2,'0')}:{seconds.toString().padStart(2,'0')}</span>
-//   );
-// }
-
-// export default function HomePage() {
-//   const [room, setRoom] = useState("");
-//   const [joined, setJoined] = useState(false);
-//   const [username, setUsername] = useState("");
-//   const [messages, setMessages] = useState<any[]>([]);
-//   const [popup, setPopup] = useState(false);
-//   const [exchangeInfo, setExchangeInfo] = useState<{topic: string, duration: number, users: number} | null>(null);
-//   const [timerEnd, setTimerEnd] = useState<number | null>(null);
-
-//   const storageKey = room ? `chat_${room}` : "";
-
-// useEffect(() => {
-//   if (!room || typeof window === "undefined") return;
-
-//   const stored = localStorage.getItem(storageKey);
-//   if (stored) {
-//     try {
-//       const parsed = JSON.parse(stored);
-//       if (Array.isArray(parsed)) {
-//         setMessages(parsed);
-//       } else {
-//         console.warn("Stored chat is not an array. Resetting...");
-//         setMessages([]);
-//         localStorage.removeItem(storageKey);
-//       }
-//     } catch (err) {
-//       console.error("Failed to parse stored chat history", err);
-//       setMessages([]);
-//       localStorage.removeItem(storageKey);
-//     }
-//   }
-// }, [room]);
-
-
-//   // Load chat session if any
-//   useEffect(() => {
-//     if (typeof window === "undefined") return;
-
-//     const sessionKeys = Object.keys(localStorage).filter(k => k.startsWith("chat_"));
-//     if (sessionKeys.length > 0) {
-//       const lastChat = localStorage.getItem(sessionKeys[0]);
-//       if (lastChat) {
-//         try {
-//           const { username, room, exchangeInfo, timerEnd } = JSON.parse(lastChat);
-//           if (username && room) {
-//             setUsername(username);
-//             setRoom(room);
-//             setJoined(true);
-//             setExchangeInfo(exchangeInfo);
-//             setTimerEnd(timerEnd);
-//             socket.emit("join-room", { room, username });
-//           }
-//         } catch (err) {
-//           console.error("Invalid chat session data", err);
-//         }
-//       }
-//     }
-//   }, []);
-
-//   // Load messages from localStorage
-//   useEffect(() => {
-//     if (!room) return;
-//     const stored = localStorage.getItem(storageKey);
-//     if (stored) {
-//       try {
-//         setMessages(JSON.parse(stored));
-//       } catch {
-//         localStorage.removeItem(storageKey);
-//       }
-//     }
-//   }, [room]);
-
-//   // Socket listeners
-//   useEffect(() => {
-//     if (!room) return;
-
-//     const handleMessage = (data: any) => {
-//       setMessages(prev => {
-//         const updated = [...prev, data];
-//         localStorage.setItem(storageKey, JSON.stringify(updated));
-//         return updated;
-//       });
-//     };
-
-//     const handleUserJoined = (data: { message: string; timestamp: string }) => {
-//       setMessages(prev => [...prev, { sender: "system", message: data.message, timestamp: data.timestamp }]);
-//     };
-
-//     const handleUserLeft = (data: { message: string; timestamp: string }) => {
-//       setMessages(prev => [...prev, { sender: "system", message: data.message, timestamp: data.timestamp }]);
-//     };
-
-//     socket.on("message", handleMessage);
-//     socket.on("user_joined", handleUserJoined);
-//     socket.on("user_left", handleUserLeft);
-
-//     return () => {
-//       socket.off("message", handleMessage);
-//       socket.off("user_joined", handleUserJoined);
-//       socket.off("user_left", handleUserLeft);
-//     };
-//   }, [room]);
-
-//   // Save popup info to localStorage
-//   const saveInfo = (topic: string, duration: number, users: number) => {
-//     const endTime = Date.now() + duration * 60 * 1000; // duration in minutes
-//     const info = { topic, duration, users };
-//     setExchangeInfo(info);
-//     setTimerEnd(endTime);
-//     setPopup(false);
-
-//     localStorage.setItem(
-//       `chat_${room}`,
-//       JSON.stringify({ username, room, exchangeInfo: info, timerEnd: endTime })
-//     );
-//   };
-
-//   // Join room
-//   const handleJoin = () => {
-//     if (!room || !username) return;
-
-//     // Check if first user
-//     const firstUser = !localStorage.getItem(`popup_${room}`);
-//     if (firstUser) {
-//       setPopup(true);
-//       localStorage.setItem(`popup_${room}`, "shown");
-//     }
-
-//     setJoined(true);
-//     socket.emit("join-room", { room, username });
-
-//     // Save session
-//     localStorage.setItem(`chat_${room}`, JSON.stringify({ username, room, exchangeInfo, timerEnd }));
-//   };
-
-//   // Send message
-//   const handleMessage = (message: string) => {
-//     if (!message.trim()) return;
-//     const timestamp = new Date().toISOString();
-//     const data = { sender: username, message, timestamp };
-//     setMessages(prev => {
-//       const updated = [...prev, data];
-//       localStorage.setItem(storageKey, JSON.stringify(updated));
-//       return updated;
-//     });
-//     socket.emit("message", { room, ...data });
-//   };
-
-//   return (
-//     <div className="flex flex-col items-center min-h-screen bg-gradient-to-br from-[#020617] via-[#0b1220] to-[#1e1b4b] text-white">
-//       {!joined ? (
-//         <div className="mt-20 p-10 bg-white/10 rounded-3xl backdrop-blur-md w-full max-w-md text-center border border-white/10 shadow-lg shadow-purple-900/40">
-//           <h1 className="text-4xl font-bold bg-gradient-to-r from-blue-400 via-purple-400 to-pink-400 bg-clip-text text-transparent">Join Chat Room</h1>
-//           <input value={username} onChange={e => setUsername(e.target.value)} placeholder="Username" className="w-full mt-5 px-4 py-3 rounded-full bg-white/5 border border-white/20 text-white focus:outline-none focus:ring-2 focus:ring-purple-500"/>
-//           <input value={room} onChange={e => setRoom(e.target.value)} placeholder="Room code" className="w-full mt-3 px-4 py-3 rounded-full bg-white/5 border border-white/20 text-white focus:outline-none focus:ring-2 focus:ring-blue-500"/>
-//           <button onClick={handleJoin} className="w-full mt-5 py-3 bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-500 hover:to-pink-500 rounded-full shadow-lg font-semibold">Enter Chat 🚀</button>
-//           <Link href="/dashboard"><button className="mt-3 text-sm underline">Go back</button></Link>
-//         </div>
-//       ) : (
-//         <div className="w-full max-w-3xl mt-10 flex flex-col bg-white/10 rounded-3xl border border-white/10 p-6 backdrop-blur-xl shadow-lg shadow-purple-900/40">
-//           {/* Header */}
-//           <div className="flex justify-between items-center mb-4">
-//             <h2 className="text-xl font-semibold text-blue-400">Room: {room}</h2>
-//             {exchangeInfo && timerEnd && <Countdown endTime={timerEnd} />}
-//           </div>
-
-//           {exchangeInfo && <p className="text-cyan-300 mb-2 font-medium">Topic: {exchangeInfo.topic}</p>}
-
-//           {/* Messages */}
-//           <div className="flex-1 overflow-y-auto max-h-[400px] space-y-3 mb-4 scrollbar-thin scrollbar-thumb-blue-600/30 scrollbar-track-transparent">
-//             {messages.map((msg, i) => (
-//               <ChatMessage key={i} sender={msg.sender} message={msg.message} timestamp={msg.timestamp} isOwnMessage={msg.sender === username} />
-//             ))}
-//           </div>
-
-//           <ChatForm onSendMessage={handleMessage} />
-//         </div>
-//       )}
-
-//       {/* Popup for first user */}
-//       {popup && (
-//         <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-50">
-//           <div className="bg-gradient-to-b from-blue-900/60 to-blue-950/40 border border-blue-400/30 backdrop-blur-2xl p-8 rounded-3xl shadow-[0_0_40px_rgba(0,150,255,0.3)] w-[90%] max-w-sm text-center relative">
-//             <button onClick={() => setPopup(false)} className="absolute top-3 right-3 text-white/70 hover:text-white text-xl">✕</button>
-//             <h2 className="text-2xl font-bold mb-4 text-cyan-300">Start Your Skill Exchange</h2>
-//             <input id="topic" type="text" placeholder="Topic of Exchange" className="w-full mb-3 px-4 py-2 rounded-xl bg-white/10 text-white placeholder:text-gray-400 focus:outline-none"/>
-//             <input id="duration" type="number" placeholder="Duration in minutes" className="w-full mb-3 px-4 py-2 rounded-xl bg-white/10 text-white placeholder:text-gray-400 focus:outline-none"/>
-//             <input id="users" type="number" placeholder="Number of people" className="w-full mb-4 px-4 py-2 rounded-xl bg-white/10 text-white placeholder:text-gray-400 focus:outline-none"/>
-//             <button className="w-full py-2 bg-blue-600 rounded-xl font-semibold hover:opacity-90" onClick={() => saveInfo(
-//               (document.getElementById("topic") as HTMLInputElement).value,
-//               Number((document.getElementById("duration") as HTMLInputElement).value),
-//               Number((document.getElementById("users") as HTMLInputElement).value)
-//             )}>Start Exchange</button>
-//           </div>
-//         </div>
-//       )}
-//     </div>
-//   );
-// }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-// // // "use client";
-
-// // // import { useEffect, useState } from "react";
-// // // import Link from "next/link";
-// // // import { socket } from "@/lib/socketClient";
-// // // import { useRouter } from "next/navigation";
-
-// // // interface RoomItem {
-// // //   roomId: string;
-// // //   lastMessage: string;
-// // //   lastTimestamp: string;
-// // //   unread: number;
-// // // }
-
-// // // export default function ChatHistoryPage() {
-// // //   const [rooms, setRooms] = useState<RoomItem[]>([]);
-// // //   const [roomCode, setRoomCode] = useState("");
-// // //   const router = useRouter();
-
-// // //   useEffect(() => {
-// // //     socket.emit("get_user_rooms");
-
-// // //     socket.on("user_rooms", (data) => {
-// // //       setRooms(data);
-// // //     });
-
-// // //     return () => {
-// // //       socket.off("user_rooms");
-// // //     };
-// // //   }, []);
-
-// // //   const joinByCode = () => {
-// // //     if (!roomCode.trim()) return;
-
-// // //     router.push(`/chats/${roomCode}`);
-// // //   };
-
-// // //   return (
-// // //     <div className="min-h-screen bg-[#0f1629] text-white p-6">
-// // //       <h1 className="text-3xl font-bold mb-6">Chat History</h1>
-
-// // //       {/* 🔥 NO CHAT HISTORY — ASK USER TO ENTER A ROOM CODE */}
-// // //       {rooms.length === 0 ? (
-// // //         <div className="bg-white/5 p-6 rounded-xl border border-white/10">
-// // //           <p className="text-gray-300 mb-4">
-// // //             You have no chats yet. Enter a room code to start chatting.
-// // //           </p>
-
-// // //           <input
-// // //             value={roomCode}
-// // //             onChange={(e) => setRoomCode(e.target.value)}
-// // //             placeholder="Enter Room Code"
-// // //             className="w-full px-4 py-2 rounded-lg bg-white/10 border border-white/20 mb-3"
-// // //           />
-
-// // //           <button
-// // //             onClick={joinByCode}
-// // //             className="w-full py-2 bg-blue-600 rounded-lg">
-// // //             Join Room
-// // //           </button>
-// // //         </div>
-// // //       ) : (
-// // //         <div className="space-y-4">
-// // //           {rooms.map((room) => (
-// // //             <Link key={room.roomId} href={`/chat/${room.roomId}`}>
-// // //               <div className="p-5 rounded-xl bg-white/5 border border-white/10 hover:bg-white/10 transition cursor-pointer flex items-center justify-between">
-// // //                 <div>
-// // //                   <h2 className="text-lg font-semibold">{room.roomId}</h2>
-// // //                   <p className="text-gray-400 text-sm">{room.lastMessage}</p>
-// // //                 </div>
-
-// // //                 <div className="text-right">
-// // //                   <p className="text-xs text-gray-400">{room.lastTimestamp}</p>
-// // //                   {room.unread > 0 && (
-// // //                     <span className="mt-1 inline-block bg-blue-500 px-2 py-1 rounded-full text-xs">
-// // //                       {room.unread}
-// // //                     </span>
-// // //                   )}
-// // //                 </div>
-// // //               </div>
-// // //             </Link>
-// // //           ))}
-// // //         </div>
-// // //       )}
-// // //     </div>
-// // //   );
-// // // }
-
-
-
-
-
-
-
-
-
-// // // firstly upgrade style of the popup and make it look attractive relative to dark blue galssmorphism and when th user fills in thoes input store them in local storage and when the both user eneters a room show the countdown of the minutes the putt like do countdown from that time to 00:00:00 seconds 
-// // // do u understand and also put the tittle or topic of the excange in the chat room so they can see it and also upgrade style of all the whole chat componenet when a user enter a roo let the other user see that a user has enter thta room 
-// // // and tell me what u did and what u added to thee code
-
-// // // do u understand and can you do it???????????
-// // // if yes do iy aand i will sennd all the chat componene so u can upgrade it very very well
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+"use client";
+
+import { useEffect, useState, useRef, useCallback } from "react";
+import { useRouter, useParams } from "next/navigation";
+import { socket } from "@/lib/socketClient";
+import ChatForm from "@/components/chatComponent1/page";
+import ChatMessage from "@/components/chatComponent2/page";
+
+interface Message {
+  sender: string;
+  message: string;
+  timestamp: string;
+  system?: boolean;
+  imageUrl?: string;
+}
+
+interface ExchangeDetails {
+  exchange_id: number;
+  from_user_id: number;
+  from_username: string;
+  to_user_id: number;
+  to_username: string;
+  skill_offered_title: string;
+  skill_requested_title: string;
+  exchange_status: string;
+  created_at: string;
+  exchange_start_time?: string;
+  exchange_duration?: number;
+}
+
+// const API_URL = "http://localhost:5000";
+const API_URL = process.env.NEXT_PUBLIC_API_URL;
+
+export default function ChatPage() {
+  const [room, setRoom] = useState("");
+  const [joined, setJoined] = useState(false);
+  const [messages, setMessages] = useState<Message[]>([]);
+  const [username, setUsername] = useState("");
+  const [countdown, setCountdown] = useState("");
+  const [exchange, setExchange] = useState<ExchangeDetails | null>(null);
+  const [showDurationBtn, setShowDurationBtn] = useState(false);
+  const [quitPopup, setQuitPopup] = useState(false);
+
+  const bottomRef = useRef<HTMLDivElement>(null);
+  const countdownTimer = useRef<NodeJS.Timeout | null>(null);
+
+  const router = useRouter();
+  const params = useParams();
+  const { exchange_id } = params as { exchange_id: string };
+
+  /* ================= FETCH EXCHANGE ================= */
+  useEffect(() => {
+    const fetchExchange = async () => {
+      try {
+        const res = await fetch(`${API_URL}/exchange/${exchange_id}`, {
+          credentials: "include",
+        });
+        if (!res.ok) throw new Error();
+        const data = await res.json();
+        setExchange(data.exchange);
+      } catch {
+        router.push("/dashboard");
+      }
+    };
+
+    fetchExchange();
+  }, [exchange_id, router]);
+
+  /* ================= SCROLL ================= */
+  const scrollToBottom = () => {
+    bottomRef.current?.scrollIntoView({ behavior: "smooth" });
+  };
+
+  /* ================= MESSAGE HANDLER ================= */
+  const handleIncomingMessage = useCallback(
+    (msg: Message) => {
+      setMessages((prev) => {
+        const updated = [...prev, msg];
+        localStorage.setItem(`chatMessages_${room}`, JSON.stringify(updated));
+        return updated;
+      });
+      scrollToBottom();
+    },
+    [room]
+  );
+
+  /* ================= COUNTDOWN ================= */
+  const startCountdown = useCallback(
+    (startTimeISO: string, mins: number) => {
+      const endTime =
+        new Date(startTimeISO).getTime() + mins * 60 * 1000;
+
+      if (countdownTimer.current) clearInterval(countdownTimer.current);
+
+      countdownTimer.current = setInterval(() => {
+        const now = Date.now();
+        const diff = endTime - now;
+
+        if (diff <= 0) {
+          clearInterval(countdownTimer.current!);
+          setCountdown("00:00:00");
+          router.push(`/review/${exchange_id}`);
+          return;
+        }
+
+        const h = Math.floor(diff / 3600000);
+        const m = Math.floor((diff % 3600000) / 60000);
+        const s = Math.floor((diff % 60000) / 1000);
+
+        setCountdown(
+          `${String(h).padStart(2, "0")}:${String(m).padStart(
+            2,
+            "0"
+          )}:${String(s).padStart(2, "0")}`
+        );
+      }, 1000);
+    },
+    [exchange_id, router]
+  );
+
+  /* ================= AUTO START IF EXISTS ================= */
+  useEffect(() => {
+    if (
+      exchange?.exchange_start_time &&
+      exchange?.exchange_duration
+    ) {
+      startCountdown(
+        exchange.exchange_start_time,
+        exchange.exchange_duration
+      );
+      setShowDurationBtn(false);
+    } else {
+      setShowDurationBtn(true);
+    }
+  }, [exchange, startCountdown]);
+
+  /* ================= SOCKET LISTENERS ================= */
+  useEffect(() => {
+    socket.on("message", handleIncomingMessage);
+
+    socket.on("start_exchange", (data) => {
+      startCountdown(data.startTime, data.duration);
+      setShowDurationBtn(false);
+    });
+
+    return () => {
+      socket.off("message", handleIncomingMessage);
+      socket.off("start_exchange");
+      if (countdownTimer.current) clearInterval(countdownTimer.current);
+    };
+  }, [handleIncomingMessage, startCountdown]);
+
+  /* ================= JOIN ROOM ================= */
+  const handleJoin = () => {
+    if (!username || !room || !exchange) return;
+
+    if (
+      username !== exchange.from_username &&
+      username !== exchange.to_username
+    ) {
+      alert("You are not allowed in this chat");
+      return;
+    }
+
+    socket.emit("join-room", { room, username });
+    setJoined(true);
+  };
+
+  /* ================= SET DURATION ================= */
+  const handleSetDuration = async () => {
+    const minsStr = prompt("Enter duration in minutes:");
+    if (!minsStr) return;
+
+    const mins = parseInt(minsStr);
+    if (isNaN(mins) || mins <= 0) return alert("Invalid duration");
+
+    const startTime = new Date().toISOString();
+
+    await fetch(`${API_URL}/exchange/set-duration`, {
+      method: "POST",
+      credentials: "include",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        exchange_id,
+        start_time: startTime,
+        duration: mins,
+      }),
+    });
+
+    socket.emit("start_exchange", {
+      room,
+      startTime,
+      duration: mins,
+    });
+
+    startCountdown(startTime, mins);
+    setShowDurationBtn(false);
+  };
+
+  /* ================= SEND MESSAGE ================= */
+  const handleMessage = (msg: string, imageUrl?: string) => {
+    if (!msg.trim() && !imageUrl) return;
+
+    const data: Message = {
+      sender: username,
+      message: msg,
+      timestamp: new Date().toISOString(),
+      imageUrl,
+    };
+
+    handleIncomingMessage(data);
+    socket.emit("message", { ...data, room });
+  };
+
+  /* ================= UI ================= */
+  return (
+    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-[#0c0e1a] via-[#1a1f38] to-[#2e2b5c] px-3">
+      {!joined ? (
+        <div className="w-full max-w-md bg-white/10 p-6 sm:p-10 rounded-3xl">
+          <h1 className="text-3xl text-center font-bold mb-6">Join Chat</h1>
+
+          <input
+            className="w-full p-3 mb-3 rounded-xl bg-white/10"
+            placeholder="Username"
+            value={username}
+            onChange={(e) => setUsername(e.target.value)}
+          />
+
+          <input
+            className="w-full p-3 mb-5 rounded-xl bg-white/10"
+            placeholder="Room"
+            value={room}
+            onChange={(e) => setRoom(e.target.value)}
+          />
+
+          <button
+            onClick={handleJoin}
+            className="w-full py-3 bg-blue-600 rounded-xl"
+          >
+            Enter Chat
+          </button>
+        </div>
+      ) : (
+        <div className="w-full max-w-3xl h-[90vh] flex flex-col bg-white/10 rounded-3xl">
+          <div className="p-4 border-b flex flex-col gap-2">
+            <h2 className="font-bold text-blue-300">Room: {room}</h2>
+
+            {countdown && (
+              <p className="text-yellow-400 font-bold">{countdown}</p>
+            )}
+
+            {!countdown && showDurationBtn && (
+              <button
+                onClick={handleSetDuration}
+                className="bg-green-600 px-4 py-2 rounded-xl w-full sm:w-fit"
+              >
+                Set Duration
+              </button>
+            )}
+          </div>
+
+          <div className="flex-1 overflow-y-auto p-3 space-y-2">
+            {messages.map((m, i) => (
+              <ChatMessage
+                key={i}
+                sender={m.sender}
+                message={m.message}
+                timestamp={m.timestamp}
+                isOwnMessage={m.sender === username}
+                imageUrl={m.imageUrl}
+              />
+            ))}
+            <div ref={bottomRef} />
+          </div>
+
+          <div className="p-3 border-t">
+            <ChatForm onSendMessage={handleMessage} />
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
 
 
 
@@ -417,10 +304,9 @@
 
 // "use client";
 
-// import { useEffect, useState, useRef } from "react";
+// import { useEffect, useState, useRef, useCallback } from "react";
+// import { useRouter, useParams } from "next/navigation";
 // import { socket } from "@/lib/socketClient";
-// import { useRouter } from "next/navigation";
-// import Link from "next/link";
 // import ChatForm from "@/components/chatComponent1/page";
 // import ChatMessage from "@/components/chatComponent2/page";
 
@@ -432,580 +318,148 @@
 //   imageUrl?: string;
 // }
 
-// interface ChatSession {
-//   username: string;
-//   room: string;
-//   topic?: string;
-//   duration?: number;
-//   people?: number;
-//   startTime?: string;
-// }
-
-// export default function HomePage() {
-//   const [room, setRoom] = useState<string>("");
-//   const [joined, setJoined] = useState(false);
-//   const [messages, setMessages] = useState<Message[]>([]);
-//   const [popupOpen, setPopupOpen] = useState(false);
-//   const [username, setUsername] = useState<string>("");
-//   const [topic, setTopic] = useState("");
-//   const [duration, setDuration] = useState(10); // minutes
-//   const [people, setPeople] = useState(2);
-//   const [countdown, setCountdown] = useState<string>("");
-
-//   const router = useRouter()
-
-//   const bottomRef = useRef<HTMLDivElement>(null);
-
-//   const storageSessionKey = `chatSession_${room}`; // first user
-//   const storageOtherSessionKey = `chatOtherSession_${room}`; // other users
-//   const storageMessagesKey = `chatMessages_${room}`;
-
-//   // ---------------- Load session from localStorage ----------------
-//   useEffect(() => {
-//     if (typeof window === "undefined") return;
-
-//     // Load first user or other user's session
-//     const sessionData =
-//       localStorage.getItem(storageSessionKey) ||
-//       localStorage.getItem(storageOtherSessionKey);
-
-//     if (sessionData) {
-//       try {
-//         const session: ChatSession = JSON.parse(sessionData);
-//         setUsername(session.username);
-//         setRoom(session.room);
-//         setTopic(session.topic || "");
-//         setDuration(session.duration || 10);
-//         setPeople(session.people || 2);
-//         setJoined(true);
-
-//         joinRoom(session.username, session.room);
-
-//         // If exchange already started, start countdown
-//         if (session.startTime) {
-//           startCountdown(session.startTime, session.duration || 10);
-//         }
-//       } catch {
-//         console.error("Invalid chat session data");
-//       }
-//     }
-//   }, []);
-
-//   // ---------------- Load messages ----------------
-//   useEffect(() => {
-//     if (!room) return;
-
-//     const stored = localStorage.getItem(storageMessagesKey);
-//     if (stored) {
-//       try {
-//         const parsed = JSON.parse(stored);
-//         if (Array.isArray(parsed)) setMessages(parsed);
-//         else localStorage.removeItem(storageMessagesKey);
-//       } catch {
-//         localStorage.removeItem(storageMessagesKey);
-//       }
-//     }
-//   }, [room]);
-
-//   // ---------------- Socket listeners ----------------
-//   useEffect(() => {
-//     if (!room) return;
-
-//     socket.on("message", handleIncomingMessage);
-//     socket.on("user_joined", handleUserJoined);
-//     socket.on("user_left", handleUserLeft);
-//     socket.on("start_exchange", handleStartExchange);
-
-//     return () => {
-//       socket.off("message", handleIncomingMessage);
-//       socket.off("user_joined", handleUserJoined);
-//       socket.off("user_left", handleUserLeft);
-//       socket.off("start_exchange", handleStartExchange);
-//     };
-//   }, [room]);
-
-//   // ---------------- Socket handlers ----------------
-//   function handleIncomingMessage(data: Message) {
-//     setMessages((prev) => {
-//       const updated = [...prev, data];
-//       localStorage.setItem(storageMessagesKey, JSON.stringify(updated));
-//       scrollToBottom();
-//       return updated;
-//     });
-//   }
-
-//   function handleUserJoined(data: { message: string; timestamp: string }) {
-//     const msg: Message = { ...data, sender: "system", system: true };
-//     setMessages((prev) => [...prev, msg]);
-//   }
-
-//   function handleUserLeft(data: { message: string; timestamp: string }) {
-//     const msg: Message = { ...data, sender: "system", system: true };
-//     setMessages((prev) => [...prev, msg]);
-//   }
-
-//   function handleStartExchange(data: { startTime: string; duration: number; topic: string }) {
-//     setTopic(data.topic);
-//     startCountdown(data.startTime, data.duration);
-//   }
-
-//   // ---------------- Join room ----------------
-//   function joinRoom(user: string, roomName: string) {
-//     socket.emit("join-room", { username: user, room: roomName });
-//   }
-
-//   function handleJoin() {
-//     if (!username || !room) return;
-
-//     const firstUser = !localStorage.getItem(storageSessionKey);
-
-//     if (firstUser) setPopupOpen(true);
-//     else {
-//       // Second user stores separately
-//       localStorage.setItem(storageOtherSessionKey, JSON.stringify({ username, room }));
-//     }
-
-//     joinRoom(username, room);
-//     setJoined(true);
-//   }
-
-//   // ---------------- Save popup info ----------------
-//   function savePopupInfo() {
-//     const startTime = new Date().toISOString();
-//     const session: ChatSession = { username, room, topic, duration, people, startTime };
-//     localStorage.setItem(storageSessionKey, JSON.stringify(session));
-//     setPopupOpen(false);
-
-//     // Notify server so other users can receive countdown info
-//     socket.emit("start_exchange", { room, topic, duration, startTime });
-//     startCountdown(startTime, duration);
-//   }
-
-//   // ---------------- Countdown ----------------
-//   function startCountdown(startTimeISO: string, mins: number) {
-//     const endTime = new Date(new Date(startTimeISO).getTime() + mins * 60000).getTime();
-
-//     const timer = setInterval(() => {
-//       const now = new Date().getTime();
-//       const distance = endTime - now;
-
-//       if (distance <= 0) {
-//         setCountdown("00:00:00");
-//         clearInterval(timer);
-//         return;
-//       }
-
-//       const hours = Math.floor(distance / (1000 * 60 * 60));
-//       const minutes = Math.floor((distance % (1000 * 60 * 60)) / (1000 * 60));
-//       const seconds = Math.floor((distance % (1000 * 60)) / 1000);
-
-//       setCountdown(
-//         `${String(hours).padStart(2, "0")}:${String(minutes).padStart(2, "0")}:${String(seconds).padStart(2, "0")}`
-//       );
-//     }, 1000);
-//   }
-
-//   // ---------------- Send message ----------------
-//   function handleMessage(msg: string, imageUrl?: string) {
-//     if (!msg.trim() && !imageUrl) return;
-//     const timestamp = new Date().toISOString();
-//     const data: Message = { sender: username, message: msg, timestamp, imageUrl };
-//     handleIncomingMessage(data);
-//     socket.emit("message", { ...data, room });
-//   }
-
-//   const scrollToBottom = () => bottomRef.current?.scrollIntoView({ behavior: "smooth" });
-
-//   function quitExchange() {
-//     localStorage.removeItem(storageSessionKey);
-//     localStorage.removeItem(storageOtherSessionKey);
-//     localStorage.removeItem(storageMessagesKey);
-//     socket.emit("leave-room", room);
-//     setJoined(false);
-//     setRoom("");
-//     setMessages([]);
-
-//     useEffect(() => {
-//       router.push('/review')
-//     }, [])
-//   }
-
-//   // ---------------- UI ----------------
-//   return (
-//     <div className="flex flex-col items-center min-h-screen bg-gradient-to-br from-[#020617] via-[#0b1220] to-[#1e1b4b] text-white pt-24">
-//       {!joined ? (
-//         <div className="bg-white/10 p-10 rounded-3xl border border-white/10 w-full max-w-md text-center backdrop-blur-md shadow-xl shadow-purple-900/40">
-//           <h1 className="text-4xl font-semibold bg-gradient-to-r from-blue-400 via-purple-400 to-pink-400 bg-clip-text text-transparent">
-//             Join a Chat Room
-//           </h1>
-//           <input
-//             type="text"
-//             value={username}
-//             onChange={(e) => setUsername(e.target.value)}
-//             placeholder="Enter your username..."
-//             className="w-full px-4 py-3 mt-5 rounded-full bg-white/5 border border-white/20 text-white placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-purple-500"
-//           />
-//           <input
-//             type="text"
-//             value={room}
-//             onChange={(e) => setRoom(e.target.value)}
-//             placeholder="Enter room name..."
-//             className="w-full px-4 py-3 mt-3 rounded-full bg-white/5 border border-white/20 text-white placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500"
-//           />
-//           <button
-//             onClick={handleJoin}
-//             className="w-full py-3 mt-5 bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-500 hover:to-pink-500 text-white font-semibold rounded-full shadow-lg shadow-purple-500/30 transition-all duration-300"
-//           >
-//             Enter Chat 🚀
-//           </button>
-//         </div>
-//       ) : (
-//         <div className="w-full max-w-3xl mx-auto flex flex-col bg-white/10 border border-white/10 rounded-3xl backdrop-blur-md shadow-lg shadow-purple-900/40">
-//           {/* Top Bar */}
-//           <div className="flex justify-between items-center p-4 border-b border-white/20">
-//             <div>
-//               <h2 className="text-xl font-semibold text-blue-400">Room: {room}</h2>
-//         <p className="text-gray-300 text-sm">Topic: {topic}</p>
-//               {countdown && <p className="text-gray-400 text-sm mt-1">Time left: {countdown}</p>}
-//             </div>
-//             <button
-//               onClick={quitExchange}
-//               className="px-4 py-2 bg-red-600 rounded-xl hover:bg-red-700 transition"
-//             >
-//               Quit Exchange
-//             </button>
-//           </div>
-
-//           {/* Messages */}
-//           <div className="flex-1 overflow-y-auto max-h-[400px] p-5 space-y-3 scrollbar-thin scrollbar-thumb-blue-600/30 scrollbar-track-transparent">
-//             {Array.isArray(messages) &&
-//               messages.map((msg, i) => (
-//                 <ChatMessage
-//                   key={i}
-//                   sender={msg.sender}
-//                   message={msg.message}
-//                   timestamp={msg.timestamp}
-//                   isOwnMessage={msg.sender === username}
-//                   imageUrl={msg.imageUrl}
-//                 />
-//               ))}
-//             <div ref={bottomRef} />
-//           </div>
-
-//           {/* Input */}
-//           <div className="p-4 border-t border-white/10">
-//             <ChatForm onSendMessage={handleMessage} />
-//           </div>
-//         </div>
-//       )}
-
-//       {/* Popup for first user */}
-//       {popupOpen && (
-//         <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-50">
-//           <div className="bg-gradient-to-b from-blue-900/60 to-blue-950/40 border border-blue-400/30 backdrop-blur-2xl p-8 rounded-3xl shadow-[0_0_40px_rgba(0,150,255,0.3)] w-[90%] max-w-sm text-center">
-//             <h2 className="text-xl font-semibold text-white mb-4">Start Exchange</h2>
-//             <input
-//               type="text"
-//               placeholder="Topic of exchange"
-//               value={topic}
-//               onChange={(e) => setTopic(e.target.value)}
-//               className="w-full mb-3 px-4 py-2 rounded-xl bg-white/10 border border-white/20 text-white focus:outline-none focus:ring-2 focus:ring-blue-400"
-//             />
-//             <input
-//               type="number"
-//               placeholder="Duration (minutes)"
-//               value={duration}
-//               onChange={(e) => setDuration(Number(e.target.value))}
-//               className="w-full mb-3 px-4 py-2 rounded-xl bg-white/10 border border-white/20 text-white focus:outline-none focus:ring-2 focus:ring-blue-400"
-//             />
-//             <input
-//               type="number"
-//               placeholder="Number of people"
-//               value={people}
-//               onChange={(e) => setPeople(Number(e.target.value))}
-//               className="w-full mb-5 px-4 py-2 rounded-xl bg-white/10 border border-white/20 text-white focus:outline-none focus:ring-2 focus:ring-blue-400"
-//             />
-//             <button
-//               onClick={savePopupInfo}
-//               className="px-6 py-2 bg-blue-600 rounded-xl hover:bg-blue-700 transition"
-//             >
-//               Start
-//             </button>
-//           </div>
-//         </div>
-//       )}
-//     </div>
-//   );
-// }
-
-// // the second user doesnt still get the countdown why ur not doing things right ooo let me paste what localstorages says and i have another task for you 
-// // first task1: when the count down reach 00:00:00 redirect to /reviews and when the press quit exchange show a popup telling them the skill hass succesfully been quit and put a p tag and a ,link saying leave a review 
-
-// //  see what i copied from localstorage
-
-// // but first let me say this 
-// // i enter two differnt user u can see it there please check for th mistake and fix it....  if you can??
-
-
-// //also when i refresh the page  and put in those detalis in the input which are the username and room name i dont even see the countdown again or the topic soo u can see where the error is ur not renere the data rom the localstorage ur rendering it based on what they put ehrn they fill the input use getItem to get info from localstorage and after it all tell me what u did 
-// //chatsession_room1
-// // {username: "UserA", room: "room1", topic: "graphic design ", duration: 5, people: 2,…}
-// // duration: 5
-// // people: 2
-// // room: "room1"
-// // startTime: "2025-12-12T11:40:07.142Z"
-// // topic: "graphic design "
-// // username: "UserA"
-
-// // chatOthersession_room1
-// // {username: "userB", room: "room1"}
-// // room: "room1"
-// // username: "userB"
-
-// //chatmessgaes_room1
-// // [{sender: "UserA", message: "hiiiiiiiiii", timestamp: "2025-12-12T11:40:23.861Z"},…]
-// // 0:  {sender: "UserA", message: "hiiiiiiiiii", timestamp: "2025-12-12T11:40:23.861Z"}
-// // 1: {0: "u", 1: "s", 2: "e", 3: "r", 4: "B", 5: " ", 6: "j", 7: "o", 8: "i", 9: "n", 10: "e", 11: "d",…}
-// // 2:  {sender: "userB", message: "h"}
-
-
-
-// // i copied and pasted everthing so u can find where the error is and upgrade style espeacially the timmer and topic that section restyke verything modern releative to dark blue glassmorphism
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-// "use client";
-
-// type ExchangeRequest = {
-//   exchange_id: string;
+// interface ExchangeDetails {
+//   exchange_id: number;
 //   from_user_id: number;
 //   from_username: string;
-//   from_fullname: string;
-//   to_user_id: string;
-//   to_user_username: string;
+//   to_user_id: number;
+//   to_username: string;
 //   skill_offered_title: string;
-//   requested_skill_title: string;
+//   skill_requested_title: string;
+//   exchange_status: string;
 //   status: string;
 //   created_at: string;
-// };
-
-
-// import { useEffect, useState, useRef } from "react";
-// import { socket } from "@/lib/socketClient";
-// import { useRouter } from "next/navigation";
-// import Link from "next/link";
-// import ChatForm from "@/components/chatComponent1/page";
-// import ChatMessage from "@/components/chatComponent2/page";
-
-// interface Message {
-//   sender: string;
-//   message: string;
-//   timestamp: string;
-//   system?: boolean;
-//   imageUrl?: string;
 // }
 
-// interface ChatSession {
-//   username: string;
-//   room: string;
-//   topic?: string;
-//   duration?: number;
-//   people?: number;
-//   startTime?: string;
-// }
+// // const API_URL = process.env.NEXT_PUBLIC_API_URL;
+//  const API_URL = 'http://localhost:5000'
 
-// export default function HomePage({ currentUserId }: { currentUserId: number }) {
-//   const [room, setRoom] = useState<string>("");
+// export default function ChatPage() {
+//   const [room, setRoom] = useState("");
 //   const [joined, setJoined] = useState(false);
 //   const [messages, setMessages] = useState<Message[]>([]);
-//   const [popupOpen, setPopupOpen] = useState(false);
+//   const [username, setUsername] = useState("");
+//   const [countdown, setCountdown] = useState("");
 //   const [quitPopup, setQuitPopup] = useState(false);
+//   const [exchange, setExchange] = useState<ExchangeDetails | null>(null);
+//   const [showDurationBtn, setShowDurationBtn] = useState(false);
 
-//   const [username, setUsername] = useState<string>("");
-//   const [topic, setTopic] = useState("");
-//   const [duration, setDuration] = useState(10); // minutes
-//   const [people, setPeople] = useState(2);
-//   const [countdown, setCountdown] = useState<string>("");
-
-//   const router = useRouter();
 //   const bottomRef = useRef<HTMLDivElement>(null);
+//   const countdownTimer = useRef<NodeJS.Timeout | null>(null);
+//   const router = useRouter();
+//   const params = useParams();
+//   const { exchange_id } = params as { exchange_id: string };
 
-//   const [requests, setRequests] = useState<ExchangeRequest[]>([]);
-
-//   const API_URL = 'http://localhost:5000'
-
-//   const storageSessionKey = `chatSession_${room}`;
-//   const storageOtherSessionKey = `chatOtherSession_${room}`;
-//   const storageMessagesKey = `chatMessages_${room}`;
-
-  
-//   // Load received requests
+//   // ---------- Fetch exchange details ----------
 //   useEffect(() => {
-//     async function loadRequests() {
+//     // if (!exchange_id) return;
+
+//     const fetchExchange = async () => {
 //       try {
-//         const res = await fetch(`${API_URL}/exchange/recieved`, {
-//           method: "POST",
+//         const res = await fetch(`${API_URL}/exchange/${exchange_id}`, {
 //           credentials: "include",
 //         });
+//         if (!res.ok) throw new Error("Failed to fetch exchange");
 //         const data = await res.json();
-//         setRequests(data.requests || []);
-
-//         console.log(data.requests)
+//         setExchange(data.exchange);
 //       } catch (err) {
-//         console.error("Failed loading requests:", err);
-//       } finally {
-//         // setLoading(false)
+//         console.error(err);
+//         router.push("/dashboard");
 //       }
-//     }
+//     };
 
-//     loadRequests();
-//   }, [currentUserId]);
+//     fetchExchange();
+//   }, [exchange_id, router]);
 
-
-
-//       // ============================================
-//     // 1️⃣ PROTECT ROUTE — IF NOT LOGGED IN → REDIRECT TO LOGIN
-//     // ============================================
-//     useEffect(() => {
-//       async function checkAuth() {
-//         const res = await fetch(`${API_URL}/auth/profile`, { credentials: "include" });
-  
-//         if (!res.ok) {
-//           router.replace("/login");
-//         }
-//       }
-  
-//       checkAuth();
-//     }, []);
-
-//   // ---------------- Load session from localStorage ----------------
-//   useEffect(() => {
-//     if (typeof window === "undefined") return;
-
-//     const firstUserSessionData = localStorage.getItem(storageSessionKey);
-//     const otherUserSessionData = localStorage.getItem(storageOtherSessionKey);
-
-//     let session: ChatSession | null = null;
-
-//     if (firstUserSessionData) {
-//       try {
-//         session = JSON.parse(firstUserSessionData);
-//       } catch {
-//         console.error("Invalid first user session data");
-//       }
-//     } else if (otherUserSessionData) {
-//       try {
-//         const other = JSON.parse(otherUserSessionData);
-//         session = { username: other.username, room: other.room };
-//       } catch {
-//         console.error("Invalid other user session data");
-//       }
-//     }
-
-//     if (session) {
-//       setUsername(session.username);
-//       setRoom(session.room);
-//       setTopic(session.topic || "");
-//       setDuration(session.duration || 10);
-//       setPeople(session.people || 2);
-//       setJoined(true);
-
-//       joinRoom(session.username, session.room);
-
-//       // Start countdown if first user session exists
-//       if (firstUserSessionData) {
-//         const firstSession: ChatSession = JSON.parse(firstUserSessionData);
-//         if (firstSession.startTime) {
-//           startCountdown(firstSession.startTime, firstSession.duration || 10);
-//           setTopic(firstSession.topic || "");
-//         }
-//       }
-//     }
-//   }, []);
-
-//   // ---------------- Load messages ----------------
+//   // ---------- Load messages ----------
 //   useEffect(() => {
 //     if (!room) return;
-
-//     const stored = localStorage.getItem(storageMessagesKey);
-//     if (stored) {
-//       try {
-//         const parsed = JSON.parse(stored);
-//         if (Array.isArray(parsed)) setMessages(parsed);
-//         else localStorage.removeItem(storageMessagesKey);
-//       } catch {
-//         localStorage.removeItem(storageMessagesKey);
-//       }
-//     }
+//     const stored = localStorage.getItem(`chatMessages_${room}`);
+//     if (stored) setMessages(JSON.parse(stored));
 //   }, [room]);
 
-//   // ---------------- Socket listeners ----------------
+//   // ---------- Scroll ----------
+//   const scrollToBottom = useCallback(() => {
+//     bottomRef.current?.scrollIntoView({ behavior: "smooth" });
+//   }, []);
+
+//   // ---------- Handle messages ----------
+//   const handleIncomingMessage = useCallback(
+//     (msg: Message) => {
+//       setMessages((prev) => {
+//         const updated = [...prev, msg];
+//         localStorage.setItem(`chatMessages_${room}`, JSON.stringify(updated));
+//         scrollToBottom();
+//         return updated;
+//       });
+//     },
+//     [room, scrollToBottom]
+//   );
+
+//   const handleUserJoined = useCallback(
+//     (data: { message: string; timestamp: string }) => {
+//       handleIncomingMessage({ ...data, sender: "system", system: true });
+//     },
+//     [handleIncomingMessage]
+//   );
+
+//   const handleUserLeft = useCallback(
+//     (data: { message: string; timestamp: string }) => {
+//       handleIncomingMessage({ ...data, sender: "system", system: true });
+//     },
+//     [handleIncomingMessage]
+//   );
+
+//   // ---------- Countdown ----------
+//   const startCountdown = useCallback(
+//     (startTimeISO: string, mins: number) => {
+//       const endTime = new Date(new Date(startTimeISO).getTime() + mins * 60000).getTime();
+
+//       if (countdownTimer.current) clearInterval(countdownTimer.current);
+
+//       countdownTimer.current = setInterval(async () => {
+//         const now = new Date().getTime();
+//         const distance = endTime - now;
+
+//         if (distance <= 0) {
+//           if (countdownTimer.current) clearInterval(countdownTimer.current);
+//           setCountdown("00:00:00");
+
+//           if (exchange_id) {
+//             await fetch(`${API_URL}/exchange/update-status`, {
+//               method: "POST",
+//               credentials: "include",
+//               headers: { "Content-Type": "application/json" },
+//               body: JSON.stringify({ exchange_id, exchange_status: "completed" }),
+//             });
+//           }
+
+//           router.push(`/review/${exchange_id}`);
+//           return;
+//         }
+
+//         const hours = Math.floor(distance / (1000 * 60 * 60));
+//         const minutes = Math.floor((distance % (1000 * 60 * 60)) / (1000 * 60));
+//         const seconds = Math.floor((distance % (1000 * 60)) / 1000);
+
+//         setCountdown(
+//           `${String(hours).padStart(2, "0")}:${String(minutes).padStart(2, "0")}:${String(
+//             seconds
+//           ).padStart(2, "0")}`
+//         );
+//       }, 1000);
+//     },
+//     [exchange_id, router]
+//   );
+
+//   const handleStartExchange = useCallback(
+//     (data: { startTime: string; duration: number }) => {
+//       startCountdown(data.startTime, data.duration);
+//     },
+//     [startCountdown]
+//   );
+
+//   // ---------- Socket listeners ----------
 //   useEffect(() => {
 //     if (!room) return;
 
@@ -1019,256 +473,168 @@
 //       socket.off("user_joined", handleUserJoined);
 //       socket.off("user_left", handleUserLeft);
 //       socket.off("start_exchange", handleStartExchange);
+//       if (countdownTimer.current) clearInterval(countdownTimer.current);
 //     };
-//   }, [room]);
+//   }, [room, handleIncomingMessage, handleUserJoined, handleUserLeft, handleStartExchange]);
 
-//   // ---------------- Socket handlers ----------------
-//   function handleIncomingMessage(data: Message) {
-//     setMessages((prev) => {
-//       const updated = [...prev, data];
-//       localStorage.setItem(storageMessagesKey, JSON.stringify(updated));
-//       scrollToBottom();
-//       return updated;
-//     });
-//   }
-
-//   function handleUserJoined(data: { message: string; timestamp: string }) {
-//     const msg: Message = { ...data, sender: "system", system: true };
-//     setMessages((prev) => [...prev, msg]);
-//   }
-
-//   function handleUserLeft(data: { message: string; timestamp: string }) {
-//     const msg: Message = { ...data, sender: "system", system: true };
-//     setMessages((prev) => [...prev, msg]);
-//   }
-
-//   function handleStartExchange(data: { startTime: string; duration: number; topic: string }) {
-//     setTopic(data.topic);
-//     startCountdown(data.startTime, data.duration);
-//   }
-
-//   // ---------------- Join room ----------------
-//   function joinRoom(user: string, roomName: string) {
+//   // ---------- Join room ----------
+//   const joinRoom = (user: string, roomName: string) => {
 //     socket.emit("join-room", { username: user, room: roomName });
-//   }
+//     setShowDurationBtn(true); // Show duration button after joining
+//   };
 
-//   function handleJoin() {
-//     if (!username || !room) return;
+//   const handleJoin = () => {
+//     if (!username || !room || !exchange) return;
+//     if (username !== exchange.from_username && username !== exchange.to_username) {
+//       alert("You are not allowed to join this chat.");
+//       return;
+//     }
+//     setJoined(true);
+//     joinRoom(username, room);
+//   };
 
-//     const firstUser = !localStorage.getItem(storageSessionKey);
-
-//     if (firstUser) setPopupOpen(true);
-//     else {
-//       // Second user stores separately
-//       localStorage.setItem(storageOtherSessionKey, JSON.stringify({ username, room }));
+//   // ---------- Set Duration ----------
+//   const handleSetDuration = () => {
+//     const minsStr = prompt("Enter duration in minutes:");
+//     if (!minsStr) return;
+//     const mins = parseInt(minsStr);
+//     if (isNaN(mins) || mins <= 0) {
+//       alert("Please enter a valid number of minutes.");
+//       return;
 //     }
 
-//     joinRoom(username, room);
-//     setJoined(true);
-//   }
-
-//   // ---------------- Save popup info ----------------
-//   function savePopupInfo() {
 //     const startTime = new Date().toISOString();
-//     const session: ChatSession = { username, room, topic, duration, people, startTime };
-//     localStorage.setItem(storageSessionKey, JSON.stringify(session));
-//     setPopupOpen(false);
 
-//     socket.emit("start_exchange", { room, topic, duration, startTime });
-//     startCountdown(startTime, duration);
-//   }
+//     // Emit to all users
+//     socket.emit("start_exchange", { startTime, duration: mins });
 
-//   // ---------------- Countdown ----------------
-//   async function startCountdown(startTimeISO: string, mins: number, req: ExchangeRequest) {
-//     const endTime = new Date(new Date(startTimeISO).getTime() + mins * 60000).getTime();
+//     // Start locally as well
+//     startCountdown(startTime, mins);
+//     setShowDurationBtn(false);
+//   };
 
-//     const timer = setInterval(() => {
-//       const now = new Date().getTime();
-//       const distance = endTime - now;
-
-//       if (distance <= 0) {
-
-//       const res = await fetch(`${API_URL}/update-exchnage`, {
-//           method: "PATCH",
-//           credentials: "include",
-//           headers: { "Content-Type": "application/json" },
-//           body: JSON.stringify({
-//             exchange_id: req.exchange_id,
-//             status: "completed",
-//           }),
-//       })
-
-//         setCountdown("00:00:00");
-//         clearInterval(timer);
-//         router.push("/review");
-//         return;
-//       }
-
-//       const hours = Math.floor(distance / (1000 * 60 * 60));
-//       const minutes = Math.floor((distance % (1000 * 60 * 60)) / (1000 * 60));
-//       const seconds = Math.floor((distance % (1000 * 60)) / 1000);
-
-//       setCountdown(
-//         `${String(hours).padStart(2, "0")}:${String(minutes).padStart(2, "0")}:${String(seconds).padStart(2, "0")}`
-//       );
-//     }, 1000);
-//   }
-
-//   // ---------------- Send message ----------------
-//   function handleMessage(msg: string, imageUrl?: string) {
+//   // ---------- Send message ----------
+//   const handleMessage = (msg: string, imageUrl?: string) => {
 //     if (!msg.trim() && !imageUrl) return;
-//     const timestamp = new Date().toISOString();
-//     const data: Message = { sender: username, message: msg, timestamp, imageUrl };
+//     const data: Message = { sender: username, message: msg, timestamp: new Date().toISOString(), imageUrl };
 //     handleIncomingMessage(data);
 //     socket.emit("message", { ...data, room });
-//   }
+//   };
 
-//   const scrollToBottom = () => bottomRef.current?.scrollIntoView({ behavior: "smooth" });
+//   // ---------- Quit ----------
+//   const confirmQuit = async () => {
+//     if (!exchange_id) return;
 
-//   // ---------------- Quit exchange ----------------
-//   function quitExchange() {
-//     setQuitPopup(true);
-//   }
+//     await fetch(`${API_URL}/exchange/update-status`, {
+//       method: "POST",
+//       credentials: "include",
+//       headers: { "Content-Type": "application/json" },
+//       body: JSON.stringify({ exchange_id, exchange_status: "cancelled" }),
+//     });
 
-//    async function confirmQuitExchange(req: ExchangeRequest) {
-//     localStorage.removeItem(storageSessionKey);
-//     localStorage.removeItem(storageOtherSessionKey);
-//     localStorage.removeItem(storageMessagesKey);
+//     localStorage.removeItem(`chatSession_${room}`);
+//     localStorage.removeItem(`chatOtherSession_${room}`);
+//     localStorage.removeItem(`chatMessages_${room}`);
+
 //     socket.emit("leave-room", room);
-//     setJoined(false);
-//     setRoom("");
-//     setMessages([]);
-//     setQuitPopup(false);
+//     router.push(`/review/${exchange_id}`);
+//   };
 
-//       const res = await fetch(`${API_URL}/update-exchnage-status`, {
-//           method: "PATCH",
-//           credentials: "include",
-//           headers: { "Content-Type": "application/json" },
-//           body: JSON.stringify({
-//             exchange_id: req.exchange_id,
-//             status: "canclled",
-//           }),
-//         })
-//   }
-
-//   // ---------------- UI ----------------
 //   return (
-//     <div className="flex flex-col items-center min-h-screen bg-gradient-to-br from-[#020617] via-[#0b1220] to-[#1e1b4b] text-white pt-24">
+//     <div className="flex flex-col items-center min-h-screen bg-gradient-to-br from-[#0c0e1a] via-[#1a1f38] to-[#2e2b5c] text-white pt-24 px-4">
 //       {!joined ? (
-//         <div className="bg-white/10 p-10 rounded-3xl border border-white/10 w-full max-w-md text-center backdrop-blur-md shadow-xl shadow-purple-900/40">
-//           <h1 className="text-4xl font-semibold bg-gradient-to-r from-blue-400 via-purple-400 to-pink-400 bg-clip-text text-transparent">
-//             Join a Chat Room
+//         <div className="bg-white/5 backdrop-blur-3xl border border-white/10 rounded-3xl w-full max-w-md p-10 text-center shadow-lg shadow-purple-900/40">
+//           <h1 className="text-4xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-blue-400 via-purple-400 to-pink-400 mb-6">
+//             Join the Chat
 //           </h1>
 //           <input
 //             type="text"
 //             value={username}
 //             onChange={(e) => setUsername(e.target.value)}
-//             placeholder="Enter your username..."
-//             className="w-full px-4 py-3 mt-5 rounded-full bg-white/5 border border-white/20 text-white placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-purple-500"
+//             placeholder="Username"
+//             className="w-full px-4 py-3 mb-4 rounded-2xl bg-white/10 border border-white/20 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-purple-400"
 //           />
 //           <input
 //             type="text"
 //             value={room}
 //             onChange={(e) => setRoom(e.target.value)}
-//             placeholder="Enter room name..."
-//             className="w-full px-4 py-3 mt-3 rounded-full bg-white/5 border border-white/20 text-white placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500"
+//             placeholder="Room name"
+//             className="w-full px-4 py-3 mb-6 rounded-2xl bg-white/10 border border-white/20 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-400"
 //           />
 //           <button
 //             onClick={handleJoin}
-//             className="w-full py-3 mt-5 bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-500 hover:to-pink-500 text-white font-semibold rounded-full shadow-lg shadow-purple-500/30 transition-all duration-300"
+//             className="w-full py-3 bg-gradient-to-r from-blue-600 to-purple-600 rounded-2xl shadow-lg hover:from-blue-500 hover:to-pink-500 transition"
 //           >
 //             Enter Chat 🚀
 //           </button>
 //         </div>
 //       ) : (
-//         <div className="w-full max-w-3xl mx-auto flex flex-col bg-white/10 border border-white/10 rounded-3xl backdrop-blur-md shadow-lg shadow-purple-900/40">
-//           {/* Top Bar */}
-//           <div className="flex justify-between items-center p-4 border-b border-white/20">
-//             <div>
-//               <h2 className="text-xl font-semibold text-blue-400">Room: {room}</h2>
-//               {topic && <p className="text-gray-300 text-sm">Topic: {topic}</p>}
-//               {countdown && <p className="text-gray-400 text-sm mt-1">Time left: {countdown}</p>}
+//         <div className="w-full max-w-3xl flex flex-col bg-white/10 backdrop-blur-3xl border border-white/10 rounded-3xl shadow-xl shadow-purple-900/50">
+//           <div className="flex justify-between items-center p-4 border-b border-white/20 bg-white/5 rounded-t-3xl backdrop-blur-xl">
+//             <div className="flex flex-col gap-2">
+//               <h2 className="text-xl font-bold text-blue-300">Room: {room}</h2>
+//               {exchange && (
+//                 <div className="flex flex-wrap gap-3 mt-1">
+//                   <span className="px-3 py-1 rounded-full bg-green-500/30 text-green-200 font-semibold">
+//                     Offering: {exchange.skill_offered_title}
+//                   </span>
+//                   <span className="px-3 py-1 rounded-full bg-pink-500/30 text-pink-200 font-semibold">
+//                     Requesting: {exchange.skill_requested_title}
+//                   </span>
+//                 </div>
+//               )}
+//               {countdown && (
+//                 <p className="mt-2 text-yellow-400 font-bold text-lg drop-shadow-lg">{countdown}</p>
+//               )}
+//               {showDurationBtn && !countdown && (
+//                 <button
+//                   onClick={handleSetDuration}
+//                   className="px-4 py-2 bg-green-600 rounded-xl hover:bg-green-700 mt-2"
+//                 >
+//                   Set Duration
+//                 </button>
+//               )}
 //             </div>
-//             <button
-//               onClick={quitExchange}
-//               className="px-4 py-2 bg-red-600 rounded-xl hover:bg-red-700 transition"
-//             >
-//               Quit Exchange
-//             </button>
+//             {countdown && (
+//               <button
+//                 onClick={() => setQuitPopup(true)}
+//                 className="px-4 py-2 bg-red-600 rounded-xl hover:bg-red-700 transition"
+//               >
+//                 Quit Exchange
+//               </button>
+//             )}
 //           </div>
 
-//           {/* Messages */}
-//           <div className="flex-1 overflow-y-auto max-h-[400px] p-5 space-y-3 scrollbar-thin scrollbar-thumb-blue-600/30 scrollbar-track-transparent">
-//             {Array.isArray(messages) &&
-//               messages.map((msg, i) => (
-//                 <ChatMessage
-//                   key={i}
-//                   sender={msg.sender}
-//                   message={msg.message}
-//                   timestamp={msg.timestamp}
-//                   isOwnMessage={msg.sender === username}
-//                   imageUrl={msg.imageUrl}
-//                 />
-//               ))}
+//           <div className="flex-1 overflow-y-auto max-h-[450px] p-5 space-y-3 scrollbar-thin scrollbar-thumb-blue-600/40 scrollbar-track-transparent">
+//             {messages.map((msg, i) => (
+//               <ChatMessage
+//                 key={i}
+//                 sender={msg.sender}
+//                 message={msg.message}
+//                 timestamp={msg.timestamp}
+//                 isOwnMessage={msg.sender === username}
+//                 imageUrl={msg.imageUrl}
+//               />
+//             ))}
 //             <div ref={bottomRef} />
 //           </div>
 
-//           {/* Input */}
-//           <div className="p-4 border-t border-white/10">
+//           <div className="p-4 border-t border-white/20 bg-white/5 backdrop-blur-xl rounded-b-3xl">
 //             <ChatForm onSendMessage={handleMessage} />
 //           </div>
 //         </div>
 //       )}
 
-//       {/* Popup for first user */}
-//       {popupOpen && (
-//         <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-50">
-//           <div className="bg-gradient-to-br from-blue-900/80 to-blue-950/50 border border-blue-400/30 backdrop-blur-3xl p-8 rounded-3xl w-[90%] max-w-sm text-center">
-//             <h2 className="text-xl font-semibold text-white mb-4">Start Exchange</h2>
-//             <input
-//               type="text"
-//               placeholder="Topic of exchange"
-//               value={topic}
-//               onChange={(e) => setTopic(e.target.value)}
-//               className="w-full mb-3 px-4 py-2 rounded-xl bg-white/10 border border-white/20 text-white focus:outline-none focus:ring-2 focus:ring-blue-400"
-//             />
-//             <input
-//               type="number"
-//               placeholder="Duration (minutes)"
-//               value={duration}
-//               onChange={(e) => setDuration(Number(e.target.value))}
-//               className="w-full mb-3 px-4 py-2 rounded-xl bg-white/10 border border-white/20 text-white focus:outline-none focus:ring-2 focus:ring-blue-400"
-//             />
-//             <input
-//               type="number"
-//               placeholder="Number of people"
-//               value={people}
-//               onChange={(e) => setPeople(Number(e.target.value))}
-//               className="w-full mb-5 px-4 py-2 rounded-xl bg-white/10 border border-white/20 text-white focus:outline-none focus:ring-2 focus:ring-blue-400"
-//             />
-//             <button
-//               onClick={savePopupInfo}
-//               className="px-6 py-2 bg-blue-600 rounded-xl hover:bg-blue-700 transition"
-//             >
-//               Start
-//             </button>
-//           </div>
-//         </div>
-//       )}
-
-//       {/* Quit popup */}
 //       {quitPopup && (
-//         <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-50">
-//           <div className="bg-gradient-to-br from-blue-900/80 to-blue-950/50 backdrop-blur-3xl p-8 rounded-3xl w-[90%] max-w-sm text-center">
-//             <p className="text-white text-lg mb-4">Skill has been successfully cancelled!</p>
-//             <Link href="/review" className="text-blue-400 underline mb-4 block">
-//               Leave a review
-//             </Link>
+//         <div className="fixed inset-0 bg-black/80 flex items-center justify-center z-50 px-4">
+//           <div className="bg-white/5 backdrop-blur-3xl border border-white/20 rounded-3xl p-8 max-w-md w-full text-center">
+//             <h2 className="text-xl font-bold text-yellow-400 mb-3">Exchange Ended</h2>
+//             <p className="text-gray-300 mb-5">You have successfully quit the exchange.</p>
 //             <button
-//               onClick={confirmQuitExchange}
-//               className="px-6 py-2 bg-red-600 rounded-xl hover:bg-red-700 transition"
+//               onClick={confirmQuit}
+//               className="px-6 py-3 bg-blue-500 rounded-xl hover:bg-blue-600 transition"
 //             >
-//               Close
+//               Leave a Review
 //             </button>
 //           </div>
 //         </div>
@@ -1278,23 +644,9 @@
 // }
 
 
-
-// // 1.check for any error
-// // leave the code as it is just upgrade  this few section and give me back the full updated code u get me abi
-// //  use params to fetch the information and skill details u get.. and still ask the user to fill in their username and room code so the socket continue working as normal and see when the suer put in their username check it with the two username the backen dis giving us back and check if they macth before proceeding to the next step... and show the popup for only the duration of the skill let he popup sho for only the durstion like the time and show the countodown of the skill show the both users the usenrame fecth form the db show hthe both user the skill fetch form the db and when the countdoen end s update the backen d to completed and when they press quit updated backend to cancleed u get all this important upgrade please upgerade them well ooooooo
-
-
-
-
-
-
-
-
-
-
-
-
-
+// // see upgrade this code in theses aspct
+// // .1 make it responsive on smaller devices
+// // 2. when a user enters a room show a button set duration both if duration has aready been set show the countdown and when they set duration start the countdown for both users yo get the logic right
 
 
 
@@ -1741,312 +1093,312 @@
 
 
 
-"use client";
+// "use client";
 
-import { useEffect, useState, useRef, useCallback } from "react";
-import { useRouter, useParams } from "next/navigation";
-import { socket } from "@/lib/socketClient";
-import ChatForm from "@/components/chatComponent1/page";
-import ChatMessage from "@/components/chatComponent2/page";
+// import { useEffect, useState, useRef, useCallback } from "react";
+// import { useRouter, useParams } from "next/navigation";
+// import { socket } from "@/lib/socketClient";
+// import ChatForm from "@/components/chatComponent1/page";
+// import ChatMessage from "@/components/chatComponent2/page";
 
-interface Message {
-  sender: string;
-  message: string;
-  timestamp: string;
-  system?: boolean;
-  imageUrl?: string;
-}
+// interface Message {
+//   sender: string;
+//   message: string;
+//   timestamp: string;
+//   system?: boolean;
+//   imageUrl?: string;
+// }
 
-interface ExchangeDetails {
-  exchange_id: number;
-  from_user_id: number;
-  from_username: string;
-  to_user_id: number;
-  to_username: string;
-  skill_offered_title: string;
-  skill_requested_title: string;
-  exchange_status: string;
-  status: string;
-  created_at: string;
-}
+// interface ExchangeDetails {
+//   exchange_id: number;
+//   from_user_id: number;
+//   from_username: string;
+//   to_user_id: number;
+//   to_username: string;
+//   skill_offered_title: string;
+//   skill_requested_title: string;
+//   exchange_status: string;
+//   status: string;
+//   created_at: string;
+// }
 
-export default function ChatPage() {
-  const [room, setRoom] = useState("");
-  const [joined, setJoined] = useState(false);
-  const [messages, setMessages] = useState<Message[]>([]);
-  const [username, setUsername] = useState("");
-  const [countdown, setCountdown] = useState("");
-  const [quitPopup, setQuitPopup] = useState(false);
-  const [exchange, setExchange] = useState<ExchangeDetails | null>(null);
+// export default function ChatPage() {
+//   const [room, setRoom] = useState("");
+//   const [joined, setJoined] = useState(false);
+//   const [messages, setMessages] = useState<Message[]>([]);
+//   const [username, setUsername] = useState("");
+//   const [countdown, setCountdown] = useState("");
+//   const [quitPopup, setQuitPopup] = useState(false);
+//   const [exchange, setExchange] = useState<ExchangeDetails | null>(null);
 
-  const bottomRef = useRef<HTMLDivElement>(null);
-  const countdownTimer = useRef<NodeJS.Timeout | null>(null);
-  const router = useRouter();
-  const params = useParams();
-  const { exchange_id } = params as { exchange_id: string };
+//   const bottomRef = useRef<HTMLDivElement>(null);
+//   const countdownTimer = useRef<NodeJS.Timeout | null>(null);
+//   const router = useRouter();
+//   const params = useParams();
+//   const { exchange_id } = params as { exchange_id: string };
 
 
-  const API_URL = process.env.NEXT_PUBLIC_API_URL;
-  // const API_URL = 'http://localhost:5000';
+//   // const API_URL = process.env.NEXT_PUBLIC_API_URL;
+//   const API_URL = 'http://localhost:5000';
 
-  // ---------- Fetch exchange details ----------
-  useEffect(() => {
-    if (!exchange_id) return;
+//   // ---------- Fetch exchange details ----------
+//   useEffect(() => {
+//     if (!exchange_id) return;
 
-    const fetchExchange = async () => {
-      try {
-        const res = await fetch(`${API_URL}/exchange/${exchange_id}`, {
-          credentials: "include",
-        });
-        if (!res.ok) throw new Error("Failed to fetch exchange");
-        const data = await res.json();
-        setExchange(data.exchange);
-      } catch (err) {
-        console.error(err);
-        router.push("/dashboard");
-      }
-    };
+//     const fetchExchange = async () => {
+//       try {
+//         const res = await fetch(`${API_URL}/exchange/${exchange_id}`, {
+//           credentials: "include",
+//         });
+//         if (!res.ok) throw new Error("Failed to fetch exchange");
+//         const data = await res.json();
+//         setExchange(data.exchange);
+//       } catch (err) {
+//         console.error(err);
+//         router.push("/dashboard");
+//       }
+//     };
 
-    fetchExchange();
-  }, [exchange_id, API_URL, router]);
+//     fetchExchange();
+//   }, [exchange_id, API_URL, router]);
 
-  // ---------- Load messages from localStorage ----------
-  useEffect(() => {
-    if (!room) return;
-    const stored = localStorage.getItem(`chatMessages_${room}`);
-    if (stored) setMessages(JSON.parse(stored));
-  }, [room]);
+//   // ---------- Load messages from localStorage ----------
+//   useEffect(() => {
+//     if (!room) return;
+//     const stored = localStorage.getItem(`chatMessages_${room}`);
+//     if (stored) setMessages(JSON.parse(stored));
+//   }, [room]);
 
-  // ---------- Scroll to bottom ----------
-  const scrollToBottom = useCallback(() => {
-    bottomRef.current?.scrollIntoView({ behavior: "smooth" });
-  }, []);
+//   // ---------- Scroll to bottom ----------
+//   const scrollToBottom = useCallback(() => {
+//     bottomRef.current?.scrollIntoView({ behavior: "smooth" });
+//   }, []);
 
-  // ---------- Handle incoming messages ----------
-  const handleIncomingMessage = useCallback(
-    (msg: Message) => {
-      setMessages((prev) => {
-        const updated = [...prev, msg];
-        localStorage.setItem(`chatMessages_${room}`, JSON.stringify(updated));
-        scrollToBottom();
-        return updated;
-      });
-    },
-    [room, scrollToBottom]
-  );
+//   // ---------- Handle incoming messages ----------
+//   const handleIncomingMessage = useCallback(
+//     (msg: Message) => {
+//       setMessages((prev) => {
+//         const updated = [...prev, msg];
+//         localStorage.setItem(`chatMessages_${room}`, JSON.stringify(updated));
+//         scrollToBottom();
+//         return updated;
+//       });
+//     },
+//     [room, scrollToBottom]
+//   );
 
-  const handleUserJoined = useCallback(
-    (data: { message: string; timestamp: string }) => {
-      handleIncomingMessage({ ...data, sender: "system", system: true });
-    },
-    [handleIncomingMessage]
-  );
+//   const handleUserJoined = useCallback(
+//     (data: { message: string; timestamp: string }) => {
+//       handleIncomingMessage({ ...data, sender: "system", system: true });
+//     },
+//     [handleIncomingMessage]
+//   );
 
-  const handleUserLeft = useCallback(
-    (data: { message: string; timestamp: string }) => {
-      handleIncomingMessage({ ...data, sender: "system", system: true });
-    },
-    [handleIncomingMessage]
-  );
+//   const handleUserLeft = useCallback(
+//     (data: { message: string; timestamp: string }) => {
+//       handleIncomingMessage({ ...data, sender: "system", system: true });
+//     },
+//     [handleIncomingMessage]
+//   );
 
-  // ---------- Countdown ----------
-  const startCountdown = useCallback(
-    (startTimeISO: string, mins: number) => {
-      const endTime = new Date(new Date(startTimeISO).getTime() + mins * 60000).getTime();
+//   // ---------- Countdown ----------
+//   const startCountdown = useCallback(
+//     (startTimeISO: string, mins: number) => {
+//       const endTime = new Date(new Date(startTimeISO).getTime() + mins * 60000).getTime();
 
-      countdownTimer.current = setInterval(async () => {
-        const now = new Date().getTime();
-        const distance = endTime - now;
+//       countdownTimer.current = setInterval(async () => {
+//         const now = new Date().getTime();
+//         const distance = endTime - now;
 
-        if (distance <= 0) {
-          clearInterval(countdownTimer.current!);
-          setCountdown("00:00:00");
+//         if (distance <= 0) {
+//           clearInterval(countdownTimer.current!);
+//           setCountdown("00:00:00");
 
-          if (exchange_id) {
-            await fetch(`${API_URL}/exchange/update-status`, {
-              method: "POST",
-              credentials: "include",
-              headers: { "Content-Type": "application/json" },
-              body: JSON.stringify({ exchange_id, exchange_status: "completed" }),
-            });
-          }
+//           if (exchange_id) {
+//             await fetch(`${API_URL}/exchange/update-status`, {
+//               method: "POST",
+//               credentials: "include",
+//               headers: { "Content-Type": "application/json" },
+//               body: JSON.stringify({ exchange_id, exchange_status: "completed" }),
+//             });
+//           }
 
-          router.push(`/review/${exchange_id}`);
-          return;
-        }
+//           router.push(`/review/${exchange_id}`);
+//           return;
+//         }
 
-        const hours = Math.floor(distance / (1000 * 60 * 60));
-        const minutes = Math.floor((distance % (1000 * 60 * 60)) / (1000 * 60));
-        const seconds = Math.floor((distance % (1000 * 60)) / 1000);
+//         const hours = Math.floor(distance / (1000 * 60 * 60));
+//         const minutes = Math.floor((distance % (1000 * 60 * 60)) / (1000 * 60));
+//         const seconds = Math.floor((distance % (1000 * 60)) / 1000);
 
-        setCountdown(
-          `${String(hours).padStart(2, "0")}:${String(minutes).padStart(2, "0")}:${String(
-            seconds
-          ).padStart(2, "0")}`
-        );
-      }, 1000);
-    },
-    [API_URL, exchange_id, router]
-  );
+//         setCountdown(
+//           `${String(hours).padStart(2, "0")}:${String(minutes).padStart(2, "0")}:${String(
+//             seconds
+//           ).padStart(2, "0")}`
+//         );
+//       }, 1000);
+//     },
+//     [API_URL, exchange_id, router]
+//   );
 
-  const handleStartExchange = useCallback(
-    (data: { startTime: string; duration: number }) => {
-      startCountdown(data.startTime, data.duration);
-    },
-    [startCountdown]
-  );
+//   const handleStartExchange = useCallback(
+//     (data: { startTime: string; duration: number }) => {
+//       startCountdown(data.startTime, data.duration);
+//     },
+//     [startCountdown]
+//   );
 
-  // ---------- Socket listeners ----------
-  useEffect(() => {
-    if (!room) return;
+//   // ---------- Socket listeners ----------
+//   useEffect(() => {
+//     if (!room) return;
 
-    socket.on("message", handleIncomingMessage);
-    socket.on("user_joined", handleUserJoined);
-    socket.on("user_left", handleUserLeft);
-    socket.on("start_exchange", handleStartExchange);
+//     socket.on("message", handleIncomingMessage);
+//     socket.on("user_joined", handleUserJoined);
+//     socket.on("user_left", handleUserLeft);
+//     socket.on("start_exchange", handleStartExchange);
 
-    return () => {
-      socket.off("message", handleIncomingMessage);
-      socket.off("user_joined", handleUserJoined);
-      socket.off("user_left", handleUserLeft);
-      socket.off("start_exchange", handleStartExchange);
-      countdownTimer.current && clearInterval(countdownTimer.current);
-    };
-  }, [room, handleIncomingMessage, handleUserJoined, handleUserLeft, handleStartExchange]);
+//     return () => {
+//       socket.off("message", handleIncomingMessage);
+//       socket.off("user_joined", handleUserJoined);
+//       socket.off("user_left", handleUserLeft);
+//       socket.off("start_exchange", handleStartExchange);
+//       countdownTimer.current && clearInterval(countdownTimer.current);
+//     };
+//   }, [room, handleIncomingMessage, handleUserJoined, handleUserLeft, handleStartExchange]);
 
-  // ---------- Join room ----------
-  const joinRoom = (user: string, roomName: string) => {
-    socket.emit("join-room", { username: user, room: roomName });
-  };
+//   // ---------- Join room ----------
+//   const joinRoom = (user: string, roomName: string) => {
+//     socket.emit("join-room", { username: user, room: roomName });
+//   };
 
-  const handleJoin = () => {
-    if (!username || !room || !exchange) return;
-    if (username !== exchange.from_username && username !== exchange.to_username) {
-      alert("You are not allowed to join this chat.");
-      return;
-    }
-    setJoined(true);
-    joinRoom(username, room);
-  };
+//   const handleJoin = () => {
+//     if (!username || !room || !exchange) return;
+//     if (username !== exchange.from_username && username !== exchange.to_username) {
+//       alert("You are not allowed to join this chat.");
+//       return;
+//     }
+//     setJoined(true);
+//     joinRoom(username, room);
+//   };
 
-  // ---------- Send message ----------
-  const handleMessage = (msg: string, imageUrl?: string) => {
-    if (!msg.trim() && !imageUrl) return;
-    const data: Message = { sender: username, message: msg, timestamp: new Date().toISOString(), imageUrl };
-    handleIncomingMessage(data);
-    socket.emit("message", { ...data, room });
-  };
+//   // ---------- Send message ----------
+//   const handleMessage = (msg: string, imageUrl?: string) => {
+//     if (!msg.trim() && !imageUrl) return;
+//     const data: Message = { sender: username, message: msg, timestamp: new Date().toISOString(), imageUrl };
+//     handleIncomingMessage(data);
+//     socket.emit("message", { ...data, room });
+//   };
 
-  // ---------- Quit exchange ----------
-  const confirmQuit = async () => {
-    if (!exchange_id) return;
+//   // ---------- Quit exchange ----------
+//   const confirmQuit = async () => {
+//     if (!exchange_id) return;
 
-    await fetch(`${API_URL}/exchange/update-status`, {
-      method: "POST",
-      credentials: "include",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ exchange_id, exchange_status: "cancelled" }),
-    });
+//     await fetch(`${API_URL}/exchange/update-status`, {
+//       method: "POST",
+//       credentials: "include",
+//       headers: { "Content-Type": "application/json" },
+//       body: JSON.stringify({ exchange_id, exchange_status: "cancelled" }),
+//     });
 
-    localStorage.removeItem(`chatSession_${room}`);
-    localStorage.removeItem(`chatOtherSession_${room}`);
-    localStorage.removeItem(`chatMessages_${room}`);
+//     localStorage.removeItem(`chatSession_${room}`);
+//     localStorage.removeItem(`chatOtherSession_${room}`);
+//     localStorage.removeItem(`chatMessages_${room}`);
 
-    socket.emit("leave-room", room);
-    router.push(`/review/${exchange_id}`);
-  };
+//     socket.emit("leave-room", room);
+//     router.push(`/review/${exchange_id}`);
+//   };
 
-  return (
-    <div className="flex flex-col items-center min-h-screen bg-gradient-to-br from-[#0c0e1a] via-[#1a1f38] to-[#2e2b5c] text-white pt-24 px-4">
-      {!joined ? (
-        <div className="bg-white/5 backdrop-blur-3xl border border-white/10 rounded-3xl w-full max-w-md p-10 text-center shadow-lg shadow-purple-900/40">
-          <h1 className="text-4xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-blue-400 via-purple-400 to-pink-400 mb-6">
-            Join the Chat
-          </h1>
-          <input
-            type="text"
-            value={username}
-            onChange={(e) => setUsername(e.target.value)}
-            placeholder="Username"
-            className="w-full px-4 py-3 mb-4 rounded-2xl bg-white/10 border border-white/20 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-purple-400"
-          />
-          <input
-            type="text"
-            value={room}
-            onChange={(e) => setRoom(e.target.value)}
-            placeholder="Room name"
-            className="w-full px-4 py-3 mb-6 rounded-2xl bg-white/10 border border-white/20 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-400"
-          />
-          <button
-            onClick={handleJoin}
-            className="w-full py-3 bg-gradient-to-r from-blue-600 to-purple-600 rounded-2xl shadow-lg hover:from-blue-500 hover:to-pink-500 transition"
-          >
-            Enter Chat 🚀
-          </button>
-        </div>
-      ) : (
-        <div className="w-full max-w-3xl flex flex-col bg-white/10 backdrop-blur-3xl border border-white/10 rounded-3xl shadow-xl shadow-purple-900/50">
-          <div className="flex justify-between items-center p-4 border-b border-white/20 bg-white/5 rounded-t-3xl backdrop-blur-xl">
-            <div className="flex flex-col gap-2">
-              <h2 className="text-xl font-bold text-blue-300">Room: {room}</h2>
-              {exchange && (
-                <div className="flex flex-wrap gap-3 mt-1">
-                  <span className="px-3 py-1 rounded-full bg-green-500/30 text-green-200 font-semibold">
-                    Offering: {exchange.skill_offered_title}
-                  </span>
-                  <span className="px-3 py-1 rounded-full bg-pink-500/30 text-pink-200 font-semibold">
-                    Requesting: {exchange.skill_requested_title}
-                  </span>
-                </div>
-              )}
-              {countdown && (
-                <p className="mt-2 text-yellow-400 font-bold text-lg drop-shadow-lg">{countdown}</p>
-              )}
-            </div>
-            {countdown && (
-              <button
-                onClick={() => setQuitPopup(true)}
-                className="px-4 py-2 bg-red-600 rounded-xl hover:bg-red-700 transition"
-              >
-                Quit Exchange
-              </button>
-            )}
-          </div>
+//   return (
+//     <div className="flex flex-col items-center min-h-screen bg-gradient-to-br from-[#0c0e1a] via-[#1a1f38] to-[#2e2b5c] text-white pt-24 px-4">
+//       {!joined ? (
+//         <div className="bg-white/5 backdrop-blur-3xl border border-white/10 rounded-3xl w-full max-w-md p-10 text-center shadow-lg shadow-purple-900/40">
+//           <h1 className="text-4xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-blue-400 via-purple-400 to-pink-400 mb-6">
+//             Join the Chat
+//           </h1>
+//           <input
+//             type="text"
+//             value={username}
+//             onChange={(e) => setUsername(e.target.value)}
+//             placeholder="Username"
+//             className="w-full px-4 py-3 mb-4 rounded-2xl bg-white/10 border border-white/20 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-purple-400"
+//           />
+//           <input
+//             type="text"
+//             value={room}
+//             onChange={(e) => setRoom(e.target.value)}
+//             placeholder="Room name"
+//             className="w-full px-4 py-3 mb-6 rounded-2xl bg-white/10 border border-white/20 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-400"
+//           />
+//           <button
+//             onClick={handleJoin}
+//             className="w-full py-3 bg-gradient-to-r from-blue-600 to-purple-600 rounded-2xl shadow-lg hover:from-blue-500 hover:to-pink-500 transition"
+//           >
+//             Enter Chat 🚀
+//           </button>
+//         </div>
+//       ) : (
+//         <div className="w-full max-w-3xl flex flex-col bg-white/10 backdrop-blur-3xl border border-white/10 rounded-3xl shadow-xl shadow-purple-900/50">
+//           <div className="flex justify-between items-center p-4 border-b border-white/20 bg-white/5 rounded-t-3xl backdrop-blur-xl">
+//             <div className="flex flex-col gap-2">
+//               <h2 className="text-xl font-bold text-blue-300">Room: {room}</h2>
+//               {exchange && (
+//                 <div className="flex flex-wrap gap-3 mt-1">
+//                   <span className="px-3 py-1 rounded-full bg-green-500/30 text-green-200 font-semibold">
+//                     Offering: {exchange.skill_offered_title}
+//                   </span>
+//                   <span className="px-3 py-1 rounded-full bg-pink-500/30 text-pink-200 font-semibold">
+//                     Requesting: {exchange.skill_requested_title}
+//                   </span>
+//                 </div>
+//               )}
+//               {countdown && (
+//                 <p className="mt-2 text-yellow-400 font-bold text-lg drop-shadow-lg">{countdown}</p>
+//               )}
+//             </div>
+//             {countdown && (
+//               <button
+//                 onClick={() => setQuitPopup(true)}
+//                 className="px-4 py-2 bg-red-600 rounded-xl hover:bg-red-700 transition"
+//               >
+//                 Quit Exchange
+//               </button>
+//             )}
+//           </div>
 
-          <div className="flex-1 overflow-y-auto max-h-[450px] p-5 space-y-3 scrollbar-thin scrollbar-thumb-blue-600/40 scrollbar-track-transparent">
-            {messages.map((msg, i) => (
-              <ChatMessage
-                key={i}
-                sender={msg.sender}
-                message={msg.message}
-                timestamp={msg.timestamp}
-                isOwnMessage={msg.sender === username}
-                imageUrl={msg.imageUrl}
-              />
-            ))}
-            <div ref={bottomRef} />
-          </div>
+//           <div className="flex-1 overflow-y-auto max-h-[450px] p-5 space-y-3 scrollbar-thin scrollbar-thumb-blue-600/40 scrollbar-track-transparent">
+//             {messages.map((msg, i) => (
+//               <ChatMessage
+//                 key={i}
+//                 sender={msg.sender}
+//                 message={msg.message}
+//                 timestamp={msg.timestamp}
+//                 isOwnMessage={msg.sender === username}
+//                 imageUrl={msg.imageUrl}
+//               />
+//             ))}
+//             <div ref={bottomRef} />
+//           </div>
 
-          <div className="p-4 border-t border-white/20 bg-white/5 backdrop-blur-xl rounded-b-3xl">
-            <ChatForm onSendMessage={handleMessage} />
-          </div>
-        </div>
-      )}
+//           <div className="p-4 border-t border-white/20 bg-white/5 backdrop-blur-xl rounded-b-3xl">
+//             <ChatForm onSendMessage={handleMessage} />
+//           </div>
+//         </div>
+//       )}
 
-      {quitPopup && (
-        <div className="fixed inset-0 bg-black/80 flex items-center justify-center z-50 px-4">
-          <div className="bg-white/5 backdrop-blur-3xl border border-white/20 rounded-3xl p-8 max-w-md w-full text-center">
-            <h2 className="text-xl font-bold text-yellow-400 mb-3">Exchange Ended</h2>
-            <p className="text-gray-300 mb-5">You have successfully quit the exchange.</p>
-            <button
-              onClick={confirmQuit}
-              className="px-6 py-3 bg-blue-500 rounded-xl hover:bg-blue-600 transition"
-            >
-              Leave a Review
-            </button>
-          </div>
-        </div>
-      )}
-    </div>
-  );
-}
+//       {quitPopup && (
+//         <div className="fixed inset-0 bg-black/80 flex items-center justify-center z-50 px-4">
+//           <div className="bg-white/5 backdrop-blur-3xl border border-white/20 rounded-3xl p-8 max-w-md w-full text-center">
+//             <h2 className="text-xl font-bold text-yellow-400 mb-3">Exchange Ended</h2>
+//             <p className="text-gray-300 mb-5">You have successfully quit the exchange.</p>
+//             <button
+//               onClick={confirmQuit}
+//               className="px-6 py-3 bg-blue-500 rounded-xl hover:bg-blue-600 transition"
+//             >
+//               Leave a Review
+//             </button>
+//           </div>
+//         </div>
+//       )}
+//     </div>
+//   );
+// }

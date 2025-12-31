@@ -20,12 +20,13 @@ export default function Skills() {
   const [skills, setSkills] = useState<Skill[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+    const API_URL = process.env.NEXT_PUBLIC_API_URL;
 
   /* ================= FETCH SKILLS ================= */
   useEffect(() => {
     const fetchSkills = async () => {
       try {
-        const res = await fetch("http://localhost:5000");
+        const res = await fetch(`${API_URL}`);
 
         if (!res.ok) {
           throw new Error("Failed to fetch skills");

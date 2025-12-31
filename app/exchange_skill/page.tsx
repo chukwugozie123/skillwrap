@@ -11,7 +11,7 @@ interface Skill {
 }
 
 export default function ExchangePage() {
-  const router = useRouter();
+  const router = useRouter()
 
   const [requestedSkill, setRequestedSkill] = useState<Skill | null>(null);
   const [mySkills, setMySkills] = useState<Skill[]>([]);
@@ -23,6 +23,8 @@ export default function ExchangePage() {
   const API_URL = useMemo(() => process.env.NEXT_PUBLIC_API_URL, []);
   // const API_URL = 'http://localhost:5000';
 
+  
+  console.log(mySkills, '123check')
   // ================= AUTH CHECK =================
   useEffect(() => {
     async function checkAuth() {
@@ -93,6 +95,19 @@ export default function ExchangePage() {
       const data = await res.json();
 
       if (res.ok) {
+
+        await fetch(`${API_URL}/send-notification`, {
+          method: "POST",
+          credentials: "include",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            // exchange_id: req.exchange_id,
+            receiverId: requestedSkill.user_id,
+            message: `someone sent you a exchnage request.. chekc your requests`,
+            // metadata: req.exchange_id,
+          }),
+        });
+
         setMessage("🎉 Exchange request sent successfully!");
         setTimeout(() => router.push("/dashboard"), 1200);
       } else {

@@ -22,6 +22,7 @@ export default function SkillsPage() {
   const [error, setError] = useState("");
   const [searchTerm, setSearchTerm] = useState("");
 
+    const API_URL = process.env.NEXT_PUBLIC_API_URL;
   // ✅ useRef instead of state (fixes dependency warning)
   const typingTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
@@ -33,7 +34,7 @@ export default function SkillsPage() {
         setLoading(true);
         setError("");
 
-        const res = await fetch("http://localhost:5000/skills", {
+        const res = await fetch(`${API_URL}/skills`, {
           credentials: "include",
         });
 

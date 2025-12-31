@@ -81,7 +81,6 @@ export default function ReceivedRequests({ currentUserId }: { currentUserId: num
           roomCode: newRoom,
         }),
       });
-
       const data = await res.json();
 
       if (data.success) {
@@ -100,7 +99,6 @@ export default function ReceivedRequests({ currentUserId }: { currentUserId: num
           }),
         });
 
-        console.log(req.exchange_id);
 
         showPopup(true);
 

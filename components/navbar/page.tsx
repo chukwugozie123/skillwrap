@@ -17,11 +17,13 @@ export default function Navbar() {
   const [isOpen, setIsOpen] = useState(false);
   const [user, setUser] = useState<UserType | null>(null);
 
+  const API_URL = process.env.NEXT_PUBLIC_API_URL;
+
   // ✅ Fetch user data on mount
   useEffect(() => {
     async function fetchUser() {
       try {
-        const res = await fetch("http://localhost:5000/auth/profile", {
+        const res = await fetch(`${API_URL}/auth/profile`, {
           credentials: "include",
         });
         if (!res.ok) return;

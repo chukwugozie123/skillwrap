@@ -10,11 +10,14 @@ export default function EditProfile({ initialProfile }) {
   const [email, setEmail] = useState(initialProfile.email);
   const [message, setMessage] = useState("");
 
-  async function handleSubmit(e) {
+  
+  const API_URL = process.env.NEXT_PUBLIC_API_URL 
+
+  async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
 
     try {
-      const res = await fetch("http://localhost:5000/auth/edit-profile", {
+      const res = await fetch(`${API_URL}/auth/edit-profile`, {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
         credentials: "include",

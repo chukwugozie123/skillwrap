@@ -105,6 +105,8 @@ export default function EditSkill({ skill }: EditSkillProps) {
   const [level, setLevel] = useState(skill.level);
   const [message, setMessage] = useState("");
 
+  const API_URL = process.env.NEXT_PUBLIC_API_URL;
+
   const router = useRouter();
 
   useEffect(() => {
@@ -117,7 +119,7 @@ export default function EditSkill({ skill }: EditSkillProps) {
     e.preventDefault();
 
     try {
-      const res = await fetch(`http://localhost:5000/skill/${skill.id}/edit-skill`, {
+      const res = await fetch(`${API_URL}/skill/${skill.id}/edit-skill`, {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
         credentials: "include",

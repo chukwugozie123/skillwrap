@@ -17,6 +17,7 @@ type Skill = {
 
 /* ================= COMPONENT ================= */
 export default function UserPage({ skills = [] }: { skills?: Skill[] }) {
+    const API_URL = process.env.NEXT_PUBLIC_API_URL;
   const router = useRouter(); // ✅ hook ALWAYS at top
 
   /* ================= EMPTY STATE ================= */
@@ -40,7 +41,7 @@ export default function UserPage({ skills = [] }: { skills?: Skill[] }) {
 
     // If backend stored filename only
     if (!raw.startsWith("http")) {
-      return `http://localhost:5000/uploads/${raw}`;
+      return `${API_URL}/uploads/${raw}`;
     }
 
     return raw;

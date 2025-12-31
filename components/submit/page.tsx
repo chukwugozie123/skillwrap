@@ -9,11 +9,13 @@ export interface LoginFormState {
 /* ================= FORM ACTION ================= */
 
 export async function FormSubmit(
+  
   prevState: LoginFormState,
   formData: FormData
 ): Promise<LoginFormState> {
   try {
-    const res = await fetch("http://localhost:5000/auth/login", {
+      const API_URL = process.env.NEXT_PUBLIC_API_URL;
+    const res = await fetch(`${API_URL}/auth/login`, {
       method: "POST",
       body: formData,
     });

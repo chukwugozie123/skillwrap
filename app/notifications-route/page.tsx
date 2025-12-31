@@ -12,6 +12,7 @@ interface Notification {
   created_at: string;
   roomid?: string;
   exchange_id?: number;
+  metadata?: number;
 }
 
 export default function NotificationList() {
@@ -21,6 +22,8 @@ export default function NotificationList() {
   const [copiedId, setCopiedId] = useState<number | null>(null);
 
   const unreadCount = notif.filter((n) => !n.read).length;
+
+  console.log(notif)
 
   const API_URL = process.env.NEXT_PUBLIC_API_URL;
   // const API_URL = 'http://localhost:5000'
@@ -136,7 +139,7 @@ export default function NotificationList() {
                   </div>
                 )}
 
-                            <Link href={`chat/${n.exchange_id}`}>
+                            <Link href={`chat/${n.metadata}`}>
                     <button className="mt-4 w-full px-4 py-2 text-sm rounded-lg bg-blue-600 hover:bg-blue-500 transition-all shadow-md font-semibold">
                       Start Chatting
                     </button>

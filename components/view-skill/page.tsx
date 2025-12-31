@@ -32,13 +32,14 @@ export default function ViewSkill() {
   const [skills, setSkills] = useState<Skill[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
+    const API_URL = process.env.NEXT_PUBLIC_API_URL;
 
   /* ================= FETCH SKILLS ================= */
 
   useEffect(() => {
     async function fetchSkills() {
       try {
-        const res = await fetch("http://localhost:5000/view-skill", {
+        const res = await fetch(`${API_URL}/view-skill`, {
           credentials: "include",
         });
 
