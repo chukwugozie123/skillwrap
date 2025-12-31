@@ -1,4 +1,4 @@
-// app/skills/[skillId]/edit/page.tsx
+// app/skill/[skillId]/edit-skill/page.tsx
 
 import Edit_skill from "@/components/edit-skill/page";
 
@@ -7,9 +7,10 @@ const API_URL = process.env.NEXT_PUBLIC_API_URL as string;
 export default async function EditSkillPage({
   params,
 }: {
-  params: { skillId: string };
+  params: Promise<{ skillId: string }>;
 }) {
-  const { skillId } = params;
+  // ✅ MUST await params in new Next versions
+  const { skillId } = await params;
 
   const res = await fetch(`${API_URL}/skills/${skillId}`, {
     cache: "no-store",
