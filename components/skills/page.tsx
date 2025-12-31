@@ -57,7 +57,7 @@ export default function SkillsPage() {
     }
 
     fetchSkills();
-  }, []);
+  }, [API_URL]);
 
   /* ================= DEBOUNCED SEARCH ================= */
 
