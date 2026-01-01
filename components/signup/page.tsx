@@ -1,5 +1,7 @@
+"use client";
+
 import { useState } from "react";
-import { useRouter } from "next/router";
+import { useRouter } from "next/navigation";
 
 const SignupPage = () => {
   const [fullname, setFullname] = useState("");
@@ -8,103 +10,97 @@ const SignupPage = () => {
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
-  const router = useRouter();
 
+  const router = useRouter();
   const API_URL = process.env.NEXT_PUBLIC_API_URL;
 
-  // Fixing the event type to React.FormEvent<HTMLFormElement>
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
 
     setLoading(true);
     setError("");
 
-    const response = await fetch(`${API_URL}/auth/signup`, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        fullname,
-        username,
-        email,
-        password,
-      }),
-    });
+    try {
+      const response = await fetch(`${API_URL}/auth/signup`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          fullname,
+          username,
+          email,
+          password,
+        }),
+      });
 
-    const data = await response.json();
+      const data = await response.json();
 
-    setLoading(false);
+      if (!response.ok) {
+        setError(data.error || "An error occurred, please try again.");
+        return;
+      }
 
-    if (response.ok) {
-      // Redirect to a different page after successful signup
-      router.push("/dashboard"); // Change to your desired route
-    } else {
-      setError(data.error || "An error occurred, please try again.");
+      router.push("/dashboard");
+    } catch {
+      setError("Server error. Please try again.");
+    } finally {
+      setLoading(false);
     }
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-r from-blue-800 to-indigo-800 bg-cover bg-fixed">
-      <div className="p-8 bg-opacity-30 backdrop-blur-lg rounded-lg shadow-lg w-full sm:w-96">
-        <h1 className="text-3xl font-semibold text-white mb-6 text-center">Signup</h1>
+    <div className="min-h-screen flex items-center justify-center bg-gradient-to-r from-blue-800 to-indigo-800 px-4">
+      <div className="p-8 bg-white/10 backdrop-blur-lg rounded-2xl shadow-xl w-full max-w-md">
+        <h1 className="text-3xl font-semibold text-white mb-6 text-center">
+          Create Account
+        </h1>
+
         <form onSubmit={handleSubmit} className="space-y-4">
-          <div>
-            <label className="block text-white">Full Name</label>
-            <input
-              type="text"
-              value={fullname}
-              onChange={(e) => setFullname(e.target.value)}
-              className="w-full p-3 mt-1 bg-transparent border-2 border-white rounded-lg text-white placeholder-white focus:outline-none focus:border-indigo-500"
-              placeholder="Enter your full name"
-              required
-            />
-          </div>
+          <input
+            type="text"
+            placeholder="Full Name"
+            value={fullname}
+            onChange={(e) => setFullname(e.target.value)}
+            required
+            className="w-full p-3 rounded-lg bg-white/20 text-white placeholder-white/60"
+          />
 
-          <div>
-            <label className="block text-white">Username</label>
-            <input
-              type="text"
-              value={username}
-              onChange={(e) => setUsername(e.target.value)}
-              className="w-full p-3 mt-1 bg-transparent border-2 border-white rounded-lg text-white placeholder-white focus:outline-none focus:border-indigo-500"
-              placeholder="Choose a username"
-              required
-            />
-          </div>
+          <input
+            type="text"
+            placeholder="Username"
+            value={username}
+            onChange={(e) => setUsername(e.target.value)}
+            required
+            className="w-full p-3 rounded-lg bg-white/20 text-white placeholder-white/60"
+          />
 
-          <div>
-            <label className="block text-white">Email</label>
-            <input
-              type="email"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              className="w-full p-3 mt-1 bg-transparent border-2 border-white rounded-lg text-white placeholder-white focus:outline-none focus:border-indigo-500"
-              placeholder="Enter your email"
-              required
-            />
-          </div>
+          <input
+            type="email"
+            placeholder="Email"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            required
+            className="w-full p-3 rounded-lg bg-white/20 text-white placeholder-white/60"
+          />
 
-          <div>
-            <label className="block text-white">Password</label>
-            <input
-              type="password"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              className="w-full p-3 mt-1 bg-transparent border-2 border-white rounded-lg text-white placeholder-white focus:outline-none focus:border-indigo-500"
-              placeholder="Enter your password"
-              required
-            />
-          </div>
+          <input
+            type="password"
+            placeholder="Password"
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+            required
+            className="w-full p-3 rounded-lg bg-white/20 text-white placeholder-white/60"
+          />
 
           {error && (
-            <p className="text-red-500 text-sm mt-2">{error}</p>
+            <p className="text-red-400 text-sm text-center">
+              {error}
+            </p>
           )}
 
           <button
             type="submit"
-            className="w-full p-3 bg-indigo-600 text-white rounded-lg mt-4 hover:bg-indigo-500 focus:outline-none"
             disabled={loading}
+            className="w-full py-3 bg-indigo-600 text-white rounded-xl font-semibold hover:bg-indigo-500 disabled:opacity-50"
           >
             {loading ? "Signing up..." : "Sign Up"}
           </button>
