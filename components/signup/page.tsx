@@ -1,147 +1,117 @@
-"use client";
+import { useState } from "react";
+import { useRouter } from "next/router";
 
-import { useState, useRef, useEffect } from "react";
-import Image from "next/image";
-
-type User = {
-  id: number;
-  fullname: string;
-  username: string;
-  email: string;
-  img_url: string;
-  bio?: string;
-  avatar?: string;
-  projects?: number;
-  followers?: number;
-  following?: number;
-};
-
-export default function ProfilePicture() {
-  const [isEditing, setIsEditing] = useState(false);
-  const [preview, setPreview] = useState<string | null>(null);
-  const [message, setMessage] = useState("");
+const SignupPage = () => {
+  const [fullname, setFullname] = useState("");
+  const [username, setUsername] = useState("");
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
-  const fileInputRef = useRef<HTMLInputElement | null>(null);
-  const [user, setUser] = useState<User | null>(null);
+  const router = useRouter();
 
-  const API_URL = process.env.NEXT_PUBLIC_API_URL ?? "";
-    // const API_URL = "http://localhost:5000";
+  const API_URL = process.env.NEXT_PUBLIC_API_URL;
 
-  /* ================= FETCH USER ================= */
-  useEffect(() => {
-    if (!API_URL) return;
+  // Fixing the event type to React.FormEvent<HTMLFormElement>
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
 
-    const fetchUser = async () => {
-      try {
-        const res = await fetch(`${API_URL}/auth/profile`, {
-          method: "GET",
-          credentials: "include",
-        });
+    setLoading(true);
+    setError("");
 
-        if (!res.ok) return;
+    const response = await fetch(`${API_URL}/auth/signup`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        fullname,
+        username,
+        email,
+        password,
+      }),
+    });
 
-        const data = await res.json();
-        setUser(data.user || data.req?.user || null);
-      } catch {
-        console.error("Failed to fetch user");
-      }
-    };
+    const data = await response.json();
 
-    fetchUser();
-  }, [API_URL]);
+    setLoading(false);
 
-  /* ================= HANDLERS ================= */
-  const handleClick = () => {
-    if (!isEditing) {
-      setIsEditing(true);
-      fileInputRef.current?.click();
+    if (response.ok) {
+      // Redirect to a different page after successful signup
+      router.push("/dashboard"); // Change to your desired route
+    } else {
+      setError(data.error || "An error occurred, please try again.");
     }
   };
 
-  const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
-
-    setPreview(URL.createObjectURL(file));
-
-    const formData = new FormData();
-    formData.append("image", file);
-
-    try {
-      setLoading(true);
-      const res = await fetch(`${API_URL}/upload-profile`, {
-        method: "POST",
-        body: formData,
-        credentials: "include",
-      });
-
-      const data = await res.json();
-
-      if (res.ok) {
-        setMessage("✅ Profile picture updated!");
-        setTimeout(() => setIsEditing(false), 1500);
-      } else {
-        setMessage("❌ Upload failed: " + data?.error);
-      }
-    } catch {
-      setMessage("❌ Error uploading image.");
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  /* ================= IMAGE SOURCE ================= */
-  const displayImage =
-    preview ||
-    (user?.img_url ? `${API_URL}/uploads/${user.img_url}` : null);
-
-  /* ================= UI ================= */
   return (
-    <div className="relative group">
-      <div
-        onClick={handleClick}
-        className="w-28 h-28 rounded-full overflow-hidden border-4 border-blue-500/40 cursor-pointer 
-                   flex items-center justify-center bg-gradient-to-tr from-blue-600 to-indigo-700 
-                   shadow-xl transition-transform hover:scale-105"
-      >
-        {displayImage ? (
-          <Image
-            src={displayImage}
-            alt={user?.username ?? "Profile picture"}
-            width={112}
-            height={112}
-            className="w-full h-full object-cover"
-            priority
-          />
-        ) : (
-          <span className="text-4xl font-bold text-white">
-            {user?.username?.[0]?.toUpperCase()}
-          </span>
-        )}
-
-        {!isEditing && (
-          <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 
-                          flex items-center justify-center transition">
-            <span className="text-sm text-white font-semibold">
-              Click to Edit
-            </span>
+    <div className="min-h-screen flex items-center justify-center bg-gradient-to-r from-blue-800 to-indigo-800 bg-cover bg-fixed">
+      <div className="p-8 bg-opacity-30 backdrop-blur-lg rounded-lg shadow-lg w-full sm:w-96">
+        <h1 className="text-3xl font-semibold text-white mb-6 text-center">Signup</h1>
+        <form onSubmit={handleSubmit} className="space-y-4">
+          <div>
+            <label className="block text-white">Full Name</label>
+            <input
+              type="text"
+              value={fullname}
+              onChange={(e) => setFullname(e.target.value)}
+              className="w-full p-3 mt-1 bg-transparent border-2 border-white rounded-lg text-white placeholder-white focus:outline-none focus:border-indigo-500"
+              placeholder="Enter your full name"
+              required
+            />
           </div>
-        )}
+
+          <div>
+            <label className="block text-white">Username</label>
+            <input
+              type="text"
+              value={username}
+              onChange={(e) => setUsername(e.target.value)}
+              className="w-full p-3 mt-1 bg-transparent border-2 border-white rounded-lg text-white placeholder-white focus:outline-none focus:border-indigo-500"
+              placeholder="Choose a username"
+              required
+            />
+          </div>
+
+          <div>
+            <label className="block text-white">Email</label>
+            <input
+              type="email"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              className="w-full p-3 mt-1 bg-transparent border-2 border-white rounded-lg text-white placeholder-white focus:outline-none focus:border-indigo-500"
+              placeholder="Enter your email"
+              required
+            />
+          </div>
+
+          <div>
+            <label className="block text-white">Password</label>
+            <input
+              type="password"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              className="w-full p-3 mt-1 bg-transparent border-2 border-white rounded-lg text-white placeholder-white focus:outline-none focus:border-indigo-500"
+              placeholder="Enter your password"
+              required
+            />
+          </div>
+
+          {error && (
+            <p className="text-red-500 text-sm mt-2">{error}</p>
+          )}
+
+          <button
+            type="submit"
+            className="w-full p-3 bg-indigo-600 text-white rounded-lg mt-4 hover:bg-indigo-500 focus:outline-none"
+            disabled={loading}
+          >
+            {loading ? "Signing up..." : "Sign Up"}
+          </button>
+        </form>
       </div>
-
-      <input
-        type="file"
-        ref={fileInputRef}
-        onChange={handleFileChange}
-        accept="image/*"
-        className="hidden"
-      />
-
-      {message && (
-        <p className="absolute mt-2 text-sm text-center w-full text-white/80">
-          {loading ? "Uploading..." : message}
-        </p>
-      )}
     </div>
   );
-}
+};
+
+export default SignupPage;
