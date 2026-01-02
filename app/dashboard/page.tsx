@@ -532,6 +532,8 @@
 
 
 "use client";
+
+
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import Image from "next/image"; // use Next.js optimized Image
@@ -541,7 +543,8 @@ import {
   Menu, X, Mail, Calendar, User, MessageCircle
 } from "lucide-react";
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL;
+// const API_URL = process.env.NEXT_PUBLIC_API_URL;
+ const API_URL= 'https://skillwrap-backend.onrender.com'
 // const API_URL = 'http://localhost:5000'
 
 interface User {
@@ -561,7 +564,7 @@ interface Stats {
 // ---------------- FETCH USER PROFILE ----------------
 async function fetchUserProfile(): Promise<User | null> {
   try {
-    const res = await fetch(`${API_URL}/auth/profile`, {
+    const res = await fetch(`http://localhost:5000/auth/profile`, {
       credentials: "include",
       cache: "no-store",
     });

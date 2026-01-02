@@ -195,7 +195,8 @@ export default function NotificationList() {
 
   const unreadCount = notif.filter((n) => !n.read).length;
 
-  const API_URL = process.env.NEXT_PUBLIC_API_URL;
+ const API_URL= 'https://skillwrap-backend.onrender.com'
+  // const API_URL = process.env.NEXT_PUBLIC_API_URL;
 
   // ================= LOAD NOTIFICATIONS =================
   const loadNotifs = useCallback(async () => {

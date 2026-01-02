@@ -24,7 +24,8 @@ export default function ProfilePicture() {
   const fileInputRef = useRef<HTMLInputElement | null>(null);
   const [user, setUser] = useState<User | null>(null);
 
-  const API_URL = process.env.NEXT_PUBLIC_API_URL ?? "";
+  // const API_URL = process.env.NEXT_PUBLIC_API_URL ?? "";
+   const API_URL= 'https://skillwrap-backend.onrender.com'
 
   /* ================= FETCH USER ================= */
   useEffect(() => {

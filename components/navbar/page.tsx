@@ -16,7 +16,9 @@ interface UserType {
 export default function Navbar() {
   const [isOpen, setIsOpen] = useState(false);
   const [user, setUser] = useState<UserType | null>(null);
-   const API_URL = process.env.NEXT_PUBLIC_API_URL;
+
+   const API_URL= 'https://skillwrap-backend.onrender.com'
+  //  const API_URL = process.env.NEXT_PUBLIC_API_URL;
 
   // ✅ Fetch user data on mount
   useEffect(() => {

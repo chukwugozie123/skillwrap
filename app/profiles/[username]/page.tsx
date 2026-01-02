@@ -48,7 +48,8 @@ export default function ProfilePage() {
   const { username } = useParams();
   const router = useRouter();
 
-  const API_URL = process.env.NEXT_PUBLIC_API_URL;
+   const API_URL= 'https://skillwrap-backend.onrender.com'
+  // const API_URL = process.env.NEXT_PUBLIC_API_URL;
   // const API_URL = 'http://localhost:5000'
 
   const [data, setData] = useState<ProfileResponse | null>(null);

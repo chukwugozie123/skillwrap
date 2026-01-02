@@ -29,7 +29,8 @@ export default function SkillDetailsPage() {
   const [error, setError] = useState("");
   const [liked, setLiked] = useState(false);
 
-  const API_URL = process.env.NEXT_PUBLIC_API_URL as string;
+  // const API_URL = process.env.NEXT_PUBLIC_API_URL as string;
+   const API_URL= 'https://skillwrap-backend.onrender.com'
 
   useEffect(() => {
     async function fetchSkill() {

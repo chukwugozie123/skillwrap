@@ -28,7 +28,8 @@ interface ExchangeDetails {
   exchange_duration?: number;
 }
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL;
+// const API_URL = process.env.NEXT_PUBLIC_API_URL;
+ const API_URL= 'https://skillwrap-backend.onrender.com'
 
 export default function ChatPage() {
   const [room, setRoom] = useState("");

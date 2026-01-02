@@ -17,7 +17,9 @@ export default function UploadPic() {
   const [loading, setLoading] = useState(false);
 
 
-  const API_URL = process.env.NEXT_PUBLIC_API_URL 
+  // const API_URL = process.env.NEXT_PUBLIC_API_URL 
+  // const API_URL='http://localhos:5000'
+   const API_URL= 'https://skillwrap-backend.onrender.com'
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();

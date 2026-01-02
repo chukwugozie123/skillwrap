@@ -105,7 +105,8 @@ export default function EditSkill({ skill }: EditSkillProps) {
   const [level, setLevel] = useState(skill.level);
   const [message, setMessage] = useState("");
 
-  const API_URL = process.env.NEXT_PUBLIC_API_URL;
+  // const API_URL = process.env.NEXT_PUBLIC_API_URL;
+   const API_URL= 'https://skillwrap-backend.onrender.com'
 
   const router = useRouter();
 

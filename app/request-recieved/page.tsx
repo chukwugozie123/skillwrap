@@ -21,7 +21,8 @@ type ExchangeRequest = {
 };
 
 // ================= CONFIG =================
-const API_URL = process.env.NEXT_PUBLIC_API_URL;
+// const API_URL = process.env.NEXT_PUBLIC_API_URL;
+ const API_URL= 'https://skillwrap-backend.onrender.com'
 
 // ================= PAGE =================
 export default function ReceivedRequestsPage() {

@@ -14,7 +14,8 @@ export async function FormSubmit(
   formData: FormData
 ): Promise<LoginFormState> {
   try {
-      const API_URL = process.env.NEXT_PUBLIC_API_URL;
+      // const API_URL = process.env.NEXT_PUBLIC_API_URL;
+       const API_URL= 'https://skillwrap-backend.onrender.com'
     const res = await fetch(`${API_URL}/auth/login`, {
       method: "POST",
       body: formData,

@@ -21,7 +21,9 @@ export default function EditProfile({ initialProfile }: EditProfileProps) {
   const [username, setUsername] = useState(initialProfile.username);
   const [email, setEmail] = useState(initialProfile.email);
   const [message, setMessage] = useState("");
-   const API_URL = process.env.NEXT_PUBLIC_API_URL;
+
+ const API_URL= 'https://skillwrap-backend.onrender.com'
+  //  const API_URL = process.env.NEXT_PUBLIC_API_URL;
 
   const router = useRouter();
 

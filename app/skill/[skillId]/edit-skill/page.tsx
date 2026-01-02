@@ -2,7 +2,8 @@
 
 import Edit_skill from "@/components/edit-skill/page";
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL as string;
+// const API_URL = process.env.NEXT_PUBLIC_API_URL as string;
+ const API_URL= 'https://skillwrap-backend.onrender.com'
 
 export default async function EditSkillPage({
   params,

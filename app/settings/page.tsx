@@ -23,7 +23,7 @@ export default function SettingsPage() {
   useEffect(() => {
     async function load() {
       try {
-        const res = await fetch("http://localhost:5000/auth/profile", {
+        const res = await fetch("https://skillwrap-backend.onrender.com/auth/profile", {
           credentials: "include",
         });
         if (!res.ok) throw new Error("Failed to fetch user");

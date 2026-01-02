@@ -1,65 +1,77 @@
 "use client";
 
-import { useEffect } from "react";
+import { useEffect, useActionState } from "react";
 import { useRouter } from "next/navigation";
-import { useFormState, useFormStatus } from "react-dom";
+import { useFormStatus } from "react-dom";
+
+const API_URL = "https://skillwrap-backend.onrender.com";
+// const API_URL = "http://localhost:5000"
 
 interface FormState {
-  message: string;
-  error?: string;
   success?: boolean;
+  message?: string;
+  error?: string;
 }
 
-function LoginForm() {
-  const router = useRouter();
-  const API_URL = process.env.NEXT_PUBLIC_API_URL;
+async function loginAction(
+  prevState: FormState,
+  formData: FormData
+): Promise<FormState> {
+  const emailOrUsername = formData.get("emailOrUsername");
+  const password = formData.get("password");
 
-  const [state, formAction] = useFormState<FormState>(
-    async (prevState) => {
-      const form = document.querySelector("form") as HTMLFormElement;
-      if (!form) return prevState;
+  if (!emailOrUsername || !password) {
+    return { error: "All fields are required" };
+  }
 
-      const formData = new FormData(form);
-      const data = Object.fromEntries(formData.entries()) as {
-        emailOrUsername: string;
-        password: string;
-      };
+  try {
+    const res = await fetch(`${API_URL}/auth/login`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      credentials: "include", // 🔴 REQUIRED for passport session
+      body: JSON.stringify({
+        emailOrUsername,
+        password,
+      }),
+    });
 
-      try {
-        const res = await fetch(`${API_URL}/auth/login`, {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          credentials: "include",
-          body: JSON.stringify(data),
-        });
+    const data = await res.json();
 
-        const json = await res.json();
+    if (!res.ok) {
+      return { error: data.error || "Invalid login" };
+    }
 
-        if (json.success) {
-          return {
-            ...prevState,
-            success: true,
-            message: json.message || "",
-          };
-        }
+    return {
+      success: true,
+      message: data.message,
+    };
+  } catch (err) {
+    console.error("Login error:", err);
+    return { error: "Server error. Please try again." };
+  }
+}
 
-        return {
-          ...prevState,
-          success: false,
-          error: json.message || "Login failed",
-        };
-      } catch {
-        return {
-          ...prevState,
-          success: false,
-          error: "Server error",
-        };
-      }
-    },
-    { message: "" }
-  );
-
+function SubmitButton() {
   const { pending } = useFormStatus();
+
+  return (
+    <button
+      type="submit"
+      disabled={pending}
+      className="w-full py-3 rounded-xl font-semibold bg-gradient-to-r from-blue-500 to-cyan-500 disabled:opacity-50 transition"
+    >
+      {pending ? "Logging in..." : "Login"}
+    </button>
+  );
+}
+
+export default function LoginPage() {
+  const router = useRouter();
+
+  const [state, formAction] = useActionState<FormState, FormData>(
+    loginAction,
+    {}
+  );
 
   useEffect(() => {
     if (state?.success) {
@@ -77,7 +89,7 @@ function LoginForm() {
           Login to Your Account
         </h1>
 
-        {(state?.message || state?.error) && (
+        {(state?.error || state?.message) && (
           <div
             className={`mb-4 text-sm text-center ${
               state.error ? "text-red-400" : "text-green-400"
@@ -92,14 +104,13 @@ function LoginForm() {
             Email / Username
           </label>
           <input
-            type="text"
             name="emailOrUsername"
             required
-            className="w-full px-4 py-2 rounded-lg bg-white/20 border border-white/30 text-white"
+            className="w-full px-4 py-2 rounded-lg bg-white/20 border border-white/30 text-white focus:outline-none focus:ring-2 focus:ring-cyan-400"
           />
         </div>
 
-        <div className="mb-5">
+        <div className="mb-6">
           <label className="block text-sm font-medium mb-2">
             Password
           </label>
@@ -107,21 +118,15 @@ function LoginForm() {
             type="password"
             name="password"
             required
-            className="w-full px-4 py-2 rounded-lg bg-white/20 border border-white/30 text-white"
+            className="w-full px-4 py-2 rounded-lg bg-white/20 border border-white/30 text-white focus:outline-none focus:ring-2 focus:ring-cyan-400"
           />
         </div>
 
-        <button
-          type="submit"
-          disabled={pending}
-          className="w-full py-3 rounded-xl font-semibold bg-gradient-to-r from-blue-500 to-cyan-500 disabled:opacity-50"
-        >
-          {pending ? "Logging in..." : "Login"}
-        </button>
+        <SubmitButton />
 
         <p className="mt-6 text-center text-sm text-white/80">
           Don’t have an account?{" "}
-          <a href="/sign" className="text-blue-400 hover:underline">
+          <a href="/signup" className="text-blue-400 hover:underline">
             Sign up
           </a>
         </p>
@@ -130,9 +135,150 @@ function LoginForm() {
   );
 }
 
-export default function LoginPage() {
-  return <LoginForm />;
-}
+
+
+
+
+
+
+
+
+// "use client";
+
+// import { useEffect } from "react";
+// import { useRouter } from "next/navigation";
+// import { useFormState, useFormStatus } from "react-dom";
+
+// interface FormState {
+//   message: string;
+//   error?: string;
+//   success?: boolean;
+// }
+
+// function LoginForm() {
+//   const router = useRouter();
+//   // const API_URL = process.env.NEXT_PUBLIC_API_URL;
+//  const API_URL= 'https://skillwrap-backend.onrender.com'
+
+//   const [state, formAction] = useFormState<FormState>(
+//     async (prevState) => {
+//       const form = document.querySelector("form") as HTMLFormElement;
+//       if (!form) return prevState;
+
+//       const formData = new FormData(form);
+//       const data = Object.fromEntries(formData.entries()) as {
+//         emailOrUsername: string;
+//         password: string;
+//       };
+
+//       try {
+//         const res = await fetch(`${API_URL}/auth/login`, {
+//           method: "POST",
+//           headers: { "Content-Type": "application/json" },
+//           credentials: "include",
+//           body: JSON.stringify(data),
+//         });
+
+//         const json = await res.json();
+
+//         if (json.success) {
+//           return {
+//             ...prevState,
+//             success: true,
+//             message: json.message || "",
+//           };
+//         }
+
+//         return {
+//           ...prevState,
+//           success: false,
+//           error: json.message || "Login failed",
+//         };
+//       } catch {
+//         return {
+//           ...prevState,
+//           success: false,
+//           error: "Server error",
+//         };
+//       }
+//     },
+//     { message: "" }
+//   );
+
+//   const { pending } = useFormStatus();
+
+//   useEffect(() => {
+//     if (state?.success) {
+//       router.push("/dashboard");
+//     }
+//   }, [state, router]);
+
+//   return (
+//     <div className="flex items-center justify-center min-h-screen bg-gradient-to-tr from-[#0f172a] via-[#1e293b] to-[#0f172a] p-6">
+//       <form
+//         action={formAction}
+//         className="w-full max-w-md bg-white/10 backdrop-blur-xl border border-white/20 shadow-xl rounded-2xl p-8 text-white"
+//       >
+//         <h1 className="text-center text-3xl font-bold mb-6 bg-clip-text text-transparent bg-gradient-to-r from-blue-400 to-cyan-300">
+//           Login to Your Account
+//         </h1>
+
+//         {(state?.message || state?.error) && (
+//           <div
+//             className={`mb-4 text-sm text-center ${
+//               state.error ? "text-red-400" : "text-green-400"
+//             }`}
+//           >
+//             {state.error || state.message}
+//           </div>
+//         )}
+
+//         <div className="mb-5">
+//           <label className="block text-sm font-medium mb-2">
+//             Email / Username
+//           </label>
+//           <input
+//             type="text"
+//             name="emailOrUsername"
+//             required
+//             className="w-full px-4 py-2 rounded-lg bg-white/20 border border-white/30 text-white"
+//           />
+//         </div>
+
+//         <div className="mb-5">
+//           <label className="block text-sm font-medium mb-2">
+//             Password
+//           </label>
+//           <input
+//             type="password"
+//             name="password"
+//             required
+//             className="w-full px-4 py-2 rounded-lg bg-white/20 border border-white/30 text-white"
+//           />
+//         </div>
+
+//         <button
+//           type="submit"
+//           disabled={pending}
+//           className="w-full py-3 rounded-xl font-semibold bg-gradient-to-r from-blue-500 to-cyan-500 disabled:opacity-50"
+//         >
+//           {pending ? "Logging in..." : "Login"}
+//         </button>
+
+//         <p className="mt-6 text-center text-sm text-white/80">
+//           Don’t have an account?{" "}
+//           <a href="/sign" className="text-blue-400 hover:underline">
+//             Sign up
+//           </a>
+//         </p>
+//       </form>
+//     </div>
+//   );
+// }
+
+// export default function LoginPage() {
+//   return <LoginForm />;
+// }
 
 
 
