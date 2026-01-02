@@ -194,10 +194,6 @@ export default function SkillsPage() {
 // console.log("Endpoint:", endpoint);
 
 useEffect(() => {
-  if (!API_URL) {
-    setError("API URL not configured");
-    return;
-  }
 
   if (typingTimeoutRef.current) {
     clearTimeout(typingTimeoutRef.current);
@@ -209,14 +205,14 @@ useEffect(() => {
       setError("");
 
       const endpoint = searchTerm.trim()
-        ? `${API_URL}/search?title=${encodeURIComponent(searchTerm)}`
-        : `${API_URL}/skills`;
+        ? `https://skillwrap-backend.onrender.com/search?title=${encodeURIComponent(searchTerm)}`
+        : `https://skillwrap-backend.onrender.com/skills`;
 
       // const res = await fetch(endpoint, {
       //   credentials: "include",
       // });
 
-          const res = await fetch(`https://skillwrap-backend.onrender.com/skills`, {
+          const res = await fetch(endpoint, {
           credentials: "include",
         });
 

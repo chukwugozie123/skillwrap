@@ -114,19 +114,101 @@ export default function UploadPic() {
           <option value="Professional" className="text-black">Professional</option>
         </select>
 
-        {/* Category */}
-        <select
-          value={category}
-          onChange={(e) => setCategory(e.target.value)}
-          required
-          className="w-full px-4 py-3 rounded-xl bg-white/15 border border-white/30 text-white"
-        >
-          <option value="">Select category</option>
-          <option value="Web Development" className="text-black">Web Development</option>
-          <option value="UI/UX Design" className="text-black">UI/UX Design</option>
-          <option value="Graphic Design" className="text-black">Graphic Design</option>
-          <option value="Other" className="text-black">Other</option>
-        </select>
+{/* Category */}
+<select
+  value={category}
+  onChange={(e) => setCategory(e.target.value)}
+  required
+  className="w-full px-4 py-3 rounded-xl bg-white/15 border border-white/30 text-white"
+>
+  <option value="">Select category</option>
+
+  {/* Tech */}
+  <option value="Web Development" className="text-black">
+    Web Development
+  </option>
+  <option value="Mobile App Development" className="text-black">
+    Mobile App Development
+  </option>
+  <option value="Backend Development" className="text-black">
+    Backend Development
+  </option>
+  <option value="UI/UX Design" className="text-black">
+    UI/UX Design
+  </option>
+  <option value="Graphic Design" className="text-black">
+    Graphic Design
+  </option>
+  <option value="Game Development" className="text-black">
+    Game Development
+  </option>
+  <option value="Data Science" className="text-black">
+    Data Science
+  </option>
+  <option value="Machine Learning / AI" className="text-black">
+    Machine Learning / AI
+  </option>
+  <option value="Cybersecurity" className="text-black">
+    Cybersecurity
+  </option>
+
+  {/* Creative */}
+  <option value="Content Creation" className="text-black">
+    Content Creation
+  </option>
+  <option value="Photography" className="text-black">
+    Photography
+  </option>
+  <option value="Video Editing" className="text-black">
+    Video Editing
+  </option>
+  <option value="Animation & Motion Design" className="text-black">
+    Animation & Motion Design
+  </option>
+  <option value="Music Production" className="text-black">
+    Music Production
+  </option>
+  <option value="Writing & Copywriting" className="text-black">
+    Writing & Copywriting
+  </option>
+
+  {/* Business */}
+  <option value="Digital Marketing" className="text-black">
+    Digital Marketing
+  </option>
+  <option value="SEO" className="text-black">
+    SEO
+  </option>
+  <option value="Product Management" className="text-black">
+    Product Management
+  </option>
+  <option value="Entrepreneurship" className="text-black">
+    Entrepreneurship
+  </option>
+  <option value="Finance & Investing" className="text-black">
+    Finance & Investing
+  </option>
+
+  {/* Lifestyle */}
+  <option value="Fitness & Health" className="text-black">
+    Fitness & Health
+  </option>
+  <option value="Cooking & Baking" className="text-black">
+    Cooking & Baking
+  </option>
+  <option value="Public Speaking" className="text-black">
+    Public Speaking
+  </option>
+  <option value="Personal Development" className="text-black">
+    Personal Development
+  </option>
+
+  {/* Other */}
+  <option value="Other" className="text-black">
+    Other
+  </option>
+</select>
+
 
         {/* Image */}
         <input

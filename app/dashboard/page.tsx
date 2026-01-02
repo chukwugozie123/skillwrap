@@ -564,7 +564,7 @@ interface Stats {
 // ---------------- FETCH USER PROFILE ----------------
 async function fetchUserProfile(): Promise<User | null> {
   try {
-    const res = await fetch(`http://localhost:5000/auth/profile`, {
+    const res = await fetch(`https://skillwrap-backend.onrender.com/auth/profile`, {
       credentials: "include",
       cache: "no-store",
     });

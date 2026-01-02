@@ -1,11 +1,11 @@
 "use client";
 
-import { useEffect, useActionState } from "react";
+import { useEffect, useActionState, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useFormStatus } from "react-dom";
 
 const API_URL = "https://skillwrap-backend.onrender.com";
-// const API_URL = "http://localhost:5000"
+// const API_URL = "http://localhost:5000";
 
 interface FormState {
   success?: boolean;
@@ -28,7 +28,7 @@ async function loginAction(
     const res = await fetch(`${API_URL}/auth/login`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      credentials: "include", // 🔴 REQUIRED for passport session
+      credentials: "include",
       body: JSON.stringify({
         emailOrUsername,
         password,
@@ -67,6 +67,7 @@ function SubmitButton() {
 
 export default function LoginPage() {
   const router = useRouter();
+  const [showPassword, setShowPassword] = useState(false);
 
   const [state, formAction] = useActionState<FormState, FormData>(
     loginAction,
@@ -99,6 +100,7 @@ export default function LoginPage() {
           </div>
         )}
 
+        {/* EMAIL / USERNAME */}
         <div className="mb-5">
           <label className="block text-sm font-medium mb-2">
             Email / Username
@@ -110,16 +112,24 @@ export default function LoginPage() {
           />
         </div>
 
-        <div className="mb-6">
+        {/* PASSWORD WITH EYE ICON */}
+        <div className="mb-6 relative">
           <label className="block text-sm font-medium mb-2">
             Password
           </label>
           <input
-            type="password"
+            type={showPassword ? "text" : "password"}
             name="password"
             required
-            className="w-full px-4 py-2 rounded-lg bg-white/20 border border-white/30 text-white focus:outline-none focus:ring-2 focus:ring-cyan-400"
+            className="w-full px-4 py-2 pr-12 rounded-lg bg-white/20 border border-white/30 text-white focus:outline-none focus:ring-2 focus:ring-cyan-400"
           />
+          <button
+            type="button"
+            onClick={() => setShowPassword(!showPassword)}
+            className="absolute right-3 top-9 text-blue-300 hover:text-blue-400"
+          >
+            {showPassword ? <EyeOffIcon /> : <EyeIcon />}
+          </button>
         </div>
 
         <SubmitButton />
@@ -135,8 +145,21 @@ export default function LoginPage() {
   );
 }
 
+/* ================= ICONS ================= */
 
+const EyeIcon = () => (
+  <svg width="20" height="20" fill="none" stroke="currentColor" strokeWidth="2">
+    <path d="M1 10s4-6 9-6 9 6 9 6-4 6-9 6-9-6-9-6Z" />
+    <circle cx="10" cy="10" r="3" />
+  </svg>
+);
 
+const EyeOffIcon = () => (
+  <svg width="20" height="20" fill="none" stroke="currentColor" strokeWidth="2">
+    <path d="M3 3l14 14" />
+    <path d="M1 10s4-6 9-6c1.5 0 2.9.4 4.1 1.1M19 10s-4 6-9 6c-1.5 0-2.9-.4-4.1-1.1" />
+  </svg>
+);
 
 
 
