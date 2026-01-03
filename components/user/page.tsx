@@ -5,25 +5,23 @@ import { useRouter } from "next/navigation";
 import Link from "next/link";
 
 /* ================= TYPES ================= */
-type Skill = {
-  id: number;
+export type Skill = {
+  skillId: number;
   title: string;
   description?: string;
   category?: string;
   username?: string;
   skill_img?: string;
   image_url?: string;
-  skillId: number;
 };
 
 /* ================= COMPONENT ================= */
-export default function UserPage({ skills = [] }: { skills?: Skill[] }) {
-    // const API_URL = process.env.NEXT_PUBLIC_API_URL;
-     const API_URL= 'https://skillwrap-backend.onrender.com'
-  const router = useRouter(); // ✅ hook ALWAYS at top
+export default function UserPage({ skills }: { skills: Skill[] }) {
+  const API_URL = "https://skillwrap-backend.onrender.com";
+  const router = useRouter();
 
-  /* ================= EMPTY STATE ================= */
-  if (!Array.isArray(skills) || skills.length === 0) {
+  /* ================= EMPTY ================= */
+  if (!skills.length) {
     return (
       <div className="flex items-center justify-center h-40">
         <p className="text-gray-400 text-lg font-semibold">
@@ -33,104 +31,218 @@ export default function UserPage({ skills = [] }: { skills?: Skill[] }) {
     );
   }
 
-  /* ================= HELPERS ================= */
-  const getImageSrc = (skill: Skill): string => {
-    const raw = skill.skill_img || skill.image_url || "";
-
-    if (!raw || raw === "null" || raw === "undefined") {
-      return "/default-skill.png";
-    }
-
-    // If backend stored filename only
-    if (!raw.startsWith("http")) {
-      return `${API_URL}/uploads/${raw}`;
-    }
-
-    return raw;
+  /* ================= IMAGE ================= */
+  const getImageSrc = (skill: Skill) => {
+    const raw = skill.skill_img || skill.image_url;
+    if (!raw || raw === "null") return "/default-skill.png";
+    return raw.startsWith("http") ? raw : `${API_URL}/uploads/${raw}`;
   };
 
   /* ================= UI ================= */
   return (
     <section className="grid sm:grid-cols-2 lg:grid-cols-3 gap-8 mt-8">
-      {skills.map((skill) => {
-        const imgSrc = getImageSrc(skill);
-
-        return (
-          <div
-            key={skill.skillId}
-            className="group bg-white/5 border border-white/10 rounded-2xl shadow-lg 
-            overflow-hidden hover:shadow-cyan-500/40 hover:-translate-y-2 
-            transition-all duration-300"
-          >
-            {/* IMAGE */}
-            <Link href={`/skills/${skill.skillId}`}>
-              <div className="relative h-48 w-full overflow-hidden">
-                <Image
-                  src={imgSrc}
-                  alt={skill.title || "Skill"}
-                  fill
-                  sizes="(max-width: 768px) 100vw, 33vw"
-                  className="object-cover group-hover:scale-110 transition-transform duration-500"
-                  unoptimized
-                />
-                <div className="absolute inset-0 bg-gradient-to-t from-[#0f172a]/70 to-transparent" />
-              </div>
-            </Link>
-
-            {/* CONTENT */}
-            <div className="p-6">
-              <h2 className="text-xl font-bold text-white mb-1">
-                {skill.title}
-              </h2>
-
-              {skill.description && (
-                <p className="text-gray-400 text-sm mb-3 line-clamp-3">
-                  {skill.description}
-                </p>
-              )}
-
-              {skill.username && (
-                <p className="text-sm text-gray-400 mb-2">
-                  Uploaded by{" "}
-                  <span className="text-cyan-400">
-                    {skill.username}
-                  </span>
-                </p>
-              )}
-
-              {skill.category && (
-                <span
-                  className="inline-block bg-gradient-to-r from-cyan-500 to-blue-500 
-                  text-white px-4 py-1 rounded-full text-sm font-medium shadow-md"
-                >
-                  {skill.category}
-                </span>
-              )}
+      {skills.map((skill) => (
+        <div
+          key={skill.skillId}
+          className="group bg-white/5 border border-white/10 rounded-2xl shadow-lg 
+          hover:shadow-cyan-500/40 hover:-translate-y-2 transition-all duration-300"
+        >
+          <Link href={`/skills/${skill.skillId}`}>
+            <div className="relative h-48 w-full overflow-hidden">
+              <Image
+                src={getImageSrc(skill)}
+                alt={skill.title}
+                fill
+                className="object-cover group-hover:scale-110 transition-transform duration-500"
+                unoptimized
+              />
             </div>
+          </Link>
 
-            {/* ACTION */}
-            <div className="p-4 pt-0">
-              <button
-                onClick={() => {
-                  sessionStorage.setItem(
-                    "selectedSkill",
-                    JSON.stringify(skill)
-                  );
-                  router.push("/exchange_skill");
-                }}
-                className="w-full py-2 rounded-xl bg-gradient-to-r from-blue-500 to-cyan-500 
-                font-semibold text-white shadow-lg hover:shadow-cyan-400/50 
-                hover:scale-[1.03] active:scale-95 transition-all duration-200"
-              >
-                🤝 Request Exchange
-              </button>
-            </div>
+          <div className="p-6">
+            <h2 className="text-xl font-bold">{skill.title}</h2>
+
+            {skill.description && (
+              <p className="text-gray-400 text-sm mt-2 line-clamp-3">
+                {skill.description}
+              </p>
+            )}
+
+            {skill.category && (
+              <span className="inline-block mt-3 px-4 py-1 rounded-full bg-gradient-to-r from-cyan-500 to-blue-500 text-sm">
+                {skill.category}
+              </span>
+            )}
           </div>
-        );
-      })}
+
+          <div className="p-4 pt-0">
+            <button
+              onClick={() => {
+                sessionStorage.setItem("selectedSkill", JSON.stringify(skill));
+                router.push("/exchange_skill");
+              }}
+              className="w-full py-2 rounded-xl bg-gradient-to-r from-blue-500 to-cyan-500 
+              hover:scale-105 transition"
+            >
+              🤝 Request Exchange
+            </button>
+          </div>
+        </div>
+      ))}
     </section>
   );
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+// "use client";
+
+// import Image from "next/image";
+// import { useRouter } from "next/navigation";
+// import Link from "next/link";
+
+// /* ================= TYPES ================= */
+// type Skill = {
+//   id: number;
+//   title: string;
+//   description?: string;
+//   category?: string;
+//   username?: string;
+//   skill_img?: string;
+//   image_url?: string;
+//   skillId: number;
+// };
+
+// /* ================= COMPONENT ================= */
+// export default function UserPage({ skills = [] }: { skills?: Skill[] }) {
+//     // const API_URL = process.env.NEXT_PUBLIC_API_URL;
+//      const API_URL= 'https://skillwrap-backend.onrender.com'
+//   const router = useRouter(); // ✅ hook ALWAYS at top
+
+//   /* ================= EMPTY STATE ================= */
+//   if (!Array.isArray(skills) || skills.length === 0) {
+//     return (
+//       <div className="flex items-center justify-center h-40">
+//         <p className="text-gray-400 text-lg font-semibold">
+//           No skills found ❌
+//         </p>
+//       </div>
+//     );
+//   }
+
+//   /* ================= HELPERS ================= */
+//   const getImageSrc = (skill: Skill): string => {
+//     const raw = skill.skill_img || skill.image_url || "";
+
+//     if (!raw || raw === "null" || raw === "undefined") {
+//       return "/default-skill.png";
+//     }
+
+//     // If backend stored filename only
+//     if (!raw.startsWith("http")) {
+//       return `${API_URL}/uploads/${raw}`;
+//     }
+
+//     return raw;
+//   };
+
+//   /* ================= UI ================= */
+//   return (
+//     <section className="grid sm:grid-cols-2 lg:grid-cols-3 gap-8 mt-8">
+//       {skills.map((skill) => {
+//         const imgSrc = getImageSrc(skill);
+
+//         return (
+//           <div
+//             key={skill.skillId}
+//             className="group bg-white/5 border border-white/10 rounded-2xl shadow-lg 
+//             overflow-hidden hover:shadow-cyan-500/40 hover:-translate-y-2 
+//             transition-all duration-300"
+//           >
+//             {/* IMAGE */}
+//             <Link href={`/skills/${skill.skillId}`}>
+//               <div className="relative h-48 w-full overflow-hidden">
+//                 <Image
+//                   src={imgSrc}
+//                   alt={skill.title || "Skill"}
+//                   fill
+//                   sizes="(max-width: 768px) 100vw, 33vw"
+//                   className="object-cover group-hover:scale-110 transition-transform duration-500"
+//                   unoptimized
+//                 />
+//                 <div className="absolute inset-0 bg-gradient-to-t from-[#0f172a]/70 to-transparent" />
+//               </div>
+//             </Link>
+
+//             {/* CONTENT */}
+//             <div className="p-6">
+//               <h2 className="text-xl font-bold text-white mb-1">
+//                 {skill.title}
+//               </h2>
+
+//               {skill.description && (
+//                 <p className="text-gray-400 text-sm mb-3 line-clamp-3">
+//                   {skill.description}
+//                 </p>
+//               )}
+
+//               {skill.username && (
+//                 <p className="text-sm text-gray-400 mb-2">
+//                   Uploaded by{" "}
+//                   <span className="text-cyan-400">
+//                     {skill.username}
+//                   </span>
+//                 </p>
+//               )}
+
+//               {skill.category && (
+//                 <span
+//                   className="inline-block bg-gradient-to-r from-cyan-500 to-blue-500 
+//                   text-white px-4 py-1 rounded-full text-sm font-medium shadow-md"
+//                 >
+//                   {skill.category}
+//                 </span>
+//               )}
+//             </div>
+
+//             {/* ACTION */}
+//             <div className="p-4 pt-0">
+//               <button
+//                 onClick={() => {
+//                   sessionStorage.setItem(
+//                     "selectedSkill",
+//                     JSON.stringify(skill)
+//                   );
+//                   router.push("/exchange_skill");
+//                 }}
+//                 className="w-full py-2 rounded-xl bg-gradient-to-r from-blue-500 to-cyan-500 
+//                 font-semibold text-white shadow-lg hover:shadow-cyan-400/50 
+//                 hover:scale-[1.03] active:scale-95 transition-all duration-200"
+//               >
+//                 🤝 Request Exchange
+//               </button>
+//             </div>
+//           </div>
+//         );
+//       })}
+//     </section>
+//   );
+// }
 
 
 

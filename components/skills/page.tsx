@@ -165,88 +165,84 @@
 
 
 
-
 "use client";
 
 import { useEffect, useRef, useState } from "react";
 import UserPage from "@/components/user/page";
 
-interface SkillType {
-  id: number;
+/* ================= TYPES ================= */
+export type Skill = {
+  skillId: number;
   title: string;
-  category: string;
-  description: string;
-  level: string;
+  description?: string;
+  category?: string;
+  level?: string;
   username?: string;
-}
+  skill_img?: string;
+  image_url?: string;
+};
 
+/* ================= PAGE ================= */
 export default function SkillsPage() {
-  const [skills, setSkills] = useState<SkillType[]>([]);
+  const [skills, setSkills] = useState<Skill[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [searchTerm, setSearchTerm] = useState("");
 
   const typingTimeoutRef = useRef<NodeJS.Timeout | null>(null);
-  const API_URL = process.env.NEXT_PUBLIC_API_URL;
-     console.log( 'ss', skills)
+  const API_URL = "https://skillwrap-backend.onrender.com";
 
-     console.log("API_URL:", API_URL);
-// console.log("Endpoint:", endpoint);
-
-useEffect(() => {
-
-  if (typingTimeoutRef.current) {
-    clearTimeout(typingTimeoutRef.current);
-  }
-
-  typingTimeoutRef.current = setTimeout(async () => {
-    try {
-      setLoading(true);
-      setError("");
-
-      const endpoint = searchTerm.trim()
-        ? `https://skillwrap-backend.onrender.com/search?title=${encodeURIComponent(searchTerm)}`
-        : `https://skillwrap-backend.onrender.com/skills`;
-
-      // const res = await fetch(endpoint, {
-      //   credentials: "include",
-      // });
-
-          const res = await fetch(endpoint, {
-          credentials: "include",
-        });
-
-      const text = await res.text();
-      console.log("RAW RESPONSE:", text);
-
-      const data = JSON.parse(text);
-
-      console.log(data)
-      
-      setSkills(Array.isArray(data.skills) ? data.skills : []);
-    } catch (err) {
-      console.error(err);
-      setError("Unable to load skills");
-    } finally {
-      setLoading(false);
-    }
-  }, 400);
-
-  return () => {
+  /* ================= FETCH ================= */
+  useEffect(() => {
     if (typingTimeoutRef.current) {
       clearTimeout(typingTimeoutRef.current);
     }
-  };
-}, [searchTerm]); // ✅ FIXED
 
+    typingTimeoutRef.current = setTimeout(async () => {
+      try {
+        setLoading(true);
+        setError("");
 
-  useEffect(() => {
-  console.log("Updated skills:", skills);
-}, [skills]);
+        const endpoint = searchTerm.trim()
+          ? `${API_URL}/search?title=${encodeURIComponent(searchTerm)}`
+          : `${API_URL}/skills`;
 
+        const res = await fetch(endpoint, { credentials: "include" });
+        const data = await res.json();
 
+        const normalizedSkills: Skill[] = Array.isArray(data.skills)
+          ? data.skills.map((s: any) => ({
+              skillId: s.skillId ?? s.id, // ✅ NORMALIZED HERE
+              title: s.title,
+              description: s.description,
+              category: s.category,
+              level: s.level,
+              username: s.username,
+              skill_img: s.skill_img,
+              image_url: s.image_url,
+            }))
+          : [];
+
+        setSkills(normalizedSkills);
+      } catch (err) {
+        console.error(err);
+        setError("Unable to load skills");
+      } finally {
+        setLoading(false);
+      }
+    }, 400);
+
+    return () => {
+      if (typingTimeoutRef.current) {
+        clearTimeout(typingTimeoutRef.current);
+      }
+    };
+  }, [searchTerm]);
+
+  /* ================= UI ================= */
   return (
     <div className="min-h-screen bg-gradient-to-tr from-[#0f172a] via-[#1e293b] to-[#0f172a] text-white">
+      {/* SEARCH */}
       <div className="fixed top-0 left-0 w-full z-50 backdrop-blur-xl bg-white/10 border-b border-white/20 py-4 px-6 flex justify-center">
         <div className="w-full max-w-3xl">
           <input
@@ -259,6 +255,7 @@ useEffect(() => {
         </div>
       </div>
 
+      {/* CONTENT */}
       <div className="pt-28 px-6 max-w-6xl mx-auto">
         <h1 className="text-4xl font-bold text-center mb-10 bg-gradient-to-r from-cyan-400 to-blue-500 bg-clip-text text-transparent">
           Discover Skills
@@ -267,7 +264,9 @@ useEffect(() => {
         {error && <p className="text-center text-red-400">{error}</p>}
 
         {loading ? (
-          <p className="text-center text-cyan-300 text-xl">Loading...</p>
+          <p className="text-center text-cyan-300 text-xl animate-pulse">
+            Loading...
+          </p>
         ) : (
           <UserPage skills={skills} />
         )}
