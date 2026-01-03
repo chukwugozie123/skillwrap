@@ -1,12 +1,17 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   images: {
-    domains: ["localhost"], // allow images from your backend
+    remotePatterns: [
+      {
+        protocol: "https",
+        hostname: "skillwrap-backend.onrender.com",
+        pathname: "/uploads/**",
+      },
+    ],
   },
 };
 
 module.exports = nextConfig;
-
 
 
 // import type { NextConfig } from "next";

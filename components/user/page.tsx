@@ -13,6 +13,7 @@ type Skill = {
   username?: string;
   skill_img?: string;
   image_url?: string;
+  skillId: number;
 };
 
 /* ================= COMPONENT ================= */
@@ -56,13 +57,13 @@ export default function UserPage({ skills = [] }: { skills?: Skill[] }) {
 
         return (
           <div
-            key={skill.id}
+            key={skill.skillId}
             className="group bg-white/5 border border-white/10 rounded-2xl shadow-lg 
             overflow-hidden hover:shadow-cyan-500/40 hover:-translate-y-2 
             transition-all duration-300"
           >
             {/* IMAGE */}
-            <Link href={`/skills/${skill.id}`}>
+            <Link href={`/skills/${skill.skillId}`}>
               <div className="relative h-48 w-full overflow-hidden">
                 <Image
                   src={imgSrc}

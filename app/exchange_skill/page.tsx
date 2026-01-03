@@ -7,7 +7,9 @@ interface Skill {
   skill_id: number;
   id: number;
   title: string;
-  user_id: number;
+  user_id: number
+  ownerId: number;
+  skillId: number;
 }
 
 export default function ExchangePage() {
@@ -81,18 +83,24 @@ export default function ExchangePage() {
       return;
     }
 
-    console.log(requestedSkill)
+     console.log(requestedSkill,'oof', 'TheaterIcon', selectedMySkillId, 'testing info')
+
+    console.log(requestedSkill.ownerId, 'who')
+    console.log( requestedSkill.skill_id, 'skillId')
+    console.log(selectedMySkillId)
     try {
       const res = await fetch(`${API_URL}/exchange-skill`, {
         method: "POST",
         credentials: "include",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          toUserId: requestedSkill.user_id,
-          skillRequestedId: requestedSkill.skill_id || requestedSkill.id,
+          toUserId: requestedSkill.user_id || requestedSkill.ownerId||  requestedSkill.user_id,
+          skillRequestedId: requestedSkill.skillId || requestedSkill.id || requestedSkill.skill_id,
           offeredSkillId: selectedMySkillId,
         }),
       });
+
+      console.log(requestedSkill, selectedMySkillId, 'testing info')
 
       const data = await res.json();
 

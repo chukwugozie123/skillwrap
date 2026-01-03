@@ -346,7 +346,7 @@ export default function SignupPage() {
         return;
       }
 
-      router.push("/dashboard");
+      router.push("/login");
     } catch {
       setError("Server error. Please try again.");
     } finally {
