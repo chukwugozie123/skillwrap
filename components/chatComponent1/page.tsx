@@ -22,6 +22,7 @@ export default function ChatForm({ onSendMessage }: ChatFormProps) {
     onSendMessage(message, imageUrl || undefined);
     setMessage("");
     setImageUrl(null);
+    setShowEmoji(false);
   }
 
   function handleImageUpload(e: React.ChangeEvent<HTMLInputElement>) {
@@ -34,9 +35,10 @@ export default function ChatForm({ onSendMessage }: ChatFormProps) {
   }
 
   return (
-    <form onSubmit={handleSubmit} className="flex flex-col gap-2 relative">
+    <form onSubmit={handleSubmit} className="flex flex-col gap-2 relative w-full">
+      {/* ✅ Image Preview (Responsive) */}
       {imageUrl && (
-        <div className="relative w-24 h-24">
+        <div className="relative w-20 h-20 sm:w-24 sm:h-24">
           <Image
             src={imageUrl}
             alt="Uploaded preview"
@@ -53,25 +55,30 @@ export default function ChatForm({ onSendMessage }: ChatFormProps) {
         </div>
       )}
 
-      <div className="flex gap-2 items-center">
+      {/* ✅ Input Row (Mobile Friendly) */}
+      <div className="flex items-center gap-2 w-full">
+        {/* Emoji Button */}
         <button
           type="button"
-          className="text-2xl text-yellow-400"
+          className="text-2xl text-yellow-400 shrink-0"
           onClick={() => setShowEmoji(!showEmoji)}
         >
           😀
         </button>
 
+        {/* Emoji Picker (Mobile Safe Positioning) */}
         {showEmoji && (
-          <div className="absolute bottom-16 left-10 z-50">
+          <div className="absolute bottom-14 left-0 sm:left-10 z-50 max-w-[90vw]">
             <EmojiPicker
               onEmojiClick={(emojiData) =>
                 setMessage((prev) => prev + emojiData.emoji)
               }
+              width="100%"
             />
           </div>
         )}
 
+        {/* File Upload */}
         <input
           type="file"
           accept="image/*"
@@ -79,20 +86,26 @@ export default function ChatForm({ onSendMessage }: ChatFormProps) {
           className="hidden"
           id="fileInput"
         />
-        <label htmlFor="fileInput" className="cursor-pointer text-xl text-blue-400">
+        <label
+          htmlFor="fileInput"
+          className="cursor-pointer text-xl text-blue-400 shrink-0"
+        >
           📎
         </label>
 
+        {/* Text Input */}
         <input
           type="text"
           placeholder="Type a message..."
           value={message}
           onChange={(e) => setMessage(e.target.value)}
-          className="flex-1 px-4 py-2 rounded-lg bg-white/5 border border-white/10 text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+          className="flex-1 min-w-0 px-3 py-2 sm:px-4 rounded-lg bg-white/5 border border-white/10 text-white focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm sm:text-base"
         />
+
+        {/* Send Button */}
         <button
           type="submit"
-          className="px-4 py-2 bg-blue-600 hover:bg-blue-700 rounded-lg text-white font-medium"
+          className="px-3 py-2 sm:px-4 bg-blue-600 hover:bg-blue-700 rounded-lg text-white font-medium text-sm sm:text-base shrink-0"
         >
           Send
         </button>
@@ -100,13 +113,6 @@ export default function ChatForm({ onSendMessage }: ChatFormProps) {
     </form>
   );
 }
-
-
-
-
-
-
-
 
 
 

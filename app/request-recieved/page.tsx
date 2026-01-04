@@ -408,6 +408,18 @@ export default function ReceivedRequestsPage() {
   // ================= UI =================
   return (
     <main className="min-h-screen bg-gradient-to-br from-[#020617] via-[#0b1228] to-[#1e1b4b] text-white px-6 py-14">
+            {/* 🔙 GO BACK BUTTON */}
+      <div className="flex items-center mb-6">
+        <button
+          onClick={() => router.back()}
+          className="flex items-center gap-2 px-4 py-2 rounded-xl 
+          bg-white/10 border border-white/20 backdrop-blur-md
+          text-sm font-medium hover:bg-white/20 hover:scale-105 
+          transition-all duration-300"
+        >
+          ← Go Back
+        </button>
+      </div>
       <ToastContainer newestOnTop />
 
       <h1 className="text-4xl font-extrabold text-center mb-12 bg-gradient-to-r from-blue-400 to-purple-400 bg-clip-text text-transparent">

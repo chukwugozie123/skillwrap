@@ -63,6 +63,18 @@ export default function ProfilePage() {
 
   return (
     <main className="min-h-screen bg-gradient-to-br from-[#05070c] via-[#0b1220] to-[#05070c] text-white px-4 sm:px-6 py-10">
+            {/* 🔙 GO BACK BUTTON */}
+      <div className="flex items-center mb-6">
+        <button
+          onClick={() => router.back()}
+          className="flex items-center gap-2 px-4 py-2 rounded-xl 
+          bg-white/10 border border-white/20 backdrop-blur-md
+          text-sm font-medium hover:bg-white/20 hover:scale-105 
+          transition-all duration-300"
+        >
+          ← Go Back
+        </button>
+      </div>
       <div className="max-w-5xl mx-auto space-y-12">
 
         {/* ================= PROFILE CARD ================= */}

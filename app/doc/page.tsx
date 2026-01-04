@@ -1,8 +1,24 @@
+"use client"
+
 import React from "react";
+import { useRouter } from "next/navigation";
 
 export default function SkillWarpDocs() {
+  const router = useRouter()
   return (
     <main className="min-h-screen w-full bg-gradient-to-b from-[#030b18] via-[#06152d] to-[#02060f] text-white font-['Josefin_Sans'] p-6 md:p-10 overflow-y-auto relative">
+            {/* 🔙 GO BACK BUTTON */}
+      <div className="flex items-center mb-6">
+        <button
+          onClick={() => router.back()}
+          className="flex items-center gap-2 px-4 py-2 rounded-xl 
+          bg-white/10 border border-white/20 backdrop-blur-md
+          text-sm font-medium hover:bg-white/20 hover:scale-105 
+          transition-all duration-300"
+        >
+          ← Go Back
+        </button>
+      </div>
       {/* Glow Backgrounds */}
       <div className="absolute inset-0 pointer-events-none overflow-hidden">
         <div className="absolute top-[-200px] left-[-150px] w-[500px] h-[500px] rounded-full bg-blue-800/30 blur-[180px]"></div>

@@ -779,10 +779,6 @@
 
 
 
-
-
-
-
 "use client";
 
 import { useEffect, useState } from "react";
@@ -795,7 +791,6 @@ import {
   Layers,
   Inbox,
   CheckCircle,
-  Activity,
   LogOut,
   Settings,
   Menu,
@@ -936,7 +931,6 @@ export default function DashboardPage() {
 
   return (
     <main className="min-h-screen flex bg-gradient-to-br from-[#030712] via-[#0b1220] to-[#1e1b4b] text-white overflow-hidden">
-
       {/* ================= SIDEBAR ================= */}
       <aside
         className={`fixed inset-y-0 left-0 z-50 w-64 bg-white/10 backdrop-blur-xl border-r border-white/10
@@ -947,7 +941,11 @@ export default function DashboardPage() {
         <div className="flex items-center justify-between px-6 py-4 border-b border-white/10">
           <div className="flex items-center gap-3">
             <Image
-              src={user?.img_url ? `${API_URL}/uploads/${user.img_url}` : "/default-avatar.png"}
+              src={
+                user?.img_url
+                  ? `${API_URL}/uploads/${user.img_url}`
+                  : "/default-avatar.png"
+              }
               alt="avatar"
               width={36}
               height={36}
@@ -966,10 +964,17 @@ export default function DashboardPage() {
           <SidebarLink icon={<User />} label="Profile" href="/profile" />
           <SidebarLink icon={<MessageCircle />} label="Chat" href="/chat" />
           <SidebarLink icon={<Layers />} label="My Skills" href="/my-skill" />
-          <SidebarLink icon={<Inbox />} label="Requests Received" href="/request-recieved" />
-          <SidebarLink icon={<CheckCircle />} label="Requests Sent" href="/request-sent" />
+          <SidebarLink
+            icon={<Inbox />}
+            label="Requests Received"
+            href="/request-recieved"
+          />
+          <SidebarLink
+            icon={<CheckCircle />}
+            label="Requests Sent"
+            href="/request-sent"
+          />
 
-          {/* Notifications */}
           <button
             onClick={markNotificationsRead}
             className="flex items-center gap-3 px-4 py-2 rounded-xl hover:bg-white/10 transition w-full text-left"
@@ -987,7 +992,6 @@ export default function DashboardPage() {
 
           <SidebarLink icon={<Settings />} label="Settings" href="/settings" />
 
-          {/* Logout */}
           <button
             onClick={handleLogout}
             className="flex items-center gap-3 px-4 py-2 rounded-xl text-red-400 hover:bg-red-500/10 transition"
@@ -1000,6 +1004,18 @@ export default function DashboardPage() {
 
       {/* ================= CONTENT ================= */}
       <section className="flex-1 sm:ml-64 p-6 md:p-10 overflow-y-auto relative">
+        {/* 🔙 GO BACK BUTTON (FIXED & STICKY) */}
+        <div className="sticky top-4 z-40 mb-6">
+          <button
+            onClick={() => router.back()}
+            className="flex items-center gap-2 px-4 py-2 rounded-xl 
+            bg-white/10 border border-white/20 backdrop-blur-md
+            text-sm font-medium hover:bg-white/20 hover:scale-105 
+            transition-all duration-300"
+          >
+            ← Go Back
+          </button>
+        </div>
 
         {/* Mobile menu */}
         <button
@@ -1017,6 +1033,7 @@ export default function DashboardPage() {
         >
           Welcome back, {user?.fullname.split(" ")[0]} ✨
         </motion.h1>
+
         <p className="text-gray-400 mb-8">
           Manage your skills, requests, and collaborations in one place.
         </p>
@@ -1024,18 +1041,29 @@ export default function DashboardPage() {
         {/* Profile Card */}
         <div className="bg-white/5 border border-white/10 rounded-3xl p-6 mb-10 backdrop-blur-xl flex flex-col md:flex-row gap-6 items-center">
           <Image
-            src={user?.img_url ? `${API_URL}/uploads/${user.img_url}` : "/default-avatar.png"}
+            src={
+              user?.img_url
+                ? `${API_URL}/uploads/${user.img_url}`
+                : "/default-avatar.png"
+            }
             alt="profile"
             width={96}
             height={96}
             className="rounded-full border-2 border-blue-400"
           />
           <div className="flex-1 text-center md:text-left">
-            <h2 className="text-2xl font-bold text-blue-300">{user?.fullname}</h2>
+            <h2 className="text-2xl font-bold text-blue-300">
+              {user?.fullname}
+            </h2>
             <p className="text-gray-400">@{user?.username}</p>
             <div className="flex flex-wrap gap-4 mt-3 text-sm text-gray-400">
-              <span className="flex items-center gap-1"><Mail size={14} /> {user?.email}</span>
-              <span className="flex items-center gap-1"><Calendar size={14} /> Joined {new Date(user!.created_at).toLocaleDateString()}</span>
+              <span className="flex items-center gap-1">
+                <Mail size={14} /> {user?.email}
+              </span>
+              <span className="flex items-center gap-1">
+                <Calendar size={14} /> Joined{" "}
+                {new Date(user!.created_at).toLocaleDateString()}
+              </span>
             </div>
           </div>
           <Link
@@ -1048,16 +1076,46 @@ export default function DashboardPage() {
 
         {/* Stats */}
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-6 mb-12">
-          <StatCard title="Requests Received" value={stats.receivedRequests} color="from-blue-500 to-cyan-500" />
-          <StatCard title="Requests Sent" value={stats.sendRequests} color="from-green-500 to-emerald-500" />
-          <StatCard title="Skills Created" value={stats.createdSkills} color="from-purple-500 to-pink-500" />
+          <StatCard
+            title="Requests Received"
+            value={stats.receivedRequests}
+            color="from-blue-500 to-cyan-500"
+          />
+          <StatCard
+            title="Requests Sent"
+            value={stats.sendRequests}
+            color="from-green-500 to-emerald-500"
+          />
+          <StatCard
+            title="Skills Created"
+            value={stats.createdSkills}
+            color="from-purple-500 to-pink-500"
+          />
         </div>
 
         {/* Features */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-          <FeatureCard icon={<Sparkles />} title="Showcase Skills" desc="Create skills and get discovered." href="/my-skill" color="from-blue-600 to-indigo-600" />
-          <FeatureCard icon={<Inbox />} title="Manage Requests Recieved" desc="Accept or decline collaborations." href="/request-recieved" color="from-cyan-600 to-teal-600" />
-          <FeatureCard icon={<CheckCircle />} title="Request Sent" desc="Check request that you have sent." href="/request-sent" color="from-purple-600 to-pink-600" />
+          <FeatureCard
+            icon={<Sparkles />}
+            title="Showcase Skills"
+            desc="Create skills and get discovered."
+            href="/my-skill"
+            color="from-blue-600 to-indigo-600"
+          />
+          <FeatureCard
+            icon={<Inbox />}
+            title="Manage Requests Recieved"
+            desc="Accept or decline collaborations."
+            href="/request-recieved"
+            color="from-cyan-600 to-teal-600"
+          />
+          <FeatureCard
+            icon={<CheckCircle />}
+            title="Request Sent"
+            desc="Check request that you have sent."
+            href="/request-sent"
+            color="from-purple-600 to-pink-600"
+          />
         </div>
       </section>
     </main>
@@ -1066,18 +1124,40 @@ export default function DashboardPage() {
 
 /* ================= COMPONENTS ================= */
 
-function SidebarLink({ href, icon, label }: { href: string; icon: React.ReactNode; label: string }) {
+function SidebarLink({
+  href,
+  icon,
+  label,
+}: {
+  href: string;
+  icon: React.ReactNode;
+  label: string;
+}) {
   return (
-    <Link href={href} className="flex items-center gap-3 px-4 py-2 rounded-xl hover:bg-white/10 transition">
+    <Link
+      href={href}
+      className="flex items-center gap-3 px-4 py-2 rounded-xl hover:bg-white/10 transition"
+    >
       <span className="text-blue-300">{icon}</span>
       {label}
     </Link>
   );
 }
 
-function StatCard({ title, value, color }: { title: string; value: number; color: string }) {
+function StatCard({
+  title,
+  value,
+  color,
+}: {
+  title: string;
+  value: number;
+  color: string;
+}) {
   return (
-    <motion.div whileHover={{ scale: 1.05 }} className="p-6 rounded-2xl bg-white/10 border border-white/10 backdrop-blur-xl flex gap-4">
+    <motion.div
+      whileHover={{ scale: 1.05 }}
+      className="p-6 rounded-2xl bg-white/10 border border-white/10 backdrop-blur-xl flex gap-4"
+    >
       <div className={`w-12 h-12 rounded-full bg-gradient-to-br ${color}`} />
       <div>
         <p className="text-sm text-gray-400">{title}</p>
@@ -1087,13 +1167,32 @@ function StatCard({ title, value, color }: { title: string; value: number; color
   );
 }
 
-function FeatureCard({ title, desc, icon, color, href }: { title: string; desc: string; icon: React.ReactNode; color: string; href: string }) {
+function FeatureCard({
+  title,
+  desc,
+  icon,
+  color,
+  href,
+}: {
+  title: string;
+  desc: string;
+  icon: React.ReactNode;
+  color: string;
+  href: string;
+}) {
   return (
-    <motion.div whileHover={{ scale: 1.05, y: -5 }} className={`p-8 rounded-3xl bg-gradient-to-br ${color} shadow-xl`}>
-      <div className="p-3 bg-white/20 rounded-full w-fit mb-4">{icon}</div>
+    <motion.div
+      whileHover={{ scale: 1.05, y: -5 }}
+      className={`p-8 rounded-3xl bg-gradient-to-br ${color} shadow-xl`}
+    >
+      <div className="p-3 bg-white/20 rounded-full w-fit mb-4">
+        {icon}
+      </div>
       <h3 className="text-xl font-bold mb-2">{title}</h3>
       <p className="text-white/80 text-sm mb-6">{desc}</p>
-      <Link href={href} className="px-4 py-2 bg-black/30 rounded-lg">Explore →</Link>
+      <Link href={href} className="px-4 py-2 bg-black/30 rounded-lg">
+        Explore →
+      </Link>
     </motion.div>
   );
 }

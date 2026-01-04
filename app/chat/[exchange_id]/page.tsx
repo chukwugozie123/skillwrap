@@ -607,15 +607,6 @@
 
 
 
-
-
-
-
-
-
-
-
-
 "use client";
 
 import { useEffect, useState, useRef, useCallback } from "react";
@@ -634,53 +625,55 @@ interface Message {
 
 interface ExchangeDetails {
   exchange_id: number;
+  from_user_id: number;
   from_username: string;
+  to_user_id: number;
   to_username: string;
   skill_offered_title: string;
   skill_requested_title: string;
   exchange_status: string;
+  status: string;
   created_at: string;
-  start_time?: string;
-  duration?: number;
 }
 
 const API_URL = "https://skillwrap-backend.onrender.com";
 
 export default function ChatPage() {
-  const router = useRouter();
-  const { exchange_id } = useParams() as { exchange_id: string };
-
-  const room = `exchange_${exchange_id}`; // ✅ safer room name
-
+  const [room, setRoom] = useState("");
   const [joined, setJoined] = useState(false);
   const [messages, setMessages] = useState<Message[]>([]);
   const [username, setUsername] = useState("");
   const [countdown, setCountdown] = useState("");
-  const [exchange, setExchange] = useState<ExchangeDetails | null>(null);
-  const [canSetDuration, setCanSetDuration] = useState(false);
   const [quitPopup, setQuitPopup] = useState(false);
+  const [exchange, setExchange] = useState<ExchangeDetails | null>(null);
+  const [showDurationBtn, setShowDurationBtn] = useState(false);
+
+  const [exchangeBlocked, setExchangeBlocked] = useState<{
+    title: string;
+    message: string;
+  } | null>(null);
 
   const bottomRef = useRef<HTMLDivElement>(null);
   const countdownTimer = useRef<ReturnType<typeof setInterval> | null>(null);
 
-  /* ---------------- Fetch exchange ---------------- */
+  const router = useRouter();
+  const params = useParams();
+  const { exchange_id } = params as { exchange_id: string };
+
+  const EXCHANGE_TIMER_KEY = `exchange_timer_${exchange_id}`;
+
+  // ---------- Fetch exchange ----------
   useEffect(() => {
     const fetchExchange = async () => {
       try {
         const res = await fetch(`${API_URL}/exchange/${exchange_id}`, {
           credentials: "include",
         });
+        if (!res.ok) throw new Error("Failed to fetch exchange");
         const data = await res.json();
         setExchange(data.exchange);
-
-        // ✅ If duration already exists → auto start countdown
-        if (data.exchange.start_time && data.exchange.duration) {
-          startCountdown(
-            data.exchange.start_time,
-            data.exchange.duration
-          );
-        }
-      } catch {
+      } catch (err) {
+        console.error(err);
         router.push("/dashboard");
       }
     };
@@ -688,141 +681,291 @@ export default function ChatPage() {
     fetchExchange();
   }, [exchange_id, router]);
 
-  /* ---------------- Scroll ---------------- */
-  const scrollToBottom = () => {
-    bottomRef.current?.scrollIntoView({ behavior: "smooth" });
-  };
+  // ---------- Load messages ----------
+  useEffect(() => {
+    if (!room) return;
+    const stored = localStorage.getItem(`chatMessages_${room}`);
+    if (stored) setMessages(JSON.parse(stored));
+  }, [room]);
 
-  /* ---------------- Messages ---------------- */
-  const handleIncomingMessage = useCallback((msg: Message) => {
-    setMessages((prev) => [...prev, msg]);
-    scrollToBottom();
+  const scrollToBottom = useCallback(() => {
+    bottomRef.current?.scrollIntoView({ behavior: "smooth" });
   }, []);
 
-  /* ---------------- Countdown ---------------- */
-  const startCountdown = useCallback((startISO: string, mins: number) => {
-    if (countdownTimer.current) clearInterval(countdownTimer.current);
+  const handleIncomingMessage = useCallback(
+    (msg: Message) => {
+      setMessages((prev) => {
+        const updated = [...prev, msg];
+        localStorage.setItem(`chatMessages_${room}`, JSON.stringify(updated));
+        scrollToBottom();
+        return updated;
+      });
+    },
+    [room, scrollToBottom]
+  );
 
-    const end = new Date(startISO).getTime() + mins * 60000;
+  const handleUserJoined = useCallback(
+    (data: { message: string; timestamp: string }) => {
+      handleIncomingMessage({ ...data, sender: "system", system: true });
+    },
+    [handleIncomingMessage]
+  );
 
-    countdownTimer.current = setInterval(() => {
-      const now = Date.now();
-      const diff = end - now;
+  const handleUserLeft = useCallback(
+    (data: { message: string; timestamp: string }) => {
+      handleIncomingMessage({ ...data, sender: "system", system: true });
+    },
+    [handleIncomingMessage]
+  );
 
-      if (diff <= 0) {
-        clearInterval(countdownTimer.current!);
-        router.push(`/review/${exchange_id}`);
-        return;
-      }
+  // ---------- Countdown ----------
+  const startCountdown = useCallback(
+    (startTimeISO: string, mins: number) => {
+      const endTime = new Date(startTimeISO).getTime() + mins * 60000;
 
-      const h = Math.floor(diff / 3600000);
-      const m = Math.floor((diff % 3600000) / 60000);
-      const s = Math.floor((diff % 60000) / 1000);
-
-      setCountdown(
-        `${String(h).padStart(2, "0")}:${String(m).padStart(2, "0")}:${String(s).padStart(2, "0")}`
-      );
-    }, 1000);
-  }, [exchange_id, router]);
-
-  /* ---------------- Socket ---------------- */
-  useEffect(() => {
-    socket.on("message", handleIncomingMessage);
-
-    socket.on("start_exchange", (data) => {
-      startCountdown(data.startTime, data.duration);
-      setCanSetDuration(false);
-    });
-
-    return () => {
-      socket.off("message");
-      socket.off("start_exchange");
       if (countdownTimer.current) clearInterval(countdownTimer.current);
-    };
-  }, [handleIncomingMessage, startCountdown]);
 
-  /* ---------------- Join ---------------- */
-  const handleJoin = () => {
-    if (!exchange) return;
+      countdownTimer.current = setInterval(async () => {
+        const now = Date.now();
+        const distance = endTime - now;
 
-    if (![exchange.from_username, exchange.to_username].includes(username)) {
-      alert("Unauthorized user");
+        if (distance <= 0) {
+          clearInterval(countdownTimer.current!);
+          setCountdown("00:00:00");
+
+          await fetch(`${API_URL}/exchange/update-status`, {
+            method: "PATCH",
+            credentials: "include",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              exchange_id,
+              exchange_status: "completed",
+            }),
+          });
+
+          localStorage.removeItem(EXCHANGE_TIMER_KEY);
+          router.push(`/review/${exchange_id}`);
+          return;
+        }
+
+        const h = Math.floor(distance / 3600000);
+        const m = Math.floor((distance % 3600000) / 60000);
+        const s = Math.floor((distance % 60000) / 1000);
+
+        setCountdown(
+          `${String(h).padStart(2, "0")}:${String(m).padStart(
+            2,
+            "0"
+          )}:${String(s).padStart(2, "0")}`
+        );
+      }, 1000);
+    },
+    [exchange_id, router, EXCHANGE_TIMER_KEY]
+  );
+
+  const handleStartExchange = useCallback(
+    (data: { startTime: string; duration: number }) => {
+      localStorage.setItem(EXCHANGE_TIMER_KEY, JSON.stringify(data));
+      startCountdown(data.startTime, data.duration);
+      setShowDurationBtn(false);
+    },
+    [startCountdown, EXCHANGE_TIMER_KEY]
+  );
+
+  // ✅✅✅ ADDED FUNCTION (ONLY FIX)
+  const handleSetDuration = () => {
+    const input = prompt("Enter exchange duration (in minutes):");
+    if (!input) return;
+
+    const duration = Number(input);
+    if (isNaN(duration) || duration <= 0) {
+      alert("Please enter a valid number of minutes");
       return;
     }
 
-    socket.emit("join-room", { room, username });
-    setJoined(true);
+    const startTime = new Date().toISOString();
+    const payload = { startTime, duration };
 
-    // ✅ Only allow one user to set duration
-    if (!exchange.start_time && username === exchange.from_username) {
-      setCanSetDuration(true);
+    socket.emit("start_exchange", payload);
+    localStorage.setItem(EXCHANGE_TIMER_KEY, JSON.stringify(payload));
+    startCountdown(startTime, duration);
+    setShowDurationBtn(false);
+  };
+  // ✅ END FIX
+
+  useEffect(() => {
+    if (!room) return;
+
+    socket.on("message", handleIncomingMessage);
+    socket.on("user_joined", handleUserJoined);
+    socket.on("user_left", handleUserLeft);
+    socket.on("start_exchange", handleStartExchange);
+
+    const saved = localStorage.getItem(EXCHANGE_TIMER_KEY);
+    if (saved) {
+      const { startTime, duration } = JSON.parse(saved);
+      startCountdown(startTime, duration);
+      setShowDurationBtn(false);
+    } else {
+      setShowDurationBtn(true);
     }
+
+    return () => {
+      socket.off("message", handleIncomingMessage);
+      socket.off("user_joined", handleUserJoined);
+      socket.off("user_left", handleUserLeft);
+      socket.off("start_exchange", handleStartExchange);
+      if (countdownTimer.current) clearInterval(countdownTimer.current);
+    };
+  }, [
+    room,
+    handleIncomingMessage,
+    handleUserJoined,
+    handleUserLeft,
+    handleStartExchange,
+    startCountdown,
+    EXCHANGE_TIMER_KEY,
+  ]);
+
+  // ---------- Join ----------
+  const handleJoin = () => {
+    if (!username || !room || !exchange) return;
+
+    if (
+      exchange.exchange_status === "completed" ||
+      exchange.exchange_status === "cancelled"
+    ) {
+      setExchangeBlocked({
+        title:
+          exchange.exchange_status === "completed"
+            ? "Exchange Completed"
+            : "Exchange Cancelled",
+        message:
+          exchange.exchange_status === "completed"
+            ? "This skill exchange has already been completed."
+            : "This skill exchange was cancelled earlier.",
+      });
+      return;
+    }
+
+    if (
+      username !== exchange.from_username &&
+      username !== exchange.to_username
+    ) {
+      alert("You’re not eligible to join this exchange.");
+      return;
+    }
+
+    socket.emit("join-room", { username, room });
+    setJoined(true);
   };
 
-  /* ---------------- Set Duration ---------------- */
-  const handleSetDuration = async () => {
-    const mins = Number(prompt("Enter duration in minutes"));
-    if (!mins || mins <= 0) return;
+  const handleMessage = (msg: string, imageUrl?: string) => {
+    if (!msg.trim() && !imageUrl) return;
 
-    const startTime = new Date().toISOString();
+    const data: Message = {
+      sender: username,
+      message: msg,
+      timestamp: new Date().toISOString(),
+      imageUrl,
+    };
 
-    socket.emit("start_exchange", { startTime, duration: mins });
+    handleIncomingMessage(data);
+    socket.emit("message", { ...data, room });
+  };
 
-    await fetch(`${API_URL}/exchange/set-duration`, {
-      method: "POST",
+  const confirmQuit = async () => {
+    await fetch(`${API_URL}/exchange/update-status`, {
+      method: "PATCH",
       credentials: "include",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ exchange_id, startTime, duration: mins }),
+      body: JSON.stringify({
+        exchange_id,
+        exchange_status: "cancelled",
+      }),
     });
 
-    startCountdown(startTime, mins);
-    setCanSetDuration(false);
+    localStorage.removeItem(EXCHANGE_TIMER_KEY);
+    localStorage.removeItem(`chatMessages_${room}`);
+    socket.emit("leave-room", room);
+    router.push(`/review/${exchange_id}`);
   };
 
-  /* ---------------- UI ---------------- */
   return (
-    <div className="min-h-[100svh] bg-gradient-to-br from-[#0c0e1a] via-[#1a1f38] to-[#2e2b5c] text-white flex flex-col">
-
+    <div className="flex flex-col items-center min-h-screen bg-gradient-to-br from-[#0c0e1a] via-[#1a1f38] to-[#2e2b5c] text-white pt-20 px-2 sm:px-4">
+            {/* 🔙 GO BACK BUTTON */}
+      <div className="flex items-center mb-6">
+        <button
+          onClick={() => router.back()}
+          className="flex items-center gap-2 px-4 py-2 rounded-xl 
+          bg-white/10 border border-white/20 backdrop-blur-md
+          text-sm font-medium hover:bg-white/20 hover:scale-105 
+          transition-all duration-300"
+        >
+          ← Go Back
+        </button>
+      </div>
       {!joined ? (
-        <div className="flex-1 flex items-center justify-center px-4">
-          <div className="w-full max-w-sm bg-white/10 rounded-3xl p-6">
-            <input
-              value={username}
-              onChange={(e) => setUsername(e.target.value)}
-              placeholder="Username"
-              className="w-full mb-4 p-3 rounded-xl bg-white/10"
-            />
-            <button
-              onClick={handleJoin}
-              className="w-full py-3 bg-blue-600 rounded-xl"
-            >
-              Join Chat
-            </button>
-          </div>
+        <div className="w-full max-w-md bg-white/5 p-8 rounded-3xl">
+          <input
+            value={username}
+            onChange={(e) => setUsername(e.target.value)}
+            placeholder="Username"
+            className="w-full mb-4 p-3 rounded-xl bg-white/10"
+          />
+          <input
+            value={room}
+            onChange={(e) => setRoom(e.target.value)}
+            placeholder="Room"
+            className="w-full mb-6 p-3 rounded-xl bg-white/10"
+          />
+          <button
+            onClick={handleJoin}
+            className="w-full py-3 bg-gradient-to-r from-blue-600 to-purple-600 rounded-xl"
+          >
+            Enter Chat
+          </button>
         </div>
       ) : (
-        <div className="flex flex-col flex-1 max-w-3xl mx-auto w-full">
+        <div className="w-full max-w-3xl h-[85vh] flex flex-col bg-white/10 rounded-3xl">
+          <div className="p-4 border-b border-white/20 space-y-2">
+            <p className="text-lg font-bold">Room: {room}</p>
 
-          {/* Header */}
-          <div className="p-4 flex flex-col gap-2 bg-white/5">
-            <h2 className="font-bold">Room: {room}</h2>
-
-            {countdown && (
-              <span className="text-yellow-400 font-bold">{countdown}</span>
+            {countdown && exchange && (
+              <div className="flex flex-wrap gap-2">
+                <span className="px-3 py-1 bg-green-500/30 rounded-full text-sm">
+                  Offering: {exchange.skill_offered_title}
+                </span>
+                <span className="px-3 py-1 bg-pink-500/30 rounded-full text-sm">
+                  Requesting: {exchange.skill_requested_title}
+                </span>
+              </div>
             )}
 
-            {canSetDuration && (
+            {countdown && (
+              <p className="text-yellow-400 font-bold">{countdown}</p>
+            )}
+
+            {showDurationBtn && !countdown && (
               <button
                 onClick={handleSetDuration}
-                className="bg-green-600 px-4 py-2 rounded-xl w-fit"
+                className="px-4 py-2 bg-green-600 rounded-xl"
               >
                 Set Duration
               </button>
             )}
+
+            {countdown && (
+              <button
+                onClick={() => setQuitPopup(true)}
+                className="px-4 py-2 bg-red-600 rounded-xl"
+              >
+                Quit Exchange
+              </button>
+            )}
           </div>
 
-          {/* Messages */}
-          <div className="flex-1 overflow-y-auto p-4 space-y-3">
+          <div className="flex-1 overflow-y-auto p-4">
             {messages.map((m, i) => (
               <ChatMessage
                 key={i}
@@ -830,42 +973,68 @@ export default function ChatPage() {
                 message={m.message}
                 timestamp={m.timestamp}
                 isOwnMessage={m.sender === username}
+                imageUrl={m.imageUrl}
               />
             ))}
             <div ref={bottomRef} />
           </div>
 
-          {/* Input */}
-          <div className="p-3 bg-white/5">
-            <ChatForm onSendMessage={(msg, img) =>
-              socket.emit("message", {
-                room,
-                sender: username,
-                message: msg,
-                timestamp: new Date().toISOString(),
-                imageUrl: img,
-              })
-            } />
+          <div className="p-4 border-t border-white/20">
+            <ChatForm onSendMessage={handleMessage} />
+          </div>
+        </div>
+      )}
+
+      {/* 🚫 EXCHANGE BLOCKED POPUP */}
+      {exchangeBlocked && (
+        <div className="fixed inset-0 bg-black/80 flex items-center justify-center px-4">
+          <div className="max-w-md w-full bg-[#0f172a] rounded-2xl p-6 text-center border border-yellow-500/30 shadow-xl">
+            <h2 className="text-xl font-bold text-yellow-400 mb-3">
+              {exchangeBlocked.title}
+            </h2>
+            <p className="text-gray-300 text-sm leading-relaxed mb-6">
+              {exchangeBlocked.message}
+            </p>
+            <button
+              onClick={() => router.push("/dashboard")}
+              className="px-5 py-2 rounded-xl bg-blue-600 hover:bg-blue-700 transition"
+            >
+              Go to Dashboard
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* ❗ QUIT POPUP */}
+      {quitPopup && (
+        <div className="fixed inset-0 bg-black/80 flex items-center justify-center px-4">
+          <div className="max-w-md w-full bg-[#111827] border border-red-500/30 rounded-2xl p-6 text-center shadow-xl">
+            <h2 className="text-xl font-bold text-red-400 mb-3">
+              Quit Skill Exchange?
+            </h2>
+            <p className="text-gray-300 mb-5 text-sm leading-relaxed">
+              Leaving now will cancel this exchange and may affect your rating.
+            </p>
+            <div className="flex gap-3 justify-center">
+              <button
+                onClick={() => setQuitPopup(false)}
+                className="px-4 py-2 rounded-xl bg-gray-600 hover:bg-gray-700"
+              >
+                Stay
+              </button>
+              <button
+                onClick={confirmQuit}
+                className="px-4 py-2 rounded-xl bg-red-600 hover:bg-red-700"
+              >
+                Quit & Review
+              </button>
+            </div>
           </div>
         </div>
       )}
     </div>
   );
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 

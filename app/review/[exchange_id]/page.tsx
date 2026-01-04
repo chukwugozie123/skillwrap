@@ -155,6 +155,18 @@ export default function ReviewPage() {
   /* ================= UI ================= */
   return (
     <div className="min-h-screen bg-gradient-to-br from-[#020617] via-[#0b1220] to-[#1e1b4b] text-white flex justify-center items-center px-4">
+            {/* 🔙 GO BACK BUTTON */}
+      <div className="flex items-center mb-6">
+        <button
+          onClick={() => router.back()}
+          className="flex items-center gap-2 px-4 py-2 rounded-xl 
+          bg-white/10 border border-white/20 backdrop-blur-md
+          text-sm font-medium hover:bg-white/20 hover:scale-105 
+          transition-all duration-300"
+        >
+          ← Go Back
+        </button>
+      </div>
       <div className="max-w-xl w-full bg-white/10 backdrop-blur-2xl border border-white/20 rounded-3xl p-8 shadow-xl">
         <h1 className="text-3xl font-bold text-green-400 mb-2">
           🎉 Exchange Completed

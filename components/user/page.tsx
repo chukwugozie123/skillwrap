@@ -40,59 +40,77 @@ export default function UserPage({ skills }: { skills: Skill[] }) {
 
   /* ================= UI ================= */
   return (
-    <section className="grid sm:grid-cols-2 lg:grid-cols-3 gap-8 mt-8">
-      {skills.map((skill) => (
-        <div
-          key={skill.skillId}
-          className="group bg-white/5 border border-white/10 rounded-2xl shadow-lg 
-          hover:shadow-cyan-500/40 hover:-translate-y-2 transition-all duration-300"
+    <>
+      {/* 🔙 GO BACK BUTTON */}
+      <div className="flex items-center mb-6">
+        <button
+          onClick={() => router.back()}
+          className="flex items-center gap-2 px-4 py-2 rounded-xl 
+          bg-white/10 border border-white/20 backdrop-blur-md
+          text-sm font-medium hover:bg-white/20 hover:scale-105 
+          transition-all duration-300"
         >
-          <Link href={`/skills/${skill.skillId}`}>
-            <div className="relative h-48 w-full overflow-hidden">
-              <Image
-                src={getImageSrc(skill)}
-                alt={skill.title}
-                fill
-                className="object-cover group-hover:scale-110 transition-transform duration-500"
-                unoptimized
-              />
+          ← Go Back
+        </button>
+      </div>
+
+      <section className="grid sm:grid-cols-2 lg:grid-cols-3 gap-8 mt-4">
+        {skills.map((skill) => (
+          <div
+            key={skill.skillId}
+            className="group bg-white/5 border border-white/10 rounded-2xl shadow-lg 
+            hover:shadow-cyan-500/40 hover:-translate-y-2 transition-all duration-300"
+          >
+            <Link href={`/skills/${skill.skillId}`}>
+              <div className="relative h-48 w-full overflow-hidden rounded-t-2xl">
+                <Image
+                  src={getImageSrc(skill)}
+                  alt={skill.title}
+                  fill
+                  className="object-cover group-hover:scale-110 transition-transform duration-500"
+                  unoptimized
+                />
+              </div>
+            </Link>
+
+            <div className="p-6">
+              <h2 className="text-xl font-bold">{skill.title}</h2>
+
+              {skill.description && (
+                <p className="text-gray-400 text-sm mt-2 line-clamp-3">
+                  {skill.description}
+                </p>
+              )}
+
+              {skill.category && (
+                <span className="inline-block mt-3 px-4 py-1 rounded-full 
+                bg-gradient-to-r from-cyan-500 to-blue-500 text-sm">
+                  {skill.category}
+                </span>
+              )}
             </div>
-          </Link>
 
-          <div className="p-6">
-            <h2 className="text-xl font-bold">{skill.title}</h2>
-
-            {skill.description && (
-              <p className="text-gray-400 text-sm mt-2 line-clamp-3">
-                {skill.description}
-              </p>
-            )}
-
-            {skill.category && (
-              <span className="inline-block mt-3 px-4 py-1 rounded-full bg-gradient-to-r from-cyan-500 to-blue-500 text-sm">
-                {skill.category}
-              </span>
-            )}
+            <div className="p-4 pt-0">
+              <button
+                onClick={() => {
+                  sessionStorage.setItem(
+                    "selectedSkill",
+                    JSON.stringify(skill)
+                  );
+                  router.push("/exchange_skill");
+                }}
+                className="w-full py-2 rounded-xl bg-gradient-to-r from-blue-500 to-cyan-500 
+                hover:scale-105 transition"
+              >
+                🤝 Request Exchange
+              </button>
+            </div>
           </div>
-
-          <div className="p-4 pt-0">
-            <button
-              onClick={() => {
-                sessionStorage.setItem("selectedSkill", JSON.stringify(skill));
-                router.push("/exchange_skill");
-              }}
-              className="w-full py-2 rounded-xl bg-gradient-to-r from-blue-500 to-cyan-500 
-              hover:scale-105 transition"
-            >
-              🤝 Request Exchange
-            </button>
-          </div>
-        </div>
-      ))}
-    </section>
+        ))}
+      </section>
+    </>
   );
 }
-
 
 
 
