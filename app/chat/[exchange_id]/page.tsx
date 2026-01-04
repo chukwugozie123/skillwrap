@@ -1,318 +1,3 @@
-"use client";
-
-import { useEffect, useState, useRef, useCallback } from "react";
-import { useRouter, useParams } from "next/navigation";
-import { socket } from "@/lib/socketClient";
-import ChatForm from "@/components/chatComponent1/page";
-import ChatMessage from "@/components/chatComponent2/page";
-
-interface Message {
-  sender: string;
-  message: string;
-  timestamp: string;
-  system?: boolean;
-  imageUrl?: string;
-}
-
-interface ExchangeDetails {
-  exchange_id: number;
-  from_user_id: number;
-  from_username: string;
-  to_user_id: number;
-  to_username: string;
-  skill_offered_title: string;
-  skill_requested_title: string;
-  exchange_status: string;
-  created_at: string;
-  exchange_start_time?: string;
-  exchange_duration?: number;
-}
-
-// const API_URL = process.env.NEXT_PUBLIC_API_URL;
- const API_URL= 'https://skillwrap-backend.onrender.com'
-
-export default function ChatPage() {
-  const [room, setRoom] = useState("");
-  const [joined, setJoined] = useState(false);
-  const [messages, setMessages] = useState<Message[]>([]);
-  const [username, setUsername] = useState("");
-  const [countdown, setCountdown] = useState("");
-  const [exchange, setExchange] = useState<ExchangeDetails | null>(null);
-  const [showDurationBtn, setShowDurationBtn] = useState(false);
-
-  const bottomRef = useRef<HTMLDivElement>(null);
-  const countdownTimer = useRef<NodeJS.Timeout | null>(null);
-
-  const router = useRouter();
-  const params = useParams();
-  const { exchange_id } = params as { exchange_id: string };
-
-  /* ================= AUTO ROOM ================= */
-  useEffect(() => {
-    if (exchange_id) {
-      setRoom(`exchange-${exchange_id}`);
-    }
-  }, [exchange_id]);
-
-  /* ================= FETCH EXCHANGE ================= */
-  useEffect(() => {
-    const fetchExchange = async () => {
-      try {
-        const res = await fetch(`${API_URL}/exchange/${exchange_id}`, {
-          credentials: "include",
-        });
-        if (!res.ok) throw new Error();
-        const data = await res.json();
-        setExchange(data.exchange);
-      } catch {
-        router.push("/dashboard");
-      }
-    };
-
-    fetchExchange();
-  }, [exchange_id, router]);
-
-  /* ================= SCROLL ================= */
-  const scrollToBottom = () => {
-    bottomRef.current?.scrollIntoView({ behavior: "smooth" });
-  };
-
-  /* ================= MESSAGE HANDLER ================= */
-  const handleIncomingMessage = useCallback(
-    (msg: Message) => {
-      setMessages((prev) => [...prev, msg]);
-      scrollToBottom();
-    },
-    []
-  );
-
-  /* ================= COUNTDOWN ================= */
-  const startCountdown = useCallback(
-    (startTimeISO: string, mins: number) => {
-      const endTime =
-        new Date(startTimeISO).getTime() + mins * 60 * 1000;
-
-      if (countdownTimer.current) {
-        clearInterval(countdownTimer.current);
-      }
-
-      countdownTimer.current = setInterval(() => {
-        const diff = endTime - Date.now();
-
-        if (diff <= 0) {
-          clearInterval(countdownTimer.current!);
-          setCountdown("00:00:00");
-          router.push(`/review/${exchange_id}`);
-          return;
-        }
-
-        const h = Math.floor(diff / 3600000);
-        const m = Math.floor((diff % 3600000) / 60000);
-        const s = Math.floor((diff % 60000) / 1000);
-
-        setCountdown(
-          `${String(h).padStart(2, "0")}:${String(m).padStart(
-            2,
-            "0"
-          )}:${String(s).padStart(2, "0")}`
-        );
-      }, 1000);
-    },
-    [exchange_id, router]
-  );
-
-  /* ================= AUTO START COUNTDOWN ================= */
-  useEffect(() => {
-    if (
-      exchange?.exchange_start_time &&
-      exchange?.exchange_duration
-    ) {
-      startCountdown(
-        exchange.exchange_start_time,
-        exchange.exchange_duration
-      );
-      setShowDurationBtn(false);
-    } else {
-      setShowDurationBtn(true);
-    }
-  }, [exchange, startCountdown]);
-
-  /* ================= SOCKET ================= */
-  useEffect(() => {
-    socket.on("message", handleIncomingMessage);
-
-    socket.on("start_exchange", (data) => {
-      startCountdown(data.startTime, data.duration);
-      setShowDurationBtn(false);
-    });
-
-    return () => {
-      socket.off("message", handleIncomingMessage);
-      socket.off("start_exchange");
-      if (countdownTimer.current) {
-        clearInterval(countdownTimer.current);
-        countdownTimer.current = null;
-      }
-    };
-  }, [handleIncomingMessage, startCountdown]);
-
-  /* ================= JOIN ROOM ================= */
-  const handleJoin = () => {
-    if (!username || !room || !exchange) return;
-
-    if (
-      username !== exchange.from_username &&
-      username !== exchange.to_username
-    ) {
-      alert("You are not allowed in this chat");
-      return;
-    }
-
-    socket.emit("join-room", { room, username });
-    setJoined(true);
-  };
-
-  /* ================= SET DURATION ================= */
-  const handleSetDuration = async () => {
-    const minsStr = prompt("Enter duration in minutes:");
-    if (!minsStr) return;
-
-    const mins = parseInt(minsStr);
-    if (isNaN(mins) || mins <= 0) return alert("Invalid duration");
-
-    const startTime = new Date().toISOString();
-
-    await fetch(`${API_URL}/exchange/set-duration`, {
-      method: "POST",
-      credentials: "include",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        exchange_id,
-        start_time: startTime,
-        duration: mins,
-      }),
-    });
-
-    socket.emit("start_exchange", {
-      room,
-      startTime,
-      duration: mins,
-    });
-
-    startCountdown(startTime, mins);
-    setShowDurationBtn(false);
-  };
-
-  /* ================= SEND MESSAGE ================= */
-  const handleMessage = (msg: string, imageUrl?: string) => {
-    if (!msg.trim() && !imageUrl) return;
-
-    const data: Message = {
-      sender: username,
-      message: msg,
-      timestamp: new Date().toISOString(),
-      imageUrl,
-    };
-
-    handleIncomingMessage(data);
-    socket.emit("message", { ...data, room });
-  };
-
-  /* ================= UI ================= */
-  return (
-    <div className="min-h-screen bg-gradient-to-br from-[#0c0e1a] via-[#1a1f38] to-[#2e2b5c] px-2 flex items-center justify-center">
-      {!joined ? (
-        <div className="w-full max-w-md bg-white/10 p-6 rounded-2xl">
-          <h1 className="text-2xl text-center font-bold mb-6">
-            Join Chat
-          </h1>
-
-          <input
-            className="w-full p-3 mb-3 rounded-xl bg-white/10"
-            placeholder="Username"
-            value={username}
-            onChange={(e) => setUsername(e.target.value)}
-          />
-
-          <button
-            onClick={handleJoin}
-            className="w-full py-3 bg-blue-600 rounded-xl"
-          >
-            Enter Chat
-          </button>
-        </div>
-      ) : (
-        <div className="w-full max-w-3xl h-[100dvh] sm:h-[90vh] flex flex-col bg-white/10 rounded-2xl">
-          {/* HEADER */}
-          <div className="p-3 border-b sticky top-0 bg-[#0c0e1a]/80 backdrop-blur z-10">
-            <p className="text-blue-300 text-sm">
-              Room: {room}
-            </p>
-
-            {countdown && (
-              <p className="text-yellow-400 font-bold text-lg text-center">
-                ⏳ {countdown}
-              </p>
-            )}
-
-            {!countdown && showDurationBtn && (
-              <button
-                onClick={handleSetDuration}
-                className="bg-green-600 px-4 py-2 rounded-xl w-full mt-2"
-              >
-                Set Duration
-              </button>
-            )}
-          </div>
-
-          {/* MESSAGES */}
-          <div className="flex-1 overflow-y-auto p-3 space-y-2">
-            {messages.map((m) => (
-              <ChatMessage
-                key={`${m.sender}-${m.timestamp}`}
-                sender={m.sender}
-                message={m.message}
-                timestamp={m.timestamp}
-                isOwnMessage={m.sender === username}
-                imageUrl={m.imageUrl}
-              />
-            ))}
-            <div ref={bottomRef} />
-          </div>
-
-          {/* INPUT */}
-          <div className="p-3 border-t">
-            <ChatForm onSendMessage={handleMessage} />
-          </div>
-        </div>
-      )}
-    </div>
-  );
-}
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 // "use client";
 
 // import { useEffect, useState, useRef, useCallback } from "react";
@@ -343,8 +28,8 @@ export default function ChatPage() {
 //   exchange_duration?: number;
 // }
 
-// // const API_URL = "http://localhost:5000";
-// const API_URL = process.env.NEXT_PUBLIC_API_URL;
+// // const API_URL = process.env.NEXT_PUBLIC_API_URL;
+//  const API_URL= 'https://skillwrap-backend.onrender.com'
 
 // export default function ChatPage() {
 //   const [room, setRoom] = useState("");
@@ -354,7 +39,6 @@ export default function ChatPage() {
 //   const [countdown, setCountdown] = useState("");
 //   const [exchange, setExchange] = useState<ExchangeDetails | null>(null);
 //   const [showDurationBtn, setShowDurationBtn] = useState(false);
-//   const [quitPopup, setQuitPopup] = useState(false);
 
 //   const bottomRef = useRef<HTMLDivElement>(null);
 //   const countdownTimer = useRef<NodeJS.Timeout | null>(null);
@@ -362,6 +46,13 @@ export default function ChatPage() {
 //   const router = useRouter();
 //   const params = useParams();
 //   const { exchange_id } = params as { exchange_id: string };
+
+//   /* ================= AUTO ROOM ================= */
+//   useEffect(() => {
+//     if (exchange_id) {
+//       setRoom(`exchange-${exchange_id}`);
+//     }
+//   }, [exchange_id]);
 
 //   /* ================= FETCH EXCHANGE ================= */
 //   useEffect(() => {
@@ -389,14 +80,10 @@ export default function ChatPage() {
 //   /* ================= MESSAGE HANDLER ================= */
 //   const handleIncomingMessage = useCallback(
 //     (msg: Message) => {
-//       setMessages((prev) => {
-//         const updated = [...prev, msg];
-//         localStorage.setItem(`chatMessages_${room}`, JSON.stringify(updated));
-//         return updated;
-//       });
+//       setMessages((prev) => [...prev, msg]);
 //       scrollToBottom();
 //     },
-//     [room]
+//     []
 //   );
 
 //   /* ================= COUNTDOWN ================= */
@@ -405,11 +92,12 @@ export default function ChatPage() {
 //       const endTime =
 //         new Date(startTimeISO).getTime() + mins * 60 * 1000;
 
-//       if (countdownTimer.current) clearInterval(countdownTimer.current);
+//       if (countdownTimer.current) {
+//         clearInterval(countdownTimer.current);
+//       }
 
 //       countdownTimer.current = setInterval(() => {
-//         const now = Date.now();
-//         const diff = endTime - now;
+//         const diff = endTime - Date.now();
 
 //         if (diff <= 0) {
 //           clearInterval(countdownTimer.current!);
@@ -433,7 +121,7 @@ export default function ChatPage() {
 //     [exchange_id, router]
 //   );
 
-//   /* ================= AUTO START IF EXISTS ================= */
+//   /* ================= AUTO START COUNTDOWN ================= */
 //   useEffect(() => {
 //     if (
 //       exchange?.exchange_start_time &&
@@ -449,7 +137,7 @@ export default function ChatPage() {
 //     }
 //   }, [exchange, startCountdown]);
 
-//   /* ================= SOCKET LISTENERS ================= */
+//   /* ================= SOCKET ================= */
 //   useEffect(() => {
 //     socket.on("message", handleIncomingMessage);
 
@@ -461,7 +149,10 @@ export default function ChatPage() {
 //     return () => {
 //       socket.off("message", handleIncomingMessage);
 //       socket.off("start_exchange");
-//       if (countdownTimer.current) clearInterval(countdownTimer.current);
+//       if (countdownTimer.current) {
+//         clearInterval(countdownTimer.current);
+//         countdownTimer.current = null;
+//       }
 //     };
 //   }, [handleIncomingMessage, startCountdown]);
 
@@ -529,23 +220,18 @@ export default function ChatPage() {
 
 //   /* ================= UI ================= */
 //   return (
-//     <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-[#0c0e1a] via-[#1a1f38] to-[#2e2b5c] px-3">
+//     <div className="min-h-screen bg-gradient-to-br from-[#0c0e1a] via-[#1a1f38] to-[#2e2b5c] px-2 flex items-center justify-center">
 //       {!joined ? (
-//         <div className="w-full max-w-md bg-white/10 p-6 sm:p-10 rounded-3xl">
-//           <h1 className="text-3xl text-center font-bold mb-6">Join Chat</h1>
+//         <div className="w-full max-w-md bg-white/10 p-6 rounded-2xl">
+//           <h1 className="text-2xl text-center font-bold mb-6">
+//             Join Chat
+//           </h1>
 
 //           <input
 //             className="w-full p-3 mb-3 rounded-xl bg-white/10"
 //             placeholder="Username"
 //             value={username}
 //             onChange={(e) => setUsername(e.target.value)}
-//           />
-
-//           <input
-//             className="w-full p-3 mb-5 rounded-xl bg-white/10"
-//             placeholder="Room"
-//             value={room}
-//             onChange={(e) => setRoom(e.target.value)}
 //           />
 
 //           <button
@@ -556,28 +242,34 @@ export default function ChatPage() {
 //           </button>
 //         </div>
 //       ) : (
-//         <div className="w-full max-w-3xl h-[90vh] flex flex-col bg-white/10 rounded-3xl">
-//           <div className="p-4 border-b flex flex-col gap-2">
-//             <h2 className="font-bold text-blue-300">Room: {room}</h2>
+//         <div className="w-full max-w-3xl h-[100dvh] sm:h-[90vh] flex flex-col bg-white/10 rounded-2xl">
+//           {/* HEADER */}
+//           <div className="p-3 border-b sticky top-0 bg-[#0c0e1a]/80 backdrop-blur z-10">
+//             <p className="text-blue-300 text-sm">
+//               Room: {room}
+//             </p>
 
 //             {countdown && (
-//               <p className="text-yellow-400 font-bold">{countdown}</p>
+//               <p className="text-yellow-400 font-bold text-lg text-center">
+//                 ⏳ {countdown}
+//               </p>
 //             )}
 
 //             {!countdown && showDurationBtn && (
 //               <button
 //                 onClick={handleSetDuration}
-//                 className="bg-green-600 px-4 py-2 rounded-xl w-full sm:w-fit"
+//                 className="bg-green-600 px-4 py-2 rounded-xl w-full mt-2"
 //               >
 //                 Set Duration
 //               </button>
 //             )}
 //           </div>
 
+//           {/* MESSAGES */}
 //           <div className="flex-1 overflow-y-auto p-3 space-y-2">
-//             {messages.map((m, i) => (
+//             {messages.map((m) => (
 //               <ChatMessage
-//                 key={i}
+//                 key={`${m.sender}-${m.timestamp}`}
 //                 sender={m.sender}
 //                 message={m.message}
 //                 timestamp={m.timestamp}
@@ -588,6 +280,7 @@ export default function ChatPage() {
 //             <div ref={bottomRef} />
 //           </div>
 
+//           {/* INPUT */}
 //           <div className="p-3 border-t">
 //             <ChatForm onSendMessage={handleMessage} />
 //           </div>
@@ -596,6 +289,9 @@ export default function ChatPage() {
 //     </div>
 //   );
 // }
+
+
+
 
 
 
@@ -642,12 +338,13 @@ export default function ChatPage() {
 // //   skill_offered_title: string;
 // //   skill_requested_title: string;
 // //   exchange_status: string;
-// //   status: string;
 // //   created_at: string;
+// //   exchange_start_time?: string;
+// //   exchange_duration?: number;
 // // }
 
-// // // const API_URL = process.env.NEXT_PUBLIC_API_URL;
-// //  const API_URL = 'http://localhost:5000'
+// // // const API_URL = "http://localhost:5000";
+// // const API_URL = process.env.NEXT_PUBLIC_API_URL;
 
 // // export default function ChatPage() {
 // //   const [room, setRoom] = useState("");
@@ -655,30 +352,28 @@ export default function ChatPage() {
 // //   const [messages, setMessages] = useState<Message[]>([]);
 // //   const [username, setUsername] = useState("");
 // //   const [countdown, setCountdown] = useState("");
-// //   const [quitPopup, setQuitPopup] = useState(false);
 // //   const [exchange, setExchange] = useState<ExchangeDetails | null>(null);
 // //   const [showDurationBtn, setShowDurationBtn] = useState(false);
+// //   const [quitPopup, setQuitPopup] = useState(false);
 
 // //   const bottomRef = useRef<HTMLDivElement>(null);
 // //   const countdownTimer = useRef<NodeJS.Timeout | null>(null);
+
 // //   const router = useRouter();
 // //   const params = useParams();
 // //   const { exchange_id } = params as { exchange_id: string };
 
-// //   // ---------- Fetch exchange details ----------
+// //   /* ================= FETCH EXCHANGE ================= */
 // //   useEffect(() => {
-// //     // if (!exchange_id) return;
-
 // //     const fetchExchange = async () => {
 // //       try {
 // //         const res = await fetch(`${API_URL}/exchange/${exchange_id}`, {
 // //           credentials: "include",
 // //         });
-// //         if (!res.ok) throw new Error("Failed to fetch exchange");
+// //         if (!res.ok) throw new Error();
 // //         const data = await res.json();
 // //         setExchange(data.exchange);
-// //       } catch (err) {
-// //         console.error(err);
+// //       } catch {
 // //         router.push("/dashboard");
 // //       }
 // //     };
@@ -686,271 +381,215 @@ export default function ChatPage() {
 // //     fetchExchange();
 // //   }, [exchange_id, router]);
 
-// //   // ---------- Load messages ----------
-// //   useEffect(() => {
-// //     if (!room) return;
-// //     const stored = localStorage.getItem(`chatMessages_${room}`);
-// //     if (stored) setMessages(JSON.parse(stored));
-// //   }, [room]);
-
-// //   // ---------- Scroll ----------
-// //   const scrollToBottom = useCallback(() => {
+// //   /* ================= SCROLL ================= */
+// //   const scrollToBottom = () => {
 // //     bottomRef.current?.scrollIntoView({ behavior: "smooth" });
-// //   }, []);
+// //   };
 
-// //   // ---------- Handle messages ----------
+// //   /* ================= MESSAGE HANDLER ================= */
 // //   const handleIncomingMessage = useCallback(
 // //     (msg: Message) => {
 // //       setMessages((prev) => {
 // //         const updated = [...prev, msg];
 // //         localStorage.setItem(`chatMessages_${room}`, JSON.stringify(updated));
-// //         scrollToBottom();
 // //         return updated;
 // //       });
+// //       scrollToBottom();
 // //     },
-// //     [room, scrollToBottom]
+// //     [room]
 // //   );
 
-// //   const handleUserJoined = useCallback(
-// //     (data: { message: string; timestamp: string }) => {
-// //       handleIncomingMessage({ ...data, sender: "system", system: true });
-// //     },
-// //     [handleIncomingMessage]
-// //   );
-
-// //   const handleUserLeft = useCallback(
-// //     (data: { message: string; timestamp: string }) => {
-// //       handleIncomingMessage({ ...data, sender: "system", system: true });
-// //     },
-// //     [handleIncomingMessage]
-// //   );
-
-// //   // ---------- Countdown ----------
+// //   /* ================= COUNTDOWN ================= */
 // //   const startCountdown = useCallback(
 // //     (startTimeISO: string, mins: number) => {
-// //       const endTime = new Date(new Date(startTimeISO).getTime() + mins * 60000).getTime();
+// //       const endTime =
+// //         new Date(startTimeISO).getTime() + mins * 60 * 1000;
 
 // //       if (countdownTimer.current) clearInterval(countdownTimer.current);
 
-// //       countdownTimer.current = setInterval(async () => {
-// //         const now = new Date().getTime();
-// //         const distance = endTime - now;
+// //       countdownTimer.current = setInterval(() => {
+// //         const now = Date.now();
+// //         const diff = endTime - now;
 
-// //         if (distance <= 0) {
-// //           if (countdownTimer.current) clearInterval(countdownTimer.current);
+// //         if (diff <= 0) {
+// //           clearInterval(countdownTimer.current!);
 // //           setCountdown("00:00:00");
-
-// //           if (exchange_id) {
-// //             await fetch(`${API_URL}/exchange/update-status`, {
-// //               method: "POST",
-// //               credentials: "include",
-// //               headers: { "Content-Type": "application/json" },
-// //               body: JSON.stringify({ exchange_id, exchange_status: "completed" }),
-// //             });
-// //           }
-
 // //           router.push(`/review/${exchange_id}`);
 // //           return;
 // //         }
 
-// //         const hours = Math.floor(distance / (1000 * 60 * 60));
-// //         const minutes = Math.floor((distance % (1000 * 60 * 60)) / (1000 * 60));
-// //         const seconds = Math.floor((distance % (1000 * 60)) / 1000);
+// //         const h = Math.floor(diff / 3600000);
+// //         const m = Math.floor((diff % 3600000) / 60000);
+// //         const s = Math.floor((diff % 60000) / 1000);
 
 // //         setCountdown(
-// //           `${String(hours).padStart(2, "0")}:${String(minutes).padStart(2, "0")}:${String(
-// //             seconds
-// //           ).padStart(2, "0")}`
+// //           `${String(h).padStart(2, "0")}:${String(m).padStart(
+// //             2,
+// //             "0"
+// //           )}:${String(s).padStart(2, "0")}`
 // //         );
 // //       }, 1000);
 // //     },
 // //     [exchange_id, router]
 // //   );
 
-// //   const handleStartExchange = useCallback(
-// //     (data: { startTime: string; duration: number }) => {
-// //       startCountdown(data.startTime, data.duration);
-// //     },
-// //     [startCountdown]
-// //   );
-
-// //   // ---------- Socket listeners ----------
+// //   /* ================= AUTO START IF EXISTS ================= */
 // //   useEffect(() => {
-// //     if (!room) return;
+// //     if (
+// //       exchange?.exchange_start_time &&
+// //       exchange?.exchange_duration
+// //     ) {
+// //       startCountdown(
+// //         exchange.exchange_start_time,
+// //         exchange.exchange_duration
+// //       );
+// //       setShowDurationBtn(false);
+// //     } else {
+// //       setShowDurationBtn(true);
+// //     }
+// //   }, [exchange, startCountdown]);
 
+// //   /* ================= SOCKET LISTENERS ================= */
+// //   useEffect(() => {
 // //     socket.on("message", handleIncomingMessage);
-// //     socket.on("user_joined", handleUserJoined);
-// //     socket.on("user_left", handleUserLeft);
-// //     socket.on("start_exchange", handleStartExchange);
+
+// //     socket.on("start_exchange", (data) => {
+// //       startCountdown(data.startTime, data.duration);
+// //       setShowDurationBtn(false);
+// //     });
 
 // //     return () => {
 // //       socket.off("message", handleIncomingMessage);
-// //       socket.off("user_joined", handleUserJoined);
-// //       socket.off("user_left", handleUserLeft);
-// //       socket.off("start_exchange", handleStartExchange);
+// //       socket.off("start_exchange");
 // //       if (countdownTimer.current) clearInterval(countdownTimer.current);
 // //     };
-// //   }, [room, handleIncomingMessage, handleUserJoined, handleUserLeft, handleStartExchange]);
+// //   }, [handleIncomingMessage, startCountdown]);
 
-// //   // ---------- Join room ----------
-// //   const joinRoom = (user: string, roomName: string) => {
-// //     socket.emit("join-room", { username: user, room: roomName });
-// //     setShowDurationBtn(true); // Show duration button after joining
-// //   };
-
+// //   /* ================= JOIN ROOM ================= */
 // //   const handleJoin = () => {
 // //     if (!username || !room || !exchange) return;
-// //     if (username !== exchange.from_username && username !== exchange.to_username) {
-// //       alert("You are not allowed to join this chat.");
+
+// //     if (
+// //       username !== exchange.from_username &&
+// //       username !== exchange.to_username
+// //     ) {
+// //       alert("You are not allowed in this chat");
 // //       return;
 // //     }
+
+// //     socket.emit("join-room", { room, username });
 // //     setJoined(true);
-// //     joinRoom(username, room);
 // //   };
 
-// //   // ---------- Set Duration ----------
-// //   const handleSetDuration = () => {
+// //   /* ================= SET DURATION ================= */
+// //   const handleSetDuration = async () => {
 // //     const minsStr = prompt("Enter duration in minutes:");
 // //     if (!minsStr) return;
+
 // //     const mins = parseInt(minsStr);
-// //     if (isNaN(mins) || mins <= 0) {
-// //       alert("Please enter a valid number of minutes.");
-// //       return;
-// //     }
+// //     if (isNaN(mins) || mins <= 0) return alert("Invalid duration");
 
 // //     const startTime = new Date().toISOString();
 
-// //     // Emit to all users
-// //     socket.emit("start_exchange", { startTime, duration: mins });
+// //     await fetch(`${API_URL}/exchange/set-duration`, {
+// //       method: "POST",
+// //       credentials: "include",
+// //       headers: { "Content-Type": "application/json" },
+// //       body: JSON.stringify({
+// //         exchange_id,
+// //         start_time: startTime,
+// //         duration: mins,
+// //       }),
+// //     });
 
-// //     // Start locally as well
+// //     socket.emit("start_exchange", {
+// //       room,
+// //       startTime,
+// //       duration: mins,
+// //     });
+
 // //     startCountdown(startTime, mins);
 // //     setShowDurationBtn(false);
 // //   };
 
-// //   // ---------- Send message ----------
+// //   /* ================= SEND MESSAGE ================= */
 // //   const handleMessage = (msg: string, imageUrl?: string) => {
 // //     if (!msg.trim() && !imageUrl) return;
-// //     const data: Message = { sender: username, message: msg, timestamp: new Date().toISOString(), imageUrl };
+
+// //     const data: Message = {
+// //       sender: username,
+// //       message: msg,
+// //       timestamp: new Date().toISOString(),
+// //       imageUrl,
+// //     };
+
 // //     handleIncomingMessage(data);
 // //     socket.emit("message", { ...data, room });
 // //   };
 
-// //   // ---------- Quit ----------
-// //   const confirmQuit = async () => {
-// //     if (!exchange_id) return;
-
-// //     await fetch(`${API_URL}/exchange/update-status`, {
-// //       method: "POST",
-// //       credentials: "include",
-// //       headers: { "Content-Type": "application/json" },
-// //       body: JSON.stringify({ exchange_id, exchange_status: "cancelled" }),
-// //     });
-
-// //     localStorage.removeItem(`chatSession_${room}`);
-// //     localStorage.removeItem(`chatOtherSession_${room}`);
-// //     localStorage.removeItem(`chatMessages_${room}`);
-
-// //     socket.emit("leave-room", room);
-// //     router.push(`/review/${exchange_id}`);
-// //   };
-
+// //   /* ================= UI ================= */
 // //   return (
-// //     <div className="flex flex-col items-center min-h-screen bg-gradient-to-br from-[#0c0e1a] via-[#1a1f38] to-[#2e2b5c] text-white pt-24 px-4">
+// //     <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-[#0c0e1a] via-[#1a1f38] to-[#2e2b5c] px-3">
 // //       {!joined ? (
-// //         <div className="bg-white/5 backdrop-blur-3xl border border-white/10 rounded-3xl w-full max-w-md p-10 text-center shadow-lg shadow-purple-900/40">
-// //           <h1 className="text-4xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-blue-400 via-purple-400 to-pink-400 mb-6">
-// //             Join the Chat
-// //           </h1>
+// //         <div className="w-full max-w-md bg-white/10 p-6 sm:p-10 rounded-3xl">
+// //           <h1 className="text-3xl text-center font-bold mb-6">Join Chat</h1>
+
 // //           <input
-// //             type="text"
+// //             className="w-full p-3 mb-3 rounded-xl bg-white/10"
+// //             placeholder="Username"
 // //             value={username}
 // //             onChange={(e) => setUsername(e.target.value)}
-// //             placeholder="Username"
-// //             className="w-full px-4 py-3 mb-4 rounded-2xl bg-white/10 border border-white/20 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-purple-400"
 // //           />
+
 // //           <input
-// //             type="text"
+// //             className="w-full p-3 mb-5 rounded-xl bg-white/10"
+// //             placeholder="Room"
 // //             value={room}
 // //             onChange={(e) => setRoom(e.target.value)}
-// //             placeholder="Room name"
-// //             className="w-full px-4 py-3 mb-6 rounded-2xl bg-white/10 border border-white/20 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-400"
 // //           />
+
 // //           <button
 // //             onClick={handleJoin}
-// //             className="w-full py-3 bg-gradient-to-r from-blue-600 to-purple-600 rounded-2xl shadow-lg hover:from-blue-500 hover:to-pink-500 transition"
+// //             className="w-full py-3 bg-blue-600 rounded-xl"
 // //           >
-// //             Enter Chat 🚀
+// //             Enter Chat
 // //           </button>
 // //         </div>
 // //       ) : (
-// //         <div className="w-full max-w-3xl flex flex-col bg-white/10 backdrop-blur-3xl border border-white/10 rounded-3xl shadow-xl shadow-purple-900/50">
-// //           <div className="flex justify-between items-center p-4 border-b border-white/20 bg-white/5 rounded-t-3xl backdrop-blur-xl">
-// //             <div className="flex flex-col gap-2">
-// //               <h2 className="text-xl font-bold text-blue-300">Room: {room}</h2>
-// //               {exchange && (
-// //                 <div className="flex flex-wrap gap-3 mt-1">
-// //                   <span className="px-3 py-1 rounded-full bg-green-500/30 text-green-200 font-semibold">
-// //                     Offering: {exchange.skill_offered_title}
-// //                   </span>
-// //                   <span className="px-3 py-1 rounded-full bg-pink-500/30 text-pink-200 font-semibold">
-// //                     Requesting: {exchange.skill_requested_title}
-// //                   </span>
-// //                 </div>
-// //               )}
-// //               {countdown && (
-// //                 <p className="mt-2 text-yellow-400 font-bold text-lg drop-shadow-lg">{countdown}</p>
-// //               )}
-// //               {showDurationBtn && !countdown && (
-// //                 <button
-// //                   onClick={handleSetDuration}
-// //                   className="px-4 py-2 bg-green-600 rounded-xl hover:bg-green-700 mt-2"
-// //                 >
-// //                   Set Duration
-// //                 </button>
-// //               )}
-// //             </div>
+// //         <div className="w-full max-w-3xl h-[90vh] flex flex-col bg-white/10 rounded-3xl">
+// //           <div className="p-4 border-b flex flex-col gap-2">
+// //             <h2 className="font-bold text-blue-300">Room: {room}</h2>
+
 // //             {countdown && (
+// //               <p className="text-yellow-400 font-bold">{countdown}</p>
+// //             )}
+
+// //             {!countdown && showDurationBtn && (
 // //               <button
-// //                 onClick={() => setQuitPopup(true)}
-// //                 className="px-4 py-2 bg-red-600 rounded-xl hover:bg-red-700 transition"
+// //                 onClick={handleSetDuration}
+// //                 className="bg-green-600 px-4 py-2 rounded-xl w-full sm:w-fit"
 // //               >
-// //                 Quit Exchange
+// //                 Set Duration
 // //               </button>
 // //             )}
 // //           </div>
 
-// //           <div className="flex-1 overflow-y-auto max-h-[450px] p-5 space-y-3 scrollbar-thin scrollbar-thumb-blue-600/40 scrollbar-track-transparent">
-// //             {messages.map((msg, i) => (
+// //           <div className="flex-1 overflow-y-auto p-3 space-y-2">
+// //             {messages.map((m, i) => (
 // //               <ChatMessage
 // //                 key={i}
-// //                 sender={msg.sender}
-// //                 message={msg.message}
-// //                 timestamp={msg.timestamp}
-// //                 isOwnMessage={msg.sender === username}
-// //                 imageUrl={msg.imageUrl}
+// //                 sender={m.sender}
+// //                 message={m.message}
+// //                 timestamp={m.timestamp}
+// //                 isOwnMessage={m.sender === username}
+// //                 imageUrl={m.imageUrl}
 // //               />
 // //             ))}
 // //             <div ref={bottomRef} />
 // //           </div>
 
-// //           <div className="p-4 border-t border-white/20 bg-white/5 backdrop-blur-xl rounded-b-3xl">
+// //           <div className="p-3 border-t">
 // //             <ChatForm onSendMessage={handleMessage} />
-// //           </div>
-// //         </div>
-// //       )}
-
-// //       {quitPopup && (
-// //         <div className="fixed inset-0 bg-black/80 flex items-center justify-center z-50 px-4">
-// //           <div className="bg-white/5 backdrop-blur-3xl border border-white/20 rounded-3xl p-8 max-w-md w-full text-center">
-// //             <h2 className="text-xl font-bold text-yellow-400 mb-3">Exchange Ended</h2>
-// //             <p className="text-gray-300 mb-5">You have successfully quit the exchange.</p>
-// //             <button
-// //               onClick={confirmQuit}
-// //               className="px-6 py-3 bg-blue-500 rounded-xl hover:bg-blue-600 transition"
-// //             >
-// //               Leave a Review
-// //             </button>
 // //           </div>
 // //         </div>
 // //       )}
@@ -959,9 +598,260 @@ export default function ChatPage() {
 // // }
 
 
-// // // see upgrade this code in theses aspct
-// // // .1 make it responsive on smaller devices
-// // // 2. when a user enters a room show a button set duration both if duration has aready been set show the countdown and when they set duration start the countdown for both users yo get the logic right
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+"use client";
+
+import { useEffect, useState, useRef, useCallback } from "react";
+import { useRouter, useParams } from "next/navigation";
+import { socket } from "@/lib/socketClient";
+import ChatForm from "@/components/chatComponent1/page";
+import ChatMessage from "@/components/chatComponent2/page";
+
+interface Message {
+  sender: string;
+  message: string;
+  timestamp: string;
+  system?: boolean;
+  imageUrl?: string;
+}
+
+interface ExchangeDetails {
+  exchange_id: number;
+  from_username: string;
+  to_username: string;
+  skill_offered_title: string;
+  skill_requested_title: string;
+  exchange_status: string;
+  created_at: string;
+  start_time?: string;
+  duration?: number;
+}
+
+const API_URL = "https://skillwrap-backend.onrender.com";
+
+export default function ChatPage() {
+  const router = useRouter();
+  const { exchange_id } = useParams() as { exchange_id: string };
+
+  const room = `exchange_${exchange_id}`; // ✅ safer room name
+
+  const [joined, setJoined] = useState(false);
+  const [messages, setMessages] = useState<Message[]>([]);
+  const [username, setUsername] = useState("");
+  const [countdown, setCountdown] = useState("");
+  const [exchange, setExchange] = useState<ExchangeDetails | null>(null);
+  const [canSetDuration, setCanSetDuration] = useState(false);
+  const [quitPopup, setQuitPopup] = useState(false);
+
+  const bottomRef = useRef<HTMLDivElement>(null);
+  const countdownTimer = useRef<ReturnType<typeof setInterval> | null>(null);
+
+  /* ---------------- Fetch exchange ---------------- */
+  useEffect(() => {
+    const fetchExchange = async () => {
+      try {
+        const res = await fetch(`${API_URL}/exchange/${exchange_id}`, {
+          credentials: "include",
+        });
+        const data = await res.json();
+        setExchange(data.exchange);
+
+        // ✅ If duration already exists → auto start countdown
+        if (data.exchange.start_time && data.exchange.duration) {
+          startCountdown(
+            data.exchange.start_time,
+            data.exchange.duration
+          );
+        }
+      } catch {
+        router.push("/dashboard");
+      }
+    };
+
+    fetchExchange();
+  }, [exchange_id, router]);
+
+  /* ---------------- Scroll ---------------- */
+  const scrollToBottom = () => {
+    bottomRef.current?.scrollIntoView({ behavior: "smooth" });
+  };
+
+  /* ---------------- Messages ---------------- */
+  const handleIncomingMessage = useCallback((msg: Message) => {
+    setMessages((prev) => [...prev, msg]);
+    scrollToBottom();
+  }, []);
+
+  /* ---------------- Countdown ---------------- */
+  const startCountdown = useCallback((startISO: string, mins: number) => {
+    if (countdownTimer.current) clearInterval(countdownTimer.current);
+
+    const end = new Date(startISO).getTime() + mins * 60000;
+
+    countdownTimer.current = setInterval(() => {
+      const now = Date.now();
+      const diff = end - now;
+
+      if (diff <= 0) {
+        clearInterval(countdownTimer.current!);
+        router.push(`/review/${exchange_id}`);
+        return;
+      }
+
+      const h = Math.floor(diff / 3600000);
+      const m = Math.floor((diff % 3600000) / 60000);
+      const s = Math.floor((diff % 60000) / 1000);
+
+      setCountdown(
+        `${String(h).padStart(2, "0")}:${String(m).padStart(2, "0")}:${String(s).padStart(2, "0")}`
+      );
+    }, 1000);
+  }, [exchange_id, router]);
+
+  /* ---------------- Socket ---------------- */
+  useEffect(() => {
+    socket.on("message", handleIncomingMessage);
+
+    socket.on("start_exchange", (data) => {
+      startCountdown(data.startTime, data.duration);
+      setCanSetDuration(false);
+    });
+
+    return () => {
+      socket.off("message");
+      socket.off("start_exchange");
+      if (countdownTimer.current) clearInterval(countdownTimer.current);
+    };
+  }, [handleIncomingMessage, startCountdown]);
+
+  /* ---------------- Join ---------------- */
+  const handleJoin = () => {
+    if (!exchange) return;
+
+    if (![exchange.from_username, exchange.to_username].includes(username)) {
+      alert("Unauthorized user");
+      return;
+    }
+
+    socket.emit("join-room", { room, username });
+    setJoined(true);
+
+    // ✅ Only allow one user to set duration
+    if (!exchange.start_time && username === exchange.from_username) {
+      setCanSetDuration(true);
+    }
+  };
+
+  /* ---------------- Set Duration ---------------- */
+  const handleSetDuration = async () => {
+    const mins = Number(prompt("Enter duration in minutes"));
+    if (!mins || mins <= 0) return;
+
+    const startTime = new Date().toISOString();
+
+    socket.emit("start_exchange", { startTime, duration: mins });
+
+    await fetch(`${API_URL}/exchange/set-duration`, {
+      method: "POST",
+      credentials: "include",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ exchange_id, startTime, duration: mins }),
+    });
+
+    startCountdown(startTime, mins);
+    setCanSetDuration(false);
+  };
+
+  /* ---------------- UI ---------------- */
+  return (
+    <div className="min-h-[100svh] bg-gradient-to-br from-[#0c0e1a] via-[#1a1f38] to-[#2e2b5c] text-white flex flex-col">
+
+      {!joined ? (
+        <div className="flex-1 flex items-center justify-center px-4">
+          <div className="w-full max-w-sm bg-white/10 rounded-3xl p-6">
+            <input
+              value={username}
+              onChange={(e) => setUsername(e.target.value)}
+              placeholder="Username"
+              className="w-full mb-4 p-3 rounded-xl bg-white/10"
+            />
+            <button
+              onClick={handleJoin}
+              className="w-full py-3 bg-blue-600 rounded-xl"
+            >
+              Join Chat
+            </button>
+          </div>
+        </div>
+      ) : (
+        <div className="flex flex-col flex-1 max-w-3xl mx-auto w-full">
+
+          {/* Header */}
+          <div className="p-4 flex flex-col gap-2 bg-white/5">
+            <h2 className="font-bold">Room: {room}</h2>
+
+            {countdown && (
+              <span className="text-yellow-400 font-bold">{countdown}</span>
+            )}
+
+            {canSetDuration && (
+              <button
+                onClick={handleSetDuration}
+                className="bg-green-600 px-4 py-2 rounded-xl w-fit"
+              >
+                Set Duration
+              </button>
+            )}
+          </div>
+
+          {/* Messages */}
+          <div className="flex-1 overflow-y-auto p-4 space-y-3">
+            {messages.map((m, i) => (
+              <ChatMessage
+                key={i}
+                sender={m.sender}
+                message={m.message}
+                timestamp={m.timestamp}
+                isOwnMessage={m.sender === username}
+              />
+            ))}
+            <div ref={bottomRef} />
+          </div>
+
+          {/* Input */}
+          <div className="p-3 bg-white/5">
+            <ChatForm onSendMessage={(msg, img) =>
+              socket.emit("message", {
+                room,
+                sender: username,
+                message: msg,
+                timestamp: new Date().toISOString(),
+                imageUrl: img,
+              })
+            } />
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
 
 
 
