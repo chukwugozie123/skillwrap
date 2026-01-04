@@ -59,8 +59,8 @@ export default function Navbar() {
             <Link href="/" className="hover:text-blue-400 transition">
               Home
             </Link>
-            <Link href="/doc" className="hover:text-blue-400 transition">
-              Docs
+            <Link href="/about" className="hover:text-blue-400 transition">
+              About us
             </Link>
             <Link href="/skills" className="hover:text-blue-400 transition">
               Skills
@@ -129,8 +129,8 @@ export default function Navbar() {
           <Link href="/skills" onClick={() => setIsOpen(false)} className="hover:text-blue-400">
             Skills
           </Link>
-          <Link href="/doc" onClick={() => setIsOpen(false)} className="hover:text-blue-400">
-            Docs
+          <Link href="/about" onClick={() => setIsOpen(false)} className="hover:text-blue-400">
+            About us
           </Link>
 
           {/* Mobile Auth */}
