@@ -257,14 +257,298 @@
 
 
 
+// "use client";
+
+// import Link from "next/link";
+// import { useEffect, useState } from "react";
+// import { toast, ToastContainer, Slide } from "react-toastify";
+// import "react-toastify/dist/ReactToastify.css";
+// import { useRouter } from "next/navigation";
+// import { Copy, CheckCircle, XCircle } from "lucide-react";
+
+// // ================= TYPES =================
+// type ExchangeRequest = {
+//   exchange_id: string;
+//   from_user_id: number;
+//   from_username: string;
+//   from_fullname: string;
+//   to_user_id: string;
+//   to_user_username: string;
+//   skill_offered_title: string;
+//   requested_skill_title: string;
+//   status: "pending" | "accepted" | "declined";
+//   created_at: string;
+// };
+
+// // ================= CONFIG =================
+// const API_URL = "https://skillwrap-backend.onrender.com";
+
+// // ================= PAGE =================
+// export default function ReceivedRequestsPage() {
+//   const [requests, setRequests] = useState<ExchangeRequest[]>([]);
+//   const [loading, setLoading] = useState(true);
+//   const [popup, setPopup] = useState(false);
+//   const [roomCode, setRoomCode] = useState("");
+//   const [acceptedReqId, setAcceptedReqId] = useState<string | null>(null);
+
+//   const router = useRouter();
+
+//   const generateRoomCode = () =>
+//     Math.floor(100000 + Math.random() * 900000).toString();
+
+//   // ================= LOAD REQUESTS =================
+//   useEffect(() => {
+//     const loadRequests = async () => {
+//       try {
+//         const res = await fetch(`${API_URL}/exchange/recieved`, {
+//           method: "POST",
+//           credentials: "include",
+//         });
+
+//         if (!res.ok) throw new Error("Failed to fetch");
+
+//         const data = await res.json();
+//         console.log(data.requests)
+//         console.log(requests)
+//         setRequests(data.requests || []);
+//       } catch (err) {
+//         console.error(err);
+//         toast.error("Failed to load requests");
+//       } finally {
+//         setLoading(false);
+//       }
+//     };
+
+//     loadRequests();
+//   }, []);
+
+//   // ================= ACCEPT =================
+//   const handleAccept = async (req: ExchangeRequest) => {
+//     const newRoom = generateRoomCode();
+//     setRoomCode(newRoom);
+//     setAcceptedReqId(req.exchange_id);
+
+//     try {
+//       await fetch(`${API_URL}/update-exchange-status`, {
+//         method: "PATCH",
+//         credentials: "include",
+//         headers: { "Content-Type": "application/json" },
+//         body: JSON.stringify({
+//           exchange_id: req.exchange_id,
+//           status: "accepted",
+//           roomCode: newRoom,
+//         }),
+//       });
+
+//       await fetch(`${API_URL}/send-notification`, {
+//         method: "POST",
+//         credentials: "include",
+//         headers: { "Content-Type": "application/json" },
+//         body: JSON.stringify({
+//           exchange_id: req.exchange_id,
+//           receiverId: req.from_user_id,
+//           message: `Your skill exchange request was ACCEPTED 🎉`,
+//           metadata: req.exchange_id,
+//           roomCode: newRoom,
+//         }),
+//       });
+
+//       setPopup(true);
+
+//       setRequests((prev) =>
+//         prev.map((r) =>
+//           r.exchange_id === req.exchange_id
+//             ? { ...r, status: "accepted" }
+//             : r
+//         )
+//       );
+
+//       toast.success("Request accepted successfully", {
+//         theme: "dark",
+//         transition: Slide,
+//       });
+//     } catch (err) {
+//       console.error(err);
+//       toast.error("Server error");
+//     }
+//   };
+
+//   // ================= DECLINE =================
+//   const handleDecline = async (req: ExchangeRequest) => {
+//     try {
+//       await fetch(`${API_URL}/update-exchange-status`, {
+//         method: "PATCH",
+//         credentials: "include",
+//         headers: { "Content-Type": "application/json" },
+//         body: JSON.stringify({
+//           exchange_id: req.exchange_id,
+//           status: "declined",
+//         }),
+//       });
+
+//       toast.error("Request declined", {
+//         theme: "dark",
+//         transition: Slide,
+//       });
+
+//       setTimeout(() => router.push("/dashboard"), 1200);
+//     } catch (err) {
+//       console.error(err);
+//       toast.error("Server error");
+//     }
+//   };
+
+//   // ================= COPY =================
+//   const copyRoomCode = async () => {
+//     await navigator.clipboard.writeText(roomCode);
+//     toast.success("Room code copied!", {
+//       theme: "dark",
+//       autoClose: 1200,
+//     });
+//   };
+
+//   // ================= UI =================
+//   return (
+//     <main className="min-h-screen bg-gradient-to-br from-[#020617] via-[#0b1228] to-[#1e1b4b] text-white px-6 py-14">
+//             {/* 🔙 GO BACK BUTTON */}
+//       <div className="flex items-center mb-6">
+//         <button
+//           onClick={() => router.back()}
+//           className="flex items-center gap-2 px-4 py-2 rounded-xl 
+//           bg-white/10 border border-white/20 backdrop-blur-md
+//           text-sm font-medium hover:bg-white/20 hover:scale-105 
+//           transition-all duration-300"
+//         >
+//           ← Go Back
+//         </button>
+//       </div>
+//       <ToastContainer newestOnTop />
+
+//       <h1 className="text-4xl font-extrabold text-center mb-12 bg-gradient-to-r from-blue-400 to-purple-400 bg-clip-text text-transparent">
+//         Received Requests 💌
+//       </h1>
+
+//       {loading ? (
+//         <p className="text-center text-gray-400">Loading...</p>
+//       ) : requests.length === 0 ? (
+//         <p className="text-center text-gray-400">No requests yet 😔</p>
+//       ) : (
+//         <div className="grid sm:grid-cols-2 gap-8 max-w-6xl mx-auto">
+//           {requests.map((req) => (
+//             <div
+//               key={req.exchange_id}
+//               className="bg-white/10 backdrop-blur-xl border border-white/20 rounded-2xl p-6 hover:scale-[1.02] transition shadow-xl"
+//             >
+//               <h2 className="text-xl font-semibold text-blue-300">
+//                 {req.from_fullname}
+//               </h2>
+
+//               <p className="text-sm mt-3">
+//                 <span className="text-gray-400">Offered:</span>{" "}
+//                 <span className="text-white">{req.skill_offered_title}</span>
+//               </p>
+
+//               <p className="text-sm">
+//                 <span className="text-gray-400">Requested:</span>{" "}
+//                 <span className="text-white">{req.requested_skill_title}</span>
+//               </p>
+
+//               <div className="mt-6 flex justify-between items-center">
+//                 {req.status === "pending" ? (
+//                   <div className="flex gap-3">
+//                     <button
+//                       onClick={() => handleAccept(req)}
+//                       className="flex items-center gap-2 px-4 py-2 bg-green-600 hover:bg-green-500 rounded-lg"
+//                     >
+//                       <CheckCircle size={18} /> Accept
+//                     </button>
+//                     <button
+//                       onClick={() => handleDecline(req)}
+//                       className="flex items-center gap-2 px-4 py-2 bg-red-600 hover:bg-red-500 rounded-lg"
+//                     >
+//                       <XCircle size={18} /> Decline
+//                     </button>
+//                   </div>
+//                 ) : (
+//                   <span className="text-gray-400 italic">{req.status}</span>
+//                 )}
+//               </div>
+//             </div>
+//           ))}
+//         </div>
+//       )}
+
+//       {/* ACCEPT POPUP */}
+//       {popup && acceptedReqId && (
+//         <div className="fixed inset-0 bg-black/70 flex items-center justify-center z-50">
+//           <div className="bg-[#0b1228] p-8 rounded-2xl text-center w-[90%] max-w-md border border-white/20 shadow-2xl">
+//             <h2 className="text-2xl font-bold mb-4 text-green-400">
+//               Request Accepted ✔
+//             </h2>
+
+//             <p className="text-gray-400 mb-2">Room Code</p>
+
+//             <div className="flex items-center justify-center gap-3 mb-6">
+//               <span className="text-2xl font-extrabold tracking-widest text-white">
+//                 {roomCode}
+//               </span>
+//               <button
+//                 onClick={copyRoomCode}
+//                 className="p-2 bg-white/10 hover:bg-white/20 rounded-lg"
+//               >
+//                 <Copy size={18} />
+//               </button>
+//             </div>
+
+//             <Link
+//               href={`/chat/${acceptedReqId}`}
+//               className="inline-block w-full py-3 bg-gradient-to-r from-blue-600 to-purple-600 rounded-xl font-semibold hover:opacity-90"
+//             >
+//               Enter Chat 💬
+//             </Link>
+//           </div>
+//         </div>
+//       )}
+//     </main>
+//   );
+// }
+
+
+// // see i want you to upgrade somethimhg in this code but dont touch the code just upgrade what i say oyu should upgrade oo
+// // 1. only show that btn when the request hass been accepted or declined yoi get.. add a view  detail s button and make it like ain each exchnage card and when tey pres the btn if fetch details form the apio
+//     // const res = await fetch(`${API_URL}/notification`, {
+//     //     method: "GET",
+//     //     credentials: "include",
+//     //   });
+
+//     // and show the the roomId of that skill an dbutton the time the wexgcnage was creted and a start chatting btn let the start chatting btn lead to thius url/chat/exchnag_id whis is from the notification requst and also uphrgrade styles too wit difefernt color nut dtillm keepn the datk blue glassmpr[[phism...]]
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 "use client";
 
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import { toast, ToastContainer, Slide } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
-import { useRouter } from "next/navigation";
-import { Copy, CheckCircle, XCircle } from "lucide-react";
+import { Copy, CheckCircle, XCircle, Eye, X } from "lucide-react";
 
 // ================= TYPES =================
 type ExchangeRequest = {
@@ -280,6 +564,14 @@ type ExchangeRequest = {
   created_at: string;
 };
 
+type Notification = {
+  id: number;
+  roomId?: string | number | null;
+  roomid?: string | number | null;
+  created_at: string;
+  metadata: string | number;
+};
+
 // ================= CONFIG =================
 const API_URL = "https://skillwrap-backend.onrender.com";
 
@@ -287,11 +579,15 @@ const API_URL = "https://skillwrap-backend.onrender.com";
 export default function ReceivedRequestsPage() {
   const [requests, setRequests] = useState<ExchangeRequest[]>([]);
   const [loading, setLoading] = useState(true);
+
   const [popup, setPopup] = useState(false);
   const [roomCode, setRoomCode] = useState("");
   const [acceptedReqId, setAcceptedReqId] = useState<string | null>(null);
 
-  const router = useRouter();
+  const [detailsPopup, setDetailsPopup] = useState(false);
+  const [loadingDetails, setLoadingDetails] = useState(false);
+  const [selectedNotif, setSelectedNotif] = useState<Notification | null>(null);
+  const [activeExchangeId, setActiveExchangeId] = useState<string | null>(null);
 
   const generateRoomCode = () =>
     Math.floor(100000 + Math.random() * 900000).toString();
@@ -345,7 +641,7 @@ export default function ReceivedRequestsPage() {
         body: JSON.stringify({
           exchange_id: req.exchange_id,
           receiverId: req.from_user_id,
-          message: `Your skill exchange request was ACCEPTED 🎉`,
+          message: "Your skill exchange request was accepted 🎉",
           metadata: req.exchange_id,
           roomCode: newRoom,
         }),
@@ -384,42 +680,70 @@ export default function ReceivedRequestsPage() {
         }),
       });
 
+      setRequests((prev) =>
+        prev.map((r) =>
+          r.exchange_id === req.exchange_id
+            ? { ...r, status: "declined" }
+            : r
+        )
+      );
+
       toast.error("Request declined", {
         theme: "dark",
         transition: Slide,
       });
-
-      setTimeout(() => router.push("/dashboard"), 1200);
     } catch (err) {
       console.error(err);
       toast.error("Server error");
     }
   };
 
+  // ================= VIEW DETAILS =================
+  const handleViewDetails = async (req: ExchangeRequest) => {
+    setDetailsPopup(true);
+    setLoadingDetails(true);
+    setActiveExchangeId(req.exchange_id);
+
+    try {
+      const res = await fetch(`${API_URL}/notification`, {
+        method: "GET",
+        credentials: "include",
+      });
+
+      if (!res.ok) throw new Error("Failed to fetch notifications");
+
+      const data = await res.json();
+      console.log(data.notifications)
+
+const notif = data.notifications
+  // data.notifications?.find(
+  //   (n: Notification) =>
+  //     n.metadata != null &&
+  //     Number(n.metadata) === Number(req.exchange_id) &&
+  //     n.roomid != null
+  // ) || null;
+
+
+        console.log(notif)
+
+      setSelectedNotif(notif);
+    } catch (err) {
+      console.error(err);
+      setSelectedNotif(null);
+    } finally {
+      setLoadingDetails(false);
+    }
+  };
+
   // ================= COPY =================
   const copyRoomCode = async () => {
     await navigator.clipboard.writeText(roomCode);
-    toast.success("Room code copied!", {
-      theme: "dark",
-      autoClose: 1200,
-    });
+    toast.success("Room code copied!", { theme: "dark", autoClose: 1200 });
   };
 
   // ================= UI =================
   return (
     <main className="min-h-screen bg-gradient-to-br from-[#020617] via-[#0b1228] to-[#1e1b4b] text-white px-6 py-14">
-            {/* 🔙 GO BACK BUTTON */}
-      <div className="flex items-center mb-6">
-        <button
-          onClick={() => router.back()}
-          className="flex items-center gap-2 px-4 py-2 rounded-xl 
-          bg-white/10 border border-white/20 backdrop-blur-md
-          text-sm font-medium hover:bg-white/20 hover:scale-105 
-          transition-all duration-300"
-        >
-          ← Go Back
-        </button>
-      </div>
       <ToastContainer newestOnTop />
 
       <h1 className="text-4xl font-extrabold text-center mb-12 bg-gradient-to-r from-blue-400 to-purple-400 bg-clip-text text-transparent">
@@ -435,7 +759,7 @@ export default function ReceivedRequestsPage() {
           {requests.map((req) => (
             <div
               key={req.exchange_id}
-              className="bg-white/10 backdrop-blur-xl border border-white/20 rounded-2xl p-6 hover:scale-[1.02] transition shadow-xl"
+              className="bg-white/10 backdrop-blur-xl border border-white/20 rounded-2xl p-6 shadow-xl"
             >
               <h2 className="text-xl font-semibold text-blue-300">
                 {req.from_fullname}
@@ -443,32 +767,37 @@ export default function ReceivedRequestsPage() {
 
               <p className="text-sm mt-3">
                 <span className="text-gray-400">Offered:</span>{" "}
-                <span className="text-white">{req.skill_offered_title}</span>
+                {req.skill_offered_title}
               </p>
 
               <p className="text-sm">
                 <span className="text-gray-400">Requested:</span>{" "}
-                <span className="text-white">{req.requested_skill_title}</span>
+                {req.requested_skill_title}
               </p>
 
-              <div className="mt-6 flex justify-between items-center">
+              <div className="mt-6 flex justify-between">
                 {req.status === "pending" ? (
                   <div className="flex gap-3">
                     <button
                       onClick={() => handleAccept(req)}
-                      className="flex items-center gap-2 px-4 py-2 bg-green-600 hover:bg-green-500 rounded-lg"
+                      className="flex items-center gap-2 px-4 py-2 bg-green-600 rounded-lg"
                     >
                       <CheckCircle size={18} /> Accept
                     </button>
                     <button
                       onClick={() => handleDecline(req)}
-                      className="flex items-center gap-2 px-4 py-2 bg-red-600 hover:bg-red-500 rounded-lg"
+                      className="flex items-center gap-2 px-4 py-2 bg-red-600 rounded-lg"
                     >
                       <XCircle size={18} /> Decline
                     </button>
                   </div>
                 ) : (
-                  <span className="text-gray-400 italic">{req.status}</span>
+                  <button
+                    onClick={() => handleViewDetails(req)}
+                    className="flex items-center gap-2 px-4 py-2 bg-blue-600/40 rounded-lg"
+                  >
+                    <Eye size={18} /> View Details
+                  </button>
                 )}
               </div>
             </div>
@@ -476,31 +805,62 @@ export default function ReceivedRequestsPage() {
         </div>
       )}
 
+      {/* DETAILS POPUP */}
+      {detailsPopup && (
+        <div className="fixed inset-0 bg-black/70 flex items-center justify-center z-50">
+          <div className="bg-[#0b1228] p-8 rounded-2xl w-[90%] max-w-md relative">
+            <button
+              onClick={() => setDetailsPopup(false)}
+              className="absolute top-4 right-4"
+            >
+              <X />
+            </button>
+
+            {loadingDetails ? (
+              <p className="text-center">Loading...</p>
+            ) : selectedNotif ? (
+              <>
+                <p className="mb-4">
+                  Room ID:{" "}
+                  <b>
+                    {selectedNotif.roomId ||
+                      selectedNotif.roomid ||
+                      "Not available"}
+                  </b>
+                </p>
+
+                {activeExchangeId && (
+                  <Link
+                    href={`/chat/${activeExchangeId}`}
+                    className="block text-center py-3 bg-blue-600 rounded-xl"
+                  >
+                    Start Chat 🚀
+                  </Link>
+                )}
+              </>
+            ) : (
+              <p>No details found.</p>
+            )}
+          </div>
+        </div>
+      )}
+
       {/* ACCEPT POPUP */}
       {popup && acceptedReqId && (
         <div className="fixed inset-0 bg-black/70 flex items-center justify-center z-50">
-          <div className="bg-[#0b1228] p-8 rounded-2xl text-center w-[90%] max-w-md border border-white/20 shadow-2xl">
-            <h2 className="text-2xl font-bold mb-4 text-green-400">
-              Request Accepted ✔
-            </h2>
+          <div className="bg-[#0b1228] p-8 rounded-2xl w-[90%] max-w-md text-center">
+            <h2 className="text-green-400 text-xl mb-4">Accepted ✔</h2>
 
-            <p className="text-gray-400 mb-2">Room Code</p>
-
-            <div className="flex items-center justify-center gap-3 mb-6">
-              <span className="text-2xl font-extrabold tracking-widest text-white">
-                {roomCode}
-              </span>
-              <button
-                onClick={copyRoomCode}
-                className="p-2 bg-white/10 hover:bg-white/20 rounded-lg"
-              >
-                <Copy size={18} />
+            <div className="flex justify-center gap-3 mb-6">
+              <span className="text-2xl">{roomCode}</span>
+              <button onClick={copyRoomCode}>
+                <Copy />
               </button>
             </div>
 
             <Link
               href={`/chat/${acceptedReqId}`}
-              className="inline-block w-full py-3 bg-gradient-to-r from-blue-600 to-purple-600 rounded-xl font-semibold hover:opacity-90"
+              className="block py-3 bg-blue-600 rounded-xl"
             >
               Enter Chat 💬
             </Link>
