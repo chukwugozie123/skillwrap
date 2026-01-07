@@ -1107,9 +1107,11 @@ export default function ChatPage() {
     fetch(`${API_URL}/exchange/${exchange_id}`, {
       credentials: "include",
     })
+  
       .then(res => res.json())
-      .then(data => setExchange(data.exchange))
+      .then(data => setExchange(data.exchange) )
       .catch(() => router.push("/dashboard"));
+      console.log(exchange)
   }, [exchange_id, router]);
 
   /* ---------------- LOAD STORED MESSAGES ---------------- */
