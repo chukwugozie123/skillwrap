@@ -1096,7 +1096,7 @@ export default function ChatPage() {
 
   /* ---------------- FETCH USER ---------------- */
   useEffect(() => {
-    fetch(`${API_URL}/auth/me`, { credentials: "include" })
+    fetch(`${API_URL}/auth/profile`, { credentials: "include" })
       .then(res => res.json())
       .then(data => setUsername(data.username))
       .catch(() => router.push("/login"));
