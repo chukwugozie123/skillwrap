@@ -1093,6 +1093,7 @@ export default function ChatPage() {
   const [countdown, setCountdown] = useState("");
   const [showDurationBtn, setShowDurationBtn] = useState(false);
   const [quitPopup, setQuitPopup] = useState(false);
+   console.log(exchange, 'checking exchnage dtails')
 
   /* ---------------- FETCH USER ---------------- */
   useEffect(() => {
@@ -1114,6 +1115,7 @@ export default function ChatPage() {
       console.log(exchange)
   }, [exchange_id, router]);
 
+       console.log(exchange, 'checking exchnage dtails')
   /* ---------------- LOAD STORED MESSAGES ---------------- */
   useEffect(() => {
     const saved = localStorage.getItem(`chat_${room}`);
@@ -1259,6 +1261,7 @@ export default function ChatPage() {
     localStorage.clear();
     router.push(`/review/${exchange_id}`);
   };
+   console.log(exchange, 'checking exchnage dtails2')
 
   /* ---------------- UI ---------------- */
   return (
