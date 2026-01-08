@@ -1108,6 +1108,12 @@ export default function ChatPage() {
       .then(data => setExchange(data.exchange))
       .catch(() => router.push("/dashboard"));
   }, [exchange_id, router]);
+  
+  useEffect(() => {
+  console.log("username:", username);
+  console.log("exchange:", exchange);
+}, [username, exchange]);
+
 
   /* ---------------- LOAD STORED MESSAGES ---------------- */
   useEffect(() => {
@@ -1259,17 +1265,18 @@ export default function ChatPage() {
     <div className="flex flex-col h-screen bg-[#0c0e1a] text-white">
       {!joined ? (
         <div className="flex items-center justify-center h-full">
-          <button
-            onClick={joinChat}
-            disabled={!username || !exchange}
-            className={`px-6 py-3 rounded-xl ${
-              !username || !exchange
-                ? "bg-gray-600 cursor-not-allowed"
-                : "bg-blue-600"
-            }`}
-          >
-            Enter Chat
-          </button>
+<button
+  onClick={joinChat}
+  // disabled={!username || !exchange}
+  className={`px-6 py-3 rounded-xl ${
+    !username || !exchange
+      ? "bg-gray-600 cursor-not-allowed"
+      : "bg-blue-600"
+  }`}
+>
+  Enter Chat
+</button>
+
         </div>
       ) : (
         <>
