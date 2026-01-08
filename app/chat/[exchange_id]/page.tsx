@@ -1045,9 +1045,6 @@
 
 
 
-
-
-
 "use client";
 
 import { useEffect, useState, useRef, useCallback } from "react";
@@ -1086,14 +1083,13 @@ export default function ChatPage() {
   const bottomRef = useRef<HTMLDivElement>(null);
   const countdownRef = useRef<NodeJS.Timeout | null>(null);
 
-  const [username, setUsername] = useState("");
+  const [username, setUsername] = useState<string | null>(null);
   const [exchange, setExchange] = useState<ExchangeDetails | null>(null);
   const [joined, setJoined] = useState(false);
   const [messages, setMessages] = useState<Message[]>([]);
   const [countdown, setCountdown] = useState("");
   const [showDurationBtn, setShowDurationBtn] = useState(false);
   const [quitPopup, setQuitPopup] = useState(false);
-   console.log(exchange, 'checking exchnage dtails')
 
   /* ---------------- FETCH USER ---------------- */
   useEffect(() => {
@@ -1108,14 +1104,11 @@ export default function ChatPage() {
     fetch(`${API_URL}/exchange/${exchange_id}`, {
       credentials: "include",
     })
-  
       .then(res => res.json())
-      .then(data => setExchange(data.exchange) )
+      .then(data => setExchange(data.exchange))
       .catch(() => router.push("/dashboard"));
-      console.log(exchange)
   }, [exchange_id, router]);
 
-       console.log(exchange, 'checking exchnage dtails')
   /* ---------------- LOAD STORED MESSAGES ---------------- */
   useEffect(() => {
     const saved = localStorage.getItem(`chat_${room}`);
@@ -1173,10 +1166,6 @@ export default function ChatPage() {
       addMessage({ ...data, sender: "system", system: true })
     );
 
-    socket.on("user_left", data =>
-      addMessage({ ...data, sender: "system", system: true })
-    );
-
     socket.on("start_exchange", ({ startTime, duration }) => {
       startCountdown(startTime, duration);
       setShowDurationBtn(false);
@@ -1196,9 +1185,12 @@ export default function ChatPage() {
     };
   }, [addMessage]);
 
-  /* ---------------- JOIN CHAT ---------------- */
+  /* ---------------- JOIN CHAT (FIXED) ---------------- */
   const joinChat = () => {
-    if (!exchange) return;
+    if (!username || !exchange) {
+      alert("Loading your profile, please wait...");
+      return;
+    }
 
     if (
       username !== exchange.from_username &&
@@ -1217,7 +1209,7 @@ export default function ChatPage() {
     if (!msg.trim() && !imageUrl) return;
 
     const data: Message = {
-      sender: username,
+      sender: username!,
       message: msg,
       imageUrl,
       timestamp: new Date().toISOString(),
@@ -1261,7 +1253,6 @@ export default function ChatPage() {
     localStorage.clear();
     router.push(`/review/${exchange_id}`);
   };
-   console.log(exchange, 'checking exchnage dtails2')
 
   /* ---------------- UI ---------------- */
   return (
@@ -1270,7 +1261,12 @@ export default function ChatPage() {
         <div className="flex items-center justify-center h-full">
           <button
             onClick={joinChat}
-            className="px-6 py-3 bg-blue-600 rounded-xl"
+            disabled={!username || !exchange}
+            className={`px-6 py-3 rounded-xl ${
+              !username || !exchange
+                ? "bg-gray-600 cursor-not-allowed"
+                : "bg-blue-600"
+            }`}
           >
             Enter Chat
           </button>
@@ -1334,8 +1330,6 @@ export default function ChatPage() {
     </div>
   );
 }
-
-
 
 
 
