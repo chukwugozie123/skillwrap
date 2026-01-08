@@ -1092,17 +1092,18 @@ export default function ChatPage() {
   const [quitPopup, setQuitPopup] = useState(false);
 
   /* ---------------- FETCH USER ---------------- */
-  useEffect(() => {
-    fetch(`${API_URL}/auth/profile`, { credentials: "include" })
-      .then(res => res.json())
-      .then(data => {
-  console.log("PROFILE RESPONSE:", data);
-  setUsername(data.username);
-})
-      // .then(data => setUsername(data.username))
-      .catch(() => router.push("/login"));
-  }, [router]);
+useEffect(() => {
+  fetch(`${API_URL}/auth/profile`, { credentials: "include" })
+    .then(res => res.json())
+    .then(data => {
+      if (!data?.user?.username) {
+        throw new Error("Username missing");
+      }
 
+      setUsername(data.user.username);
+    })
+    .catch(() => router.push("/login"));
+}, [router]);
   /* ---------------- FETCH EXCHANGE ---------------- */
   useEffect(() => {
     fetch(`${API_URL}/exchange/${exchange_id}`, {
