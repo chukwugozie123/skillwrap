@@ -84,7 +84,7 @@ export default function SkillDetailsPage() {
         {/* Image */}
         <div className="relative h-[380px] w-full">
           <Image
-            src={`${API_URL}/uploads/${skill.skill_img}`}
+            src={`${skill.skill_img}`}
             alt={skill.title}
             fill
             className="object-cover"

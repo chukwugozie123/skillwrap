@@ -35,7 +35,7 @@ export default function UserPage({ skills }: { skills: Skill[] }) {
   const getImageSrc = (skill: Skill) => {
     const raw = skill.skill_img || skill.image_url;
     if (!raw || raw === "null") return "/default-skill.png";
-    return raw.startsWith("http") ? raw : `${API_URL}/uploads/${raw}`;
+    return  `${raw}`;
   };
 
   /* ================= UI ================= */

@@ -6,13 +6,15 @@ import { motion } from "framer-motion";
 import Link from "next/link";
 import Image from "next/image";
 
+import ProfileAvatarEditor from "@/components/profilePicture/page";
+
 const API_URL = "https://skillwrap-backend.onrender.com";
 
 interface User {
   username: string;
   email: string;
   bio?: string;
-  avatar?: string;
+  img_url?: string;
 }
 
 export default function ProfilePage() {
@@ -89,13 +91,14 @@ export default function ProfilePage() {
           <div className="flex flex-col sm:flex-row items-center sm:items-start gap-8">
             {/* Avatar */}
             <div className="relative shrink-0">
-              <Image
-                src={user.avatar || "/avatar-placeholder.png"}
-                alt="Profile"
-                width={130}
-                height={130}
-                className="rounded-full border-4 border-cyan-400/40 shadow-xl"
-              />
+ =
+<ProfileAvatarEditor
+  imageUrl={user.img_url}
+  username={user.username}
+  onUploadSuccess={(newUrl) =>
+    setUser((prev) => prev ? { ...prev, img_url: newUrl } : prev)
+  }
+/>
               <span className="absolute bottom-2 right-2 w-4 h-4 bg-green-400 rounded-full border-2 border-[#0b1220]" />
             </div>
 

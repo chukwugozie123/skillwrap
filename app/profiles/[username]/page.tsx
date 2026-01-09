@@ -296,6 +296,7 @@ type ProfileResponse = {
     successful_exchanges: number;
     overall_rating: number | string | null;
     total_reviews: number;
+     canclledExchnaged: number
   };
   skills: Skill[];
 };
@@ -330,7 +331,7 @@ export default function ProfilePage() {
   if (!data) return null;
 
   const { profile, stats, skills } = data;
-  console.log(skills)
+  console.log(skills, profile, skills, 'info')
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-[#020617] via-[#050b2e] to-[#020617] text-white px-6 py-12">
@@ -360,7 +361,7 @@ export default function ProfilePage() {
           <Image
             src={
               profile.img_url
-                ? `${API_URL}/uploads/${profile.img_url}`
+                ? `${profile.img_url}`
                 : "/avatar.png"
             }
             alt="Profile avatar"
@@ -382,7 +383,8 @@ export default function ProfilePage() {
 
         {/* ================= STATS ================= */}
         <section className="grid grid-cols-1 md:grid-cols-3 gap-6">
-          <StatCard label="Exchanges" value={stats.successful_exchanges} />
+          <StatCard label="succesfull Exchanges" value={stats.successful_exchanges} />
+          <StatCard label="cancelled Exchange" value={stats.canclledExchnaged} />
           <StatCard
             label="Rating"
             value={`${Number(stats.overall_rating || 0).toFixed(1)} ⭐`}
@@ -413,7 +415,7 @@ export default function ProfilePage() {
                   >
                     {skill.skill_img && (
                       <Image
-                        src={`${API_URL}/uploads/${skill.skill_img}`}
+                        src={`${skill.skill_img}`}
                         alt={skill.title}
                         width={500}
                         height={240}
@@ -477,7 +479,7 @@ export default function ProfilePage() {
                                   <Image
                                     src={
                                       r.reviewer_avatar
-                                        ? `${API_URL}/uploads/${r.reviewer_avatar}`
+                                        ? `${r.reviewer_avatar}`
                                         : "/avatar.png"
                                     }
                                     alt="avatar"

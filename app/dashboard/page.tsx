@@ -818,6 +818,8 @@ interface Stats {
   createdSkills: number;
   sendRequests: number;
   receivedRequests: number;
+  succesfullExchnage: number;
+   canclledExchnaged: number;
 }
 
 /* ================= FETCH PROFILE ================= */
@@ -845,6 +847,8 @@ export default function DashboardPage() {
     createdSkills: 0,
     sendRequests: 0,
     receivedRequests: 0,
+    succesfullExchnage: 0,
+     canclledExchnaged: 0,
   });
   const [unread, setUnread] = useState(0);
 
@@ -874,6 +878,8 @@ export default function DashboardPage() {
           createdSkills: data.createdSkill ?? 0,
           sendRequests: data.sendRequests ?? 0,
           receivedRequests: data.receivedRequests ?? 0,
+          succesfullExchnage: data.succesfullExchnage ?? 0,
+          canclledExchnaged: data.canclledExchnaged ?? 0,
         })
       )
       .catch(console.error);
@@ -890,6 +896,8 @@ export default function DashboardPage() {
       })
       .catch(console.error);
   }, []);
+
+  console.log(stats)
 
   /* ================= MARK NOTIFICATIONS READ ================= */
   async function markNotificationsRead() {
@@ -943,7 +951,7 @@ export default function DashboardPage() {
             <Image
               src={
                 user?.img_url
-                  ? `${API_URL}/uploads/${user.img_url}`
+                  ? `${user.img_url}`
                   : "/default-avatar.png"
               }
               alt="avatar"
@@ -1005,7 +1013,7 @@ export default function DashboardPage() {
       {/* ================= CONTENT ================= */}
       <section className="flex-1 sm:ml-64 p-6 md:p-10 overflow-y-auto relative">
         {/* 🔙 GO BACK BUTTON (FIXED & STICKY) */}
-        <div className="sticky top-4 z-40 mb-6">
+        {/* <div className="sticky top-4 z-40 mb-6">
           <button
             onClick={() => router.back()}
             className="flex items-center gap-2 px-4 py-2 rounded-xl 
@@ -1015,7 +1023,7 @@ export default function DashboardPage() {
           >
             ← Go Back
           </button>
-        </div>
+        </div> */}
 
         {/* Mobile menu */}
         <button
@@ -1091,6 +1099,17 @@ export default function DashboardPage() {
             value={stats.createdSkills}
             color="from-purple-500 to-pink-500"
           />
+          <StatCard
+            title="Sucessfull exchange"
+            value={stats.succesfullExchnage}
+            color="from-purple-500 to-pink-500"
+          />
+          <StatCard
+            title="Sucessfull exchange"
+            value={stats.canclledExchnaged}
+            color="from-purple-500 to-pink-500"
+          />
+          canclledExchnaged
         </div>
 
         {/* Features */}

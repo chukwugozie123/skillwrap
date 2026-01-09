@@ -820,21 +820,21 @@ const notif = data.notifications
               <p className="text-center">Loading...</p>
             ) : selectedNotif ? (
               <>
-                <p className="mb-4">
+                {/* <p className="mb-4">
                   Room ID:{" "}
                   <b>
                     {selectedNotif.roomId ||
                       selectedNotif.roomid ||
                       "Not available"}
                   </b>
-                </p>
+                </p> */}
 
                 {activeExchangeId && (
                   <Link
                     href={`/chat/${activeExchangeId}`}
                     className="block text-center py-3 bg-blue-600 rounded-xl"
                   >
-                    Start Chat 🚀
+                    Continue Chating 🚀
                   </Link>
                 )}
               </>
@@ -851,12 +851,12 @@ const notif = data.notifications
           <div className="bg-[#0b1228] p-8 rounded-2xl w-[90%] max-w-md text-center">
             <h2 className="text-green-400 text-xl mb-4">Accepted ✔</h2>
 
-            <div className="flex justify-center gap-3 mb-6">
+            {/* <div className="flex justify-center gap-3 mb-6">
               <span className="text-2xl">{roomCode}</span>
               <button onClick={copyRoomCode}>
                 <Copy />
               </button>
-            </div>
+            </div> */}
 
             <Link
               href={`/chat/${acceptedReqId}`}

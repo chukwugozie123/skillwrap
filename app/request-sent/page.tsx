@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import Link from "next/link";
-import { X } from "lucide-react";
+import { X, Trash2 } from "lucide-react";
 
 type Notification = {
   id: number;
@@ -81,11 +81,38 @@ export default function RequestPage() {
     }
   }
 
-  const copyCodeToClipboard = () => {
-    if (!selectedNotif?.roomid) return;
-    navigator.clipboard.writeText(String(selectedNotif.roomid));
-    alert("Room ID copied!");
-  };
+  /* ───────────── DELETE REQUEST (FIXED) ───────────── */
+  async function handleDelete(req: RequestItem) {
+    const confirmDelete = window.confirm(
+      `Delete exchange for "${req.skill_offered}"?`
+    );
+    if (!confirmDelete) return;
+
+    try {
+      const res = await fetch(`${API_URL}/delete/exchange/request`, {
+        method: "DELETE",
+        credentials: "include",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          exchange_id: req.exchange_id,
+        }),
+      });
+
+      if (!res.ok) {
+        console.error("Failed to delete exchange");
+        return;
+      }
+
+      // ✅ REMOVE FROM UI
+      setRequests((prev) =>
+        prev.filter((r) => r.exchange_id !== req.exchange_id)
+      );
+    } catch (err) {
+      console.error("Delete error:", err);
+    }
+  }
 
   return (
     <main className="min-h-screen px-6 py-12 bg-gradient-to-br from-[#05070c] via-[#0b1220] to-[#05070c] text-white relative overflow-hidden">
@@ -110,20 +137,6 @@ export default function RequestPage() {
                   📩 Exchange Details
                 </h2>
 
-                <p className="mb-2">
-                  <span className="text-gray-400">Room ID:</span>{" "}
-                  {selectedNotif.roomid ? (
-                    <span
-                      className="font-bold text-blue-300 cursor-pointer"
-                      onClick={copyCodeToClipboard}
-                    >
-                      {selectedNotif.roomid} (click to copy)
-                    </span>
-                  ) : (
-                    <span className="text-red-400">Not Available</span>
-                  )}
-                </p>
-
                 <p>
                   <span className="text-gray-400">Created At:</span>{" "}
                   {new Date(selectedNotif.created_at).toLocaleString()}
@@ -135,7 +148,7 @@ export default function RequestPage() {
                     href={`/chat/${activeExchangeId}`}
                     className="block text-center mt-6 bg-blue-600/40 px-4 py-3 rounded-xl text-white font-semibold hover:bg-blue-600/60 transition"
                   >
-                    🚀 Start Chat
+                    🚀 Continue Chating
                   </Link>
                 )}
 
@@ -144,15 +157,17 @@ export default function RequestPage() {
                 </p>
               </>
             ) : (
-              <p className="text-center text-gray-300">No details found for this request yet</p>
+              <p className="text-center text-gray-300">
+                No details found for this request yet
+              </p>
             )}
           </div>
         </div>
       )}
 
       {/* ───────────── REQUEST LIST ───────────── */}
-       <section className="relative z-10 max-w-4xl mx-auto space-y-6">
-                 {requests.length === 0 ? (
+      <section className="relative z-10 max-w-4xl mx-auto space-y-6">
+        {requests.length === 0 ? (
           <div className="bg-white/10 border border-white/20 backdrop-blur-xl rounded-2xl shadow-xl p-8 text-center text-gray-400">
             No requests found.
           </div>
@@ -167,17 +182,14 @@ export default function RequestPage() {
                   <h3 className="font-semibold text-lg text-blue-400">
                     {req.to_fullname || req.to_username}
                   </h3>
-                  <span
-                    className={`text-xs px-3 py-1 rounded-full font-medium ${
-                      req.status === "pending"
-                        ? "bg-yellow-500/20 text-yellow-300"
-                        : req.status === "accepted"
-                        ? "bg-green-500/20 text-green-300"
-                        : "bg-red-500/20 text-red-300"
-                    }`}
+
+                  <button
+                    onClick={() => handleDelete(req)}
+                    className="flex items-center gap-1 text-red-400 hover:text-red-300 text-sm"
                   >
-                    {req.status}
-                  </span>
+                    <Trash2 size={14} />
+                    Delete
+                  </button>
                 </div>
 
                 <p className="text-gray-300 text-sm mb-1">
@@ -190,10 +202,11 @@ export default function RequestPage() {
                   {req.skill_offered}
                 </p>
 
-              <div className="flex justify-between items-center text-gray-400 text-sm">
-                   <p>📅 {new Date(req.created_at).toLocaleString()}</p>
-                   <button
-                     onClick={() => handleDetails(req)}
+                <div className="flex justify-between items-center text-gray-400 text-sm">
+                  <p>📅 {new Date(req.created_at).toLocaleString()}</p>
+
+                  <button
+                    onClick={() => handleDetails(req)}
                     className="text-blue-400 hover:text-blue-300"
                   >
                     View Details →
@@ -207,9 +220,6 @@ export default function RequestPage() {
     </main>
   );
 }
-
-
-
 
 
 

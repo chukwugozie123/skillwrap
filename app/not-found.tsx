@@ -9,7 +9,8 @@ export default function NotFound() {
 
   useEffect(() => {
     const timer = setTimeout(() => {
-      router.push("/");
+      // router.push("/");
+      router.back()
     }, 3000);
 
     return () => clearTimeout(timer);
@@ -29,7 +30,7 @@ export default function NotFound() {
 
       <div className="flex items-center gap-2 text-blue-300">
         <Loader className="animate-spin w-6 h-6" />
-        <span>Redirecting to home in 3 seconds…</span>
+        {/* <span>Redirecting to home in 3 seconds…</span> */}
       </div>
     </div>
   );
