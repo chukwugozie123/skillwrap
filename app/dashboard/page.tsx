@@ -11,20 +11,25 @@ import {
   Inbox,
   CheckCircle,
   LogOut,
+  Settings,
   Menu,
   X,
+  Mail,
+  Calendar,
   User,
   MessageCircle,
   Bell,
+  Sparkles,
   Send,
-  XCircle,
   Trophy,
+  XCircle,
 } from "lucide-react";
 
 const API_URL = "https://skillwrap-backend.onrender.com";
 
 /* ================= TYPES ================= */
 interface User {
+  id: number;
   username: string;
   fullname: string;
   email: string;
@@ -141,6 +146,7 @@ export default function DashboardPage() {
         transform transition-transform duration-300
         ${sidebarOpen ? "translate-x-0" : "-translate-x-full"} sm:translate-x-0`}
       >
+        {/* Header */}
         <div className="flex items-center justify-between px-6 py-4 border-b border-white/10">
           <div className="flex items-center gap-3">
             <Image
@@ -150,13 +156,14 @@ export default function DashboardPage() {
               height={36}
               className="rounded-full"
             />
-            <span className="font-semibold">{user?.fullname}</span>
+            <span className="font-semibold truncate">{user?.fullname}</span>
           </div>
           <button className="sm:hidden" onClick={() => setSidebarOpen(false)}>
             <X />
           </button>
         </div>
 
+        {/* Nav */}
         <nav className="p-4 space-y-2 text-sm">
           <SidebarLink icon={<Home />} label="Dashboard" href="/dashboard" />
           <SidebarLink icon={<User />} label="Profile" href="/profile" />
@@ -177,6 +184,8 @@ export default function DashboardPage() {
             Notifications
           </button>
 
+          <SidebarLink icon={<Settings />} label="Settings" href="/settings" />
+
           <button
             onClick={handleLogout}
             className="flex items-center gap-3 px-4 py-2 rounded-xl text-red-400 hover:bg-red-500/10"
@@ -196,17 +205,58 @@ export default function DashboardPage() {
           <Menu />
         </button>
 
-        <h1 className="text-3xl font-extrabold text-blue-300 mb-10">
+        {/* Welcome */}
+        <h1 className="text-3xl font-extrabold text-blue-300 mb-2">
           Welcome back, {user?.fullname.split(" ")[0]} ✨
         </h1>
+        <p className="text-gray-400 mb-8">
+          Manage your skills, requests and collaborations.
+        </p>
 
-        {/* ================= STATS (UPGRADED) ================= */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-          <StatCard title="Requests Received" value={stats.receivedRequests} icon={<Inbox />} color="from-blue-500 to-cyan-500" />
-          <StatCard title="Requests Sent" value={stats.sendRequests} icon={<Send />} color="from-green-500 to-emerald-500" />
-          <StatCard title="Skills Created" value={stats.createdSkills} icon={<Layers />} color="from-purple-500 to-pink-500" />
-          <StatCard title="Successful Exchanges" value={stats.succesfullExchnage} icon={<Trophy />} color="from-yellow-400 to-orange-500" />
-          <StatCard title="Cancelled Exchanges" value={stats.canclledExchnaged} icon={<XCircle />} color="from-red-500 to-rose-500" />
+        {/* Profile Card */}
+        <div className="bg-white/5 border border-white/10 rounded-3xl p-6 mb-10 backdrop-blur-xl flex flex-col md:flex-row gap-6 items-center">
+          <Image
+            src={user?.img_url || "/default-avatar.png"}
+            alt="profile"
+            width={96}
+            height={96}
+            className="rounded-full border-2 border-blue-400"
+          />
+          <div className="flex-1 text-center md:text-left">
+            <h2 className="text-2xl font-bold text-blue-300">{user?.fullname}</h2>
+            <p className="text-gray-400">@{user?.username}</p>
+            <div className="flex flex-wrap gap-4 mt-3 text-sm text-gray-400">
+              <span className="flex items-center gap-1">
+                <Mail size={14} /> {user?.email}
+              </span>
+              <span className="flex items-center gap-1">
+                <Calendar size={14} /> Joined{" "}
+                {new Date(user!.created_at).toLocaleDateString()}
+              </span>
+            </div>
+          </div>
+          <Link
+            href="/create-skill"
+            className="px-6 py-2 rounded-xl bg-gradient-to-r from-blue-600 to-purple-600 hover:scale-105 transition shadow-lg"
+          >
+            + Create Skill
+          </Link>
+        </div>
+
+        {/* Stats */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 mb-12">
+          <StatCard title="Requests Received" value={stats.receivedRequests} icon={<Inbox />} />
+          <StatCard title="Requests Sent" value={stats.sendRequests} icon={<Send />} />
+          <StatCard title="Skills Created" value={stats.createdSkills} icon={<Layers />} />
+          <StatCard title="Successful Exchanges" value={stats.succesfullExchnage} icon={<Trophy />} />
+          <StatCard title="Cancelled Exchanges" value={stats.canclledExchnaged} icon={<XCircle />} />
+        </div>
+
+        {/* Features */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+          <FeatureCard icon={<Sparkles />} title="Showcase Skills" desc="Create and manage your skills." href="/my-skill" />
+          <FeatureCard icon={<Inbox />} title="Manage Requests" desc="Accept or decline requests." href="/request-recieved" />
+          <FeatureCard icon={<CheckCircle />} title="Track Sent Requests" desc="Follow up your sent requests." href="/request-sent" />
         </div>
       </section>
     </main>
@@ -224,38 +274,39 @@ function SidebarLink({ href, icon, label }: { href: string; icon: React.ReactNod
   );
 }
 
-function StatCard({
+function StatCard({ title, value, icon }: { title: string; value: number; icon: React.ReactNode }) {
+  return (
+    <motion.div whileHover={{ y: -6 }} className="p-6 rounded-3xl bg-white/10 border border-white/10 backdrop-blur-xl flex items-center gap-4">
+      <div className="w-14 h-14 rounded-2xl bg-blue-500/20 flex items-center justify-center">
+        {icon}
+      </div>
+      <div>
+        <p className="text-sm text-gray-400">{title}</p>
+        <h3 className="text-3xl font-bold">{value}</h3>
+      </div>
+    </motion.div>
+  );
+}
+
+function FeatureCard({
   title,
-  value,
+  desc,
   icon,
-  color,
+  href,
 }: {
   title: string;
-  value: number;
+  desc: string;
   icon: React.ReactNode;
-  color: string;
+  href: string;
 }) {
   return (
-    <motion.div
-      initial={{ opacity: 0, y: 20 }}
-      animate={{ opacity: 1, y: 0 }}
-      whileHover={{ y: -6 }}
-      transition={{ type: "spring", stiffness: 200 }}
-      className="relative overflow-hidden rounded-3xl p-6 bg-white/10 backdrop-blur-xl border border-white/10 shadow-lg"
-    >
-      <div className={`absolute inset-0 opacity-20 blur-2xl bg-gradient-to-br ${color}`} />
-
-      <div className="relative z-10 flex items-center gap-4">
-        <div className={`w-14 h-14 rounded-2xl bg-gradient-to-br ${color} flex items-center justify-center`}>
-          {icon}
-        </div>
-        <div>
-          <p className="text-sm text-gray-400">{title}</p>
-          <motion.h3 key={value} initial={{ scale: 0.8 }} animate={{ scale: 1 }} className="text-3xl font-extrabold">
-            {value}
-          </motion.h3>
-        </div>
-      </div>
+    <motion.div whileHover={{ scale: 1.05 }} className="p-8 rounded-3xl bg-gradient-to-br from-blue-600 to-indigo-600 shadow-xl">
+      <div className="p-3 bg-white/20 rounded-full w-fit mb-4">{icon}</div>
+      <h3 className="text-xl font-bold mb-2">{title}</h3>
+      <p className="text-white/80 text-sm mb-6">{desc}</p>
+      <Link href={href} className="px-4 py-2 bg-black/30 rounded-lg">
+        Explore →
+      </Link>
     </motion.div>
   );
 }
