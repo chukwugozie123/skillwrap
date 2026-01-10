@@ -1,784 +1,3 @@
-
-
-
-
-
-
-
-// // // "use client";
-// // // import { useEffect, useState } from "react";
-// // // import Link from "next/link";
-// // // import { motion } from "framer-motion";
-// // // import {
-// // //   Home, Layers, Inbox, CheckCircle, Activity, BarChart3, LogOut, Settings,
-// // //   Menu, X, Mail, Calendar, User, MessageCircle
-// // // } from "lucide-react";
-// // // import { initSocket, getSocket } from "@/lib/socketClient";
-
-// // // // ---------------- FETCH USER PROFILE ----------------
-// // // async function fetchUserProfile() {
-// // //   try {
-// // //     const res = await fetch("http://localhost:5000/auth/profile", {
-// // //       credentials: "include",
-// // //       cache: "no-store",
-// // //     });
-// // //     if (!res.ok) throw new Error("Failed to fetch profile");
-// // //     const data = await res.json();
-// // //     return data.req?.user || data.user;
-// // //   } catch (err) {
-// // //     console.error(err);
-// // //     return null;
-// // //   }
-// // // }
-
-// // // export default function DashboardPage() {
-// // //   const [user, setUser] = useState<any>(null);
-// // //   const [loading, setLoading] = useState(true);
-// // //   const [sidebarOpen, setSidebarOpen] = useState(false);
-// // //   const [stats, setStats] = useState({ createdSkills: 0, sendRequests: 0, receivedRequests: 0 });
-// // //   const [unread, setUnread] = useState(0);
-
-// // //   // ---------------- FETCH DATA ----------------
-// // //   useEffect(() => {
-// // //     fetchUserProfile().then((data) => { setUser(data); setLoading(false); });
-// // //   }, []);
-
-// // //   useEffect(() => {
-// // //     async function fetchStats() {
-// // //       try {
-// // //         const res = await fetch("http://localhost:5000/stats", { credentials: "include", cache: "no-store" });
-// // //         if (!res.ok) throw new Error("Failed to fetch stats");
-// // //         const data = await res.json();
-// // //         setStats({ createdSkills: data.createdSkill, sendRequests: data.sendRequests, receivedRequests: data.receivedRequests });
-// // //       } catch (err) { console.error(err); }
-// // //     }
-// // //     fetchStats();
-// // //   }, []);
-
-// // //   useEffect(() => {
-// // //     async function fetchUnread() {
-// // //       try {
-// // //         const res = await fetch("http://localhost:5000/notification/unread-count", { credentials: "include" });
-// // //         const data = await res.json();
-// // //         if (data.success) setUnread(data.count);
-// // //       } catch (err) { console.error(err); }
-// // //     }
-// // //     fetchUnread();
-// // //   }, []);
-
-// // //   // ---------------- SOCKET.IO ----------------
-// // //   useEffect(() => {
-// // //     if (!user?.id) return;
-// // //     initSocket();
-// // //     const socket = getSocket();
-// // //     socket.emit("register_user", user.id);
-// // //     socket.on("new_notification", () => setUnread(prev => prev + 1));
-// // //     return () => socket.off("new_notification");
-// // //   }, [user]);
-
-// // //   // ---------------- MARK ALL READ ----------------
-// // //   async function markNotificationsRead() {
-// // //     try {
-// // //       const res = await fetch("http://localhost:5000/notification/mark-all-read", {
-// // //         method: "PUT",
-// // //         credentials: "include",
-// // //       });
-// // //       const data = await res.json();
-// // //       if (data.success) setUnread(0);
-// // //     } catch (err) {
-// // //       console.error("Failed to mark notifications read", err);
-// // //     }
-// // //   }
-
-// // //   // ---------------- STAT CARDS ----------------
-// // //   const statCards = [
-// // //     { title: "Requests Received", value: stats.receivedRequests, icon: <Inbox />, color: "from-blue-500 to-purple-500" },
-// // //     { title: "Request Sent", value: stats.sendRequests, icon: <CheckCircle />, color: "from-green-500 to-teal-500" },
-// // //     { title: "Progress Tracked", value: "76%", icon: <Activity />, color: "from-yellow-500 to-orange-500" },
-// // //     { title: "Skills Created", value: stats.createdSkills, icon: <Layers />, color: "from-pink-500 to-red-500" },
-// // //   ];
-
-// // //   const features = [
-// // //     { title: "Track Your Progress", description: "Monitor your achievements, requests, and success rate.", icon: <BarChart3 />, color: "from-indigo-600 to-purple-600", href: "/progress" },
-// // //     { title: "View Request Sent", description: "Easily review the results and interactions you've shared.", icon: <CheckCircle />, color: "from-green-600 to-emerald-600", href: "/request-sent" },
-// // //     { title: "View Requests Received", description: "View, accept, or decline skill connection requests.", icon: <Inbox />, color: "from-blue-600 to-cyan-600", href: "/request-recieved" },
-// // //   ];
-
-// // //   return (
-// // //     <main className="h-screen flex bg-gradient-to-br from-[#030712] via-[#0b1220] to-[#1e1b4b] text-white overflow-hidden">
-// // //       {/* ---------------- SIDEBAR ---------------- */}
-// // //       <aside className={`fixed sm:static inset-y-0 left-0 z-40 bg-white/10 backdrop-blur-xl border-r border-white/10 shadow-2xl w-64 transform transition-transform duration-500 ease-in-out
-// // //         ${sidebarOpen ? "translate-x-0" : "-translate-x-full sm:translate-x-0"} overflow-y-auto`}>
-// // //         <div className="flex items-center justify-between px-6 py-5 border-b border-white/10">
-// // //           <div className="flex items-center gap-3">
-// // //             {loading ? <div className="w-8 h-8 bg-gray-600 rounded-full animate-pulse" /> :
-// // //               <img src={user?.img_url || "/default-avatar.png"} alt="avatar" className="w-9 h-9 rounded-full border border-white/20" />}
-// // //             <span className="font-semibold text-lg truncate">{loading ? "Loading..." : user?.fullname || "Guest User"}</span>
-// // //           </div>
-// // //           <button className="sm:hidden text-gray-300" onClick={() => setSidebarOpen(false)}>
-// // //             <X className="w-5 h-5" />
-// // //           </button>
-// // //         </div>
-
-// // //         <nav className="flex flex-col p-4 space-y-2 text-sm font-medium">
-// // //           <SidebarLink href="/dashboard" icon={<Home />} label="Dashboard" />
-// // //           <SidebarLink href="/profile" icon={<User />} label="Profile" />
-// // //           <SidebarLink href="/chat" icon={<MessageCircle />} label="Chat" />
-// // //           <SidebarLink href="/my-skill" icon={<Layers />} label="My Skills" />
-// // //           <SidebarLink href="/request-recieved" icon={<Inbox />} label="Requests received" />
-// // //           <SidebarLink href="/result-sent" icon={<CheckCircle />} label="Results Sent" />
-// // //           <SidebarLink href="/progress" icon={<Activity />} label="Track Progress" />
-// // //           <SidebarLink
-// // //             href="/notifications-route"
-// // //             onClick={markNotificationsRead}
-// // //             icon={
-// // //               <div className="relative">
-// // //                 <Inbox className="w-5 h-5 text-blue-300" />
-// // //                 {unread > 0 && <span className="absolute -top-2 -right-2 bg-red-500 text-xs font-bold px-1.5 py-0.5 rounded-full">{unread}</span>}
-// // //               </div>
-// // //             }
-// // //             label="Notifications"
-// // //           />
-// // //           <SidebarLink href="/settings" icon={<Settings />} label="Settings" />
-// // //           <SidebarLink href="/logout" icon={<LogOut />} label="Logout" danger />
-// // //         </nav>
-// // //       </aside>
-
-// // //       {/* ---------------- MAIN CONTENT ---------------- */}
-// // //       <section className="flex-1 p-6 sm:p-10 overflow-y-auto sm:overflow-hidden relative">
-// // //         <button onClick={() => setSidebarOpen(true)} className="sm:hidden absolute top-6 left-6 bg-white/10 p-2 rounded-lg border border-white/10">
-// // //           <Menu className="w-5 h-5 text-blue-300" />
-// // //         </button>
-
-// // //         {loading ? <div className="flex items-center justify-center h-full text-gray-400">Loading your dashboard...</div> :
-// // //           <>
-// // //             <motion.div initial={{ opacity: 0, y: -30 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.7 }} className="bg-white/5 border border-white/10 backdrop-blur-xl rounded-3xl p-8 mb-8 shadow-2xl flex flex-col sm:flex-row items-center sm:items-start gap-6">
-// // //               <img src={user?.img_url || "/default-avatar.png"} alt="Profile" className="w-24 h-24 rounded-full border-2 border-blue-400 shadow-md" />
-// // //               <div className="flex-1">
-// // //                 <h1 className="text-2xl font-bold text-blue-300">{user?.fullname}</h1>
-// // //                 <p className="text-gray-400 text-sm">@{user?.username}</p>
-// // //                 <div className="flex flex-wrap items-center gap-4 mt-3 text-sm text-gray-400">
-// // //                   <span className="flex items-center gap-1"><Mail className="w-4 h-4 text-blue-400" /> {user?.email}</span>
-// // //                   <span className="flex items-center gap-1"><Calendar className="w-4 h-4 text-blue-400" /> Joined: {new Date(user.created_at).toLocaleString()}</span>
-// // //                 </div>
-// // //               </div>
-// // //               <Link href="/create-skill" className="px-5 py-2 bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-500 hover:to-purple-500 rounded-xl font-medium text-white shadow-md transition-all">+ Create Skill</Link>
-// // //             </motion.div>
-
-// // //             <motion.div initial={{ opacity: 0, y: 30 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.3 }} className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-// // //               {statCards.map((s, i) => <StatCard key={i} {...s} />)}
-// // //             </motion.div>
-
-// // //             <motion.div initial={{ opacity: 0, y: 40 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.5 }} className="mt-12 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
-// // //               {features.map((f, i) => <FeatureCard key={i} {...f} />)}
-// // //             </motion.div>
-// // //           </>
-// // //         }
-// // //       </section>
-// // //     </main>
-// // //   );
-// // // }
-
-// // // /* ---------- COMPONENTS ---------- */
-// // // function SidebarLink({ href, icon, label, danger, onClick }: { href: string; icon: React.ReactNode; label: string; danger?: boolean; onClick?: () => void }) {
-// // //   return (
-// // //     <Link
-// // //       href={href}
-// // //       onClick={onClick}
-// // //       className={`flex items-center gap-3 px-4 py-2 rounded-xl hover:bg-white/10 transition-all ${danger ? "text-red-400 hover:bg-red-500/10" : "text-gray-300"}`}
-// // //     >
-// // //       <span className="text-blue-300">{icon}</span>
-// // //       {label}
-// // //     </Link>
-// // //   );
-// // // }
-
-// // // function StatCard({ title, value, icon, color }: { title: string; value: string | number; icon: React.ReactNode; color: string }) {
-// // //   return (
-// // //     <motion.div whileHover={{ scale: 1.05 }} className={`p-6 rounded-2xl bg-white/10 border border-white/10 backdrop-blur-xl shadow-lg flex items-center gap-4 cursor-pointer transition-all duration-300`}>
-// // //       <div className={`p-4 rounded-full bg-gradient-to-br ${color} text-white`}>{icon}</div>
-// // //       <div>
-// // //         <p className="text-sm text-gray-400">{title}</p>
-// // //         <h3 className="text-2xl font-semibold text-white">{value ?? 0}</h3>
-// // //       </div>
-// // //     </motion.div>
-// // //   );
-// // // }
-
-// // // function FeatureCard({ title, description, icon, color, href }: { title: string; description: string; icon: React.ReactNode; color: string; href: string }) {
-// // //   return (
-// // //     <Link href={href} className="group">
-// // //       <motion.div whileHover={{ scale: 1.03, y: -4 }} className={`p-8 rounded-3xl bg-gradient-to-br ${color} text-white shadow-xl transition-all duration-300`}>
-// // //         <div className="flex items-center gap-4 mb-4"><div className="p-3 bg-white/20 rounded-full">{icon}</div><h3 className="text-xl font-bold">{title}</h3></div>
-// // //         <p className="text-sm text-white/80">{description}</p>
-// // //       </motion.div>
-// // //     </Link>
-// // //   );
-// // // }
-
-
-// // // // improve,ment 1. add btoon to thoes 3 features div like a vie buttton that would link to where ever they wanna go eg requesdt-recieved request-sent etc and also when on smaller devices lett the sidebar open use one react package to do that and remove all socket.io code and let the number of notifications show on the notifications button thaanks
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-// // "use client";
-// // import { useEffect, useState } from "react";
-// // import Link from "next/link";
-// // import { motion } from "framer-motion";
-// // import {
-// //   Home, Layers, Inbox, CheckCircle, Activity, BarChart3, LogOut, Settings,
-// //   Menu, X, Mail, Calendar, User, MessageCircle
-// // } from "lucide-react";
-
-// //  const API_URL = process.env.DB_API_URL;
-
-// //   console.log(API_URL)
-// // // chage all the localhost to API_URL U GET
-
-// // // ---------------- FETCH USER PROFILE ----------------
-// // async function fetchUserProfile() {
-// //   try {
-// //     const res = await fetch("http://localhost:5000/auth/profile", {
-// //       credentials: "include",
-// //       cache: "no-store",
-// //     });
-// //     if (!res.ok) throw new Error("Failed to fetch profile");
-// //     const data = await res.json();
-// //     return data.req?.user || data.user;
-// //   } catch (err) {
-// //     console.error(err);
-// //     return null;
-// //   }
-// // }
-
-// // export default function DashboardPage() {
-// //   const [user, setUser] = useState<any>(null);
-// //   const [loading, setLoading] = useState(true);
-// //   const [sidebarOpen, setSidebarOpen] = useState(false);
-// //   const [stats, setStats] = useState({ createdSkills: 0, sendRequests: 0, receivedRequests: 0 });
-// //   const [unread, setUnread] = useState(0);
-
-// //   // ---------------- FETCH DATA ----------------
-// //   useEffect(() => {
-// //     fetchUserProfile().then((data) => { setUser(data); setLoading(false); });
-// //   }, []);
-
-// //   useEffect(() => {
-// //     async function fetchStats() {
-// //       try {
-// //         const res = await fetch("http://localhost:5000/stats", { credentials: "include", cache: "no-store" });
-// //         const data = await res.json();
-// //         setStats({
-// //           createdSkills: data.createdSkill,
-// //           sendRequests: data.sendRequests,
-// //           receivedRequests: data.receivedRequests
-// //         });
-// //       } catch (err) { console.error(err); }
-// //     }
-// //     fetchStats();
-// //   }, []);
-
-// //   useEffect(() => {
-// //     async function fetchUnread() {
-// //       try {
-// //         const res = await fetch("http://localhost:5000/notification/unread-count", { credentials: "include" });
-// //         const data = await res.json();
-// //         if (data.success) setUnread(data.count);
-// //       } catch (err) { console.error(err); }
-// //     }
-// //     fetchUnread();
-// //   }, []);
-
-// //   // ---------------- MARK ALL READ ----------------
-// //   async function markNotificationsRead() {
-// //     try {
-// //       const res = await fetch("http://localhost:5000/notification/mark-all-read", {
-// //         method: "PUT",
-// //         credentials: "include",
-// //       });
-// //       const data = await res.json();
-// //       if (data.success) setUnread(0);
-// //     } catch (err) {
-// //       console.error("Failed to mark notifications read", err);
-// //     }
-// //   }
-
-// //   // ---------------- STAT CARDS ----------------
-// //   const statCards = [
-// //     { title: "Requests Received", value: stats.receivedRequests, icon: <Inbox />, color: "from-blue-500 to-purple-500" },
-// //     { title: "Request Sent", value: stats.sendRequests, icon: <CheckCircle />, color: "from-green-500 to-teal-500" },
-// //     // { title: "Progress Tracked", value: "76%", icon: <Activity />, color: "from-yellow-500 to-orange-500" },
-// //     { title: "Skills Created", value: stats.createdSkills, icon: <Layers />, color: "from-pink-500 to-red-500" },
-// //   ];
-
-// //   const features = [
-// //     // { title: "Track Your Progress", description: "Monitor your achievements, requests, and success rate.", icon: <BarChart3 />, color: "from-indigo-600 to-purple-600", href: "/progress" },
-// //     { title: "View Request Sent", description: "Easily review the results and interactions you've shared.", icon: <CheckCircle />, color: "from-green-600 to-emerald-600", href: "/request-sent" },
-// //     { title: "View Requests Received", description: "View, accept, or decline skill connection requests.", icon: <Inbox />, color: "from-blue-600 to-cyan-600", href: "/request-recieved" },
-// //   ];
-
-// //   console.log(user?.img_url)
-
-// //   return (
-// //     <main className="h-screen flex bg-gradient-to-br from-[#030712] via-[#0b1220] to-[#1e1b4b] text-white overflow-hidden">
-      
-// //       {/* ---------------- SIDEBAR ---------------- */}
-// //       <aside className={`fixed sm:static inset-y-0 left-0 z-40 bg-white/10 backdrop-blur-xl border-r border-white/10 shadow-2xl w-64 transform transition-transform duration-500 ease-in-out
-// //         ${sidebarOpen ? "translate-x-0" : "-translate-x-full sm:translate-x-0"} overflow-y-auto`}>
-// //         <div className="flex items-center justify-between px-6 py-5 border-b border-white/10">
-// //           <div className="flex items-center gap-3">
-// //             {loading ? <div className="w-8 h-8 bg-gray-600 rounded-full animate-pulse" /> :
-// //               <img src={user?.img_url || "/default-avatar.png"} alt="avatar" className="w-9 h-9 rounded-full border border-white/20" />}
-// //             <span className="font-semibold text-lg truncate">{loading ? "Loading..." : user?.fullname || "Guest User"}</span>
-// //           </div>
-// //           <button className="sm:hidden text-gray-300" onClick={() => setSidebarOpen(false)}>
-// //             <X className="w-5 h-5" />
-// //           </button>
-// //         </div>
-
-// //         <nav className="flex flex-col p-4 space-y-2 text-sm font-medium">
-// //           <SidebarLink href="/dashboard" icon={<Home />} label="Dashboard" />
-// //           <SidebarLink href="/profile" icon={<User />} label="Profile" />
-// //           <SidebarLink href="/chat" icon={<MessageCircle />} label="Chat" />
-// //           <SidebarLink href="/my-skill" icon={<Layers />} label="My Skills" />
-// //           <SidebarLink href="/request-recieved" icon={<Inbox />} label="Requests received" />
-// //           <SidebarLink href="/result-sent" icon={<CheckCircle />} label="Results Sent" />
-// //           <SidebarLink href="/progress" icon={<Activity />} label="Track Progress" />
-// //           <SidebarLink
-// //             href="/notifications-route"
-// //             onClick={markNotificationsRead}
-// //             icon={
-// //               <div className="relative">
-// //                 <Inbox className="w-5 h-5 text-blue-300" />
-// //                 {unread > 0 && <span className="absolute -top-2 -right-2 bg-red-500 text-xs font-bold px-1.5 py-0.5 rounded-full">{unread}</span>}
-// //               </div>
-// //             }
-// //             label="Notifications"
-// //           />
-// //           <SidebarLink href="/settings" icon={<Settings />} label="Settings" />
-// //           <SidebarLink href="/logout" icon={<LogOut />} label="Logout" danger />
-// //         </nav>
-// //       </aside>
-
-// //       {/* ---------------- MAIN CONTENT ---------------- */}
-// //       <section className="flex-1 p-6 sm:p-10 overflow-y-auto sm:overflow-hidden relative">
-// //         <button onClick={() => setSidebarOpen(true)} className="sm:hidden absolute top-6 left-6 bg-white/10 p-2 rounded-lg border border-white/10">
-// //           <Menu className="w-5 h-5 text-blue-300" />
-// //         </button>
-
-// //         {loading ? <div className="flex items-center justify-center h-full text-gray-400">Loading your dashboard...</div> :
-// //           <>
-// //             {/* PROFILE CARD */}
-// //             <motion.div initial={{ opacity: 0, y: -30 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.7 }} className="bg-white/5 border border-white/10 backdrop-blur-xl rounded-3xl p-8 mb-8 shadow-2xl flex flex-col sm:flex-row items-center sm:items-start gap-6">
-// //               <img src={user?.img_url || "/default-avatar.png"} alt="Profile" className="w-24 h-24 rounded-full border-2 border-blue-400 shadow-md" />
-// //               <div className="flex-1">
-// //                 <h1 className="text-2xl font-bold text-blue-300">{user?.fullname}</h1>
-// //                 <p className="text-gray-400 text-sm">@{user?.username}</p>
-// //                 <div className="flex flex-wrap items-center gap-4 mt-3 text-sm text-gray-400">
-// //                   <span className="flex items-center gap-1"><Mail className="w-4 h-4 text-blue-400" /> {user?.email}</span>
-// //                   <span className="flex items-center gap-1"><Calendar className="w-4 h-4 text-blue-400" /> Joined: {new Date(user.created_at).toLocaleString()}</span>
-// //                 </div>
-// //               </div>
-// //               <Link href="/create-skill" className="px-5 py-2 bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-500 hover:to-purple-500 rounded-xl font-medium text-white shadow-md transition-all">+ Create Skill</Link>
-// //             </motion.div>
-
-// //             {/* STAT CARDS */}
-// //             <motion.div initial={{ opacity: 0, y: 30 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.3 }} className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-// //               {statCards.map((s, i) => <StatCard key={i} {...s} />)}
-// //             </motion.div>
-
-// //             {/* FEATURE CARDS */}
-// //             <motion.div initial={{ opacity: 0, y: 40 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.5 }} className="mt-12 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
-// //               {features.map((f, i) => <FeatureCard key={i} {...f} />)}
-// //             </motion.div>
-// //           </>
-// //         }
-// //       </section>
-// //     </main>
-// //   );
-// // }
-
-// // /* ---------- COMPONENTS ---------- */
-// // function SidebarLink({ href, icon, label, danger, onClick }: { href: string; icon: React.ReactNode; label: string; danger?: boolean; onClick?: () => void }) {
-// //   return (
-// //     <Link
-// //       href={href}
-// //       onClick={onClick}
-// //       className={`flex items-center gap-3 px-4 py-2 rounded-xl hover:bg-white/10 transition-all ${danger ? "text-red-400 hover:bg-red-500/10" : "text-gray-300"}`}
-// //     >
-// //       <span className="text-blue-300">{icon}</span>
-// //       {label}
-// //     </Link>
-// //   );
-// // }
-
-// // function StatCard({ title, value, icon, color }: { title: string; value: string | number; icon: React.ReactNode; color: string }) {
-// //   return (
-// //     <motion.div whileHover={{ scale: 1.05 }} className={`p-6 rounded-2xl bg-white/10 border border-white/10 backdrop-blur-xl shadow-lg flex items-center gap-4 cursor-pointer transition-all duration-300`}>
-// //       <div className={`p-4 rounded-full bg-gradient-to-br ${color} text-white`}>{icon}</div>
-// //       <div>
-// //         <p className="text-sm text-gray-400">{title}</p>
-// //         <h3 className="text-2xl font-semibold text-white">{value ?? 0}</h3>
-// //       </div>
-// //     </motion.div>
-// //   );
-// // }
-
-// // function FeatureCard({ title, description, icon, color, href }: { title: string; description: string; icon: React.ReactNode; color: string; href: string }) {
-// //   return (
-// //       <motion.div whileHover={{ scale: 1.03, y: -4 }} className={`p-8 rounded-3xl bg-gradient-to-br ${color} text-white shadow-xl transition-all duration-300`}>
-// //         <div className="flex items-center gap-4 mb-4"><div className="p-3 bg-white/20 rounded-full">{icon}</div><h3 className="text-xl font-bold">{title}</h3></div>
-// //         <p className="text-sm text-white/80">{description}</p>
-// //          <Link href={href} className="self-start px-4 py-2 rounded-lg bg-blue-600 hover:bg-blue-500 text-white font-medium transition">View</Link>
-// //       </motion.div>
-// //   );
-// // }
-
-
-// // // function FeatureCard({ title, description, icon, color, href }: { title: string; description: string; icon: React.ReactNode; color: string; href: string }) {
-// // //   return (
-// // //     <motion.div whileHover={{ scale: 1.03, y: -4 }} className={`p-6 rounded-3xl bg-white/10 border border-white/20 backdrop-blur-xl shadow-lg transition-all duration-300 flex flex-col justify-between`}>
-// // //       <div className="flex items-center gap-4 mb-4">
-// // //         <div className="p-3 bg-white/20 rounded-full">{icon}</div>
-// // //         <h3 className="text-xl font-bold">{title}</h3>
-// // //       </div>
-// // //       <p className="text-sm text-white/80 mb-4">{description}</p>
-// // //       <Link href={href} className="self-start px-4 py-2 rounded-lg bg-blue-600 hover:bg-blue-500 text-white font-medium transition">View</Link>
-// // //     </motion.div>
-// // //   );
-// // // }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-// "use client";
-
-
-// import { useEffect, useState } from "react";
-// import Link from "next/link";
-// import Image from "next/image"; // use Next.js optimized Image
-// import { motion } from "framer-motion";
-// import {
-//   Home, Layers, Inbox, CheckCircle, Activity, LogOut, Settings,
-//   Menu, X, Mail, Calendar, User, MessageCircle
-// } from "lucide-react";
-
-// // const API_URL = process.env.NEXT_PUBLIC_API_URL;
-//  const API_URL= 'https://skillwrap-backend.onrender.com'
-// // const API_URL = 'http://localhost:5000'
-
-// interface User {
-//   username: string;
-//   fullname: string;
-//   email: string;
-//   img_url?: string;
-//   created_at: string;
-// }
-
-// interface Stats {
-//   createdSkills: number;
-//   sendRequests: number;
-//   receivedRequests: number;
-// }
-
-// // ---------------- FETCH USER PROFILE ----------------
-// async function fetchUserProfile(): Promise<User | null> {
-//   try {
-//     const res = await fetch(`https://skillwrap-backend.onrender.com/auth/profile`, {
-//       credentials: "include",
-//       cache: "no-store",
-//     });
-//     if (!res.ok) throw new Error("Failed to fetch profile");
-//     const data = await res.json();
-//     return data.req?.user || data.user || null;
-//   } catch (err) {
-//     console.error(err);
-//     return null;
-//   }
-// }
-
-// export default function DashboardPage() {
-//   const [user, setUser] = useState<User | null>(null);
-//   const [loading, setLoading] = useState(true);
-//   const [sidebarOpen, setSidebarOpen] = useState(false);
-//   const [stats, setStats] = useState<Stats>({ createdSkills: 0, sendRequests: 0, receivedRequests: 0 });
-//   const [unread, setUnread] = useState(0);
-
-//   // ---------------- FETCH DATA ----------------
-//   useEffect(() => {
-//     fetchUserProfile().then((data) => { setUser(data); setLoading(false); });
-//   }, []);
-
-//   useEffect(() => {
-//     async function fetchStats() {
-//       try {
-//         const res = await fetch(`${API_URL}/stats`, { credentials: "include", cache: "no-store" });
-//         const data = await res.json();
-//         setStats({
-//           createdSkills: data.createdSkill,
-//           sendRequests: data.sendRequests,
-//           receivedRequests: data.receivedRequests
-//         });
-//       } catch (err) { console.error(err); }
-//     }
-//     fetchStats();
-//   }, []);
-
-//   useEffect(() => {
-//     async function fetchUnread() {
-//       try {
-//         const res = await fetch(`${API_URL}/notification/unread-count`, { credentials: "include" });
-//         const data = await res.json();
-//         if (data.success) setUnread(data.count);
-//       } catch (err) { console.error(err); }
-//     }
-//     fetchUnread();
-//   }, []);
-
-//   // ---------------- MARK ALL READ ----------------
-//   async function markNotificationsRead() {
-//     try {
-//       const res = await fetch(`${API_URL}/notification/mark-all-read`, {
-//         method: "PUT",
-//         credentials: "include",
-//       });
-//       const data = await res.json();
-//       if (data.success) setUnread(0);
-//     } catch (err) {
-//       console.error("Failed to mark notifications read", err);
-//     }
-//   }
-
-//   const statCards = [
-//     { title: "Requests Received", value: stats.receivedRequests, icon: <Inbox />, color: "from-blue-500 to-purple-500" },
-//     { title: "Request Sent", value: stats.sendRequests, icon: <CheckCircle />, color: "from-green-500 to-teal-500" },
-//     { title: "Skills Created", value: stats.createdSkills, icon: <Layers />, color: "from-pink-500 to-red-500" },
-//   ];
-
-//   const features = [
-//     { title: "View Request Sent", description: "Easily review the results and interactions you've shared.", icon: <CheckCircle />, color: "from-green-600 to-emerald-600", href: "/request-sent" },
-//     { title: "View Requests Received", description: "View, accept, or decline skill connection requests.", icon: <Inbox />, color: "from-blue-600 to-cyan-600", href: "/request-recieved" },
-//   ];
-
-//   return (
-//     <main className="h-screen flex bg-gradient-to-br from-[#030712] via-[#0b1220] to-[#1e1b4b] text-white overflow-hidden">
-//       {/* SIDEBAR */}
-//       <aside className={`fixed sm:static inset-y-0 left-0 z-40 bg-white/10 backdrop-blur-xl border-r border-white/10 shadow-2xl w-64 transform transition-transform duration-500 ease-in-out
-//         ${sidebarOpen ? "translate-x-0" : "-translate-x-full sm:translate-x-0"} overflow-y-auto`}>
-//         <div className="flex items-center justify-between px-6 py-5 border-b border-white/10">
-//           <div className="flex items-center gap-3">
-//             {loading ? <div className="w-8 h-8 bg-gray-600 rounded-full animate-pulse" /> :
-//               <Image src={user?.img_url ? `${API_URL}/uploads/${user.img_url}` : "/default-avatar.png"} alt="avatar" width={36} height={36} className="rounded-full border border-white/20" />}
-//             <span className="font-semibold text-lg truncate">{loading ? "Loading..." : user?.fullname || "Guest User"}</span>
-//           </div>
-//           <button className="sm:hidden text-gray-300" onClick={() => setSidebarOpen(false)}>
-//             <X className="w-5 h-5" />
-//           </button>
-//         </div>
-
-//         <nav className="flex flex-col p-4 space-y-2 text-sm font-medium">
-//           <SidebarLink href="/dashboard" icon={<Home />} label="Dashboard" />
-//           <SidebarLink href="/profile" icon={<User />} label="Profile" />
-//           <SidebarLink href="/chat" icon={<MessageCircle />} label="Chat" />
-//           <SidebarLink href="/my-skill" icon={<Layers />} label="My Skills" />
-//           <SidebarLink href="/request-recieved" icon={<Inbox />} label="Requests received" />
-//           <SidebarLink href="/result-sent" icon={<CheckCircle />} label="Results Sent" />
-//           <SidebarLink href="/progress" icon={<Activity />} label="Track Progress" />
-//           <SidebarLink
-//             href="/notifications-route"
-//             onClick={markNotificationsRead}
-//             icon={
-//               <div className="relative">
-//                 <Inbox className="w-5 h-5 text-blue-300" />
-//                 {unread > 0 && <span className="absolute -top-2 -right-2 bg-red-500 text-xs font-bold px-1.5 py-0.5 rounded-full">{unread}</span>}
-//               </div>
-//             }
-//             label="Notifications"
-//           />
-//           <SidebarLink href="/settings" icon={<Settings />} label="Settings" />
-//           <SidebarLink href="/logout" icon={<LogOut />} label="Logout" danger />
-//         </nav>
-//       </aside>
-
-//       {/* MAIN CONTENT */}
-//       <section className="flex-1 p-6 sm:p-10 overflow-y-auto sm:overflow-hidden relative">
-//         <button onClick={() => setSidebarOpen(true)} className="sm:hidden absolute top-6 left-6 bg-white/10 p-2 rounded-lg border border-white/10">
-//           <Menu className="w-5 h-5 text-blue-300" />
-//         </button>
-
-//         {loading ? <div className="flex items-center justify-center h-full text-gray-400">Loading your dashboard...</div> :
-//           <>
-//             {/* PROFILE CARD */}
-//             <motion.div initial={{ opacity: 0, y: -30 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.7 }} className="bg-white/5 border border-white/10 backdrop-blur-xl rounded-3xl p-8 mb-8 shadow-2xl flex flex-col sm:flex-row items-center sm:items-start gap-6">
-//               <Image src={user?.img_url ? `${API_URL}/uploads/${user.img_url}` : "/default-avatar.png"} alt="Profile" width={96} height={96} className="rounded-full border-2 border-blue-400 shadow-md" />
-//               <div className="flex-1">
-//                 <h1 className="text-2xl font-bold text-blue-300">{user?.fullname}</h1>
-//                 <p className="text-gray-400 text-sm">@{user?.username}</p>
-//                 <div className="flex flex-wrap items-center gap-4 mt-3 text-sm text-gray-400">
-//                   <span className="flex items-center gap-1"><Mail className="w-4 h-4 text-blue-400" /> {user?.email}</span>
-//                   <span className="flex items-center gap-1"><Calendar className="w-4 h-4 text-blue-400" /> Joined: {new Date(user!.created_at).toLocaleDateString()}</span>
-//                 </div>
-//               </div>
-//               <Link href="/create-skill" className="px-5 py-2 bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-500 hover:to-purple-500 rounded-xl font-medium text-white shadow-md transition-all">+ Create Skill</Link>
-//             </motion.div>
-
-//             {/* STAT CARDS */}
-//             <motion.div initial={{ opacity: 0, y: 30 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.3 }} className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-//               {statCards.map((s, i) => <StatCard key={i} {...s} />)}
-//             </motion.div>
-
-//             {/* FEATURE CARDS */}
-//             <motion.div initial={{ opacity: 0, y: 40 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.5 }} className="mt-12 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
-//               {features.map((f, i) => <FeatureCard key={i} {...f} />)}
-//             </motion.div>
-//           </>
-//         }
-//       </section>
-//     </main>
-//   );
-// }
-
-// /* ---------- COMPONENTS ---------- */
-// function SidebarLink({ href, icon, label, danger, onClick }: { href: string; icon: React.ReactNode; label: string; danger?: boolean; onClick?: () => void }) {
-//   return (
-//     <Link
-//       href={href}
-//       onClick={onClick}
-//       className={`flex items-center gap-3 px-4 py-2 rounded-xl hover:bg-white/10 transition-all ${danger ? "text-red-400 hover:bg-red-500/10" : "text-gray-300"}`}
-//     >
-//       <span className="text-blue-300">{icon}</span>
-//       {label}
-//     </Link>
-//   );
-// }
-
-// function StatCard({ title, value, icon, color }: { title: string; value: string | number; icon: React.ReactNode; color: string }) {
-//   return (
-//     <motion.div whileHover={{ scale: 1.05 }} className={`p-6 rounded-2xl bg-white/10 border border-white/10 backdrop-blur-xl shadow-lg flex items-center gap-4 cursor-pointer transition-all duration-300`}>
-//       <div className={`p-4 rounded-full bg-gradient-to-br ${color} text-white`}>{icon}</div>
-//       <div>
-//         <p className="text-sm text-gray-400">{title}</p>
-//         <h3 className="text-2xl font-semibold text-white">{value ?? 0}</h3>
-//       </div>
-//     </motion.div>
-//   );
-// }
-
-// function FeatureCard({ title, description, icon, color, href }: { title: string; description: string; icon: React.ReactNode; color: string; href: string }) {
-//   return (
-//       <motion.div whileHover={{ scale: 1.03, y: -4 }} className={`p-8 rounded-3xl bg-gradient-to-br ${color} text-white shadow-xl transition-all duration-300`}>
-//         <div className="flex items-center gap-4 mb-4"><div className="p-3 bg-white/20 rounded-full">{icon}</div><h3 className="text-xl font-bold">{title}</h3></div>
-//         <p className="text-sm text-white/80">{description}</p>
-//          <Link href={href} className="self-start px-4 py-2 rounded-lg bg-blue-600 hover:bg-blue-500 text-white font-medium transition">View</Link>
-//       </motion.div>
-//   );
-// }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 "use client";
 
 import { useEffect, useState } from "react";
@@ -801,6 +20,9 @@ import {
   MessageCircle,
   Bell,
   Sparkles,
+  Send,
+  XCircle,
+  Trophy,
 } from "lucide-react";
 
 const API_URL = "https://skillwrap-backend.onrender.com";
@@ -819,7 +41,7 @@ interface Stats {
   sendRequests: number;
   receivedRequests: number;
   succesfullExchnage: number;
-   canclledExchnaged: number;
+  canclledExchnaged: number;
 }
 
 /* ================= FETCH PROFILE ================= */
@@ -848,7 +70,7 @@ export default function DashboardPage() {
     sendRequests: 0,
     receivedRequests: 0,
     succesfullExchnage: 0,
-     canclledExchnaged: 0,
+    canclledExchnaged: 0,
   });
   const [unread, setUnread] = useState(0);
 
@@ -897,36 +119,13 @@ export default function DashboardPage() {
       .catch(console.error);
   }, []);
 
-  console.log(stats)
-
-  /* ================= MARK NOTIFICATIONS READ ================= */
-  async function markNotificationsRead() {
-    try {
-      await fetch(`${API_URL}/notification/mark-all-read`, {
-        method: "PUT",
-        credentials: "include",
-      });
-      setUnread(0);
-      router.push("/notifications-route");
-    } catch (err) {
-      console.error(err);
-    }
-  }
-
   /* ================= LOGOUT ================= */
   async function handleLogout() {
-    try {
-      const res = await fetch(`${API_URL}/auth/logout`, {
-        method: "POST",
-        credentials: "include",
-      });
-
-      if (res.ok) {
-        router.replace("/login");
-      }
-    } catch (err) {
-      console.error("Logout failed", err);
-    }
+    await fetch(`${API_URL}/auth/logout`, {
+      method: "POST",
+      credentials: "include",
+    });
+    router.replace("/login");
   }
 
   if (loading) {
@@ -938,71 +137,45 @@ export default function DashboardPage() {
   }
 
   return (
-    <main className="min-h-screen flex bg-gradient-to-br from-[#030712] via-[#0b1220] to-[#1e1b4b] text-white overflow-hidden">
+    <main className="min-h-screen flex bg-gradient-to-br from-[#030712] via-[#0b1220] to-[#1e1b4b] text-white">
       {/* ================= SIDEBAR ================= */}
       <aside
         className={`fixed inset-y-0 left-0 z-50 w-64 bg-white/10 backdrop-blur-xl border-r border-white/10
         transform transition-transform duration-300
         ${sidebarOpen ? "translate-x-0" : "-translate-x-full"} sm:translate-x-0`}
       >
-        {/* Header */}
         <div className="flex items-center justify-between px-6 py-4 border-b border-white/10">
           <div className="flex items-center gap-3">
             <Image
-              src={
-                user?.img_url
-                  ? `${user.img_url}`
-                  : "/default-avatar.png"
-              }
+              src={user?.img_url || "/default-avatar.png"}
               alt="avatar"
               width={36}
               height={36}
-              className="rounded-full border border-white/20"
+              className="rounded-full"
             />
-            <span className="font-semibold truncate">{user?.fullname}</span>
+            <span className="font-semibold">{user?.fullname}</span>
           </div>
           <button className="sm:hidden" onClick={() => setSidebarOpen(false)}>
             <X />
           </button>
         </div>
 
-        {/* Nav */}
         <nav className="p-4 space-y-2 text-sm">
           <SidebarLink icon={<Home />} label="Dashboard" href="/dashboard" />
           <SidebarLink icon={<User />} label="Profile" href="/profile" />
           <SidebarLink icon={<MessageCircle />} label="Chat" href="/chat" />
           <SidebarLink icon={<Layers />} label="My Skills" href="/my-skill" />
-          <SidebarLink
-            icon={<Inbox />}
-            label="Requests Received"
-            href="/request-recieved"
-          />
-          <SidebarLink
-            icon={<CheckCircle />}
-            label="Requests Sent"
-            href="/request-sent"
-          />
+          <SidebarLink icon={<Inbox />} label="Requests Received" href="/request-recieved" />
+          <SidebarLink icon={<CheckCircle />} label="Requests Sent" href="/request-sent" />
 
-          <button
-            onClick={markNotificationsRead}
-            className="flex items-center gap-3 px-4 py-2 rounded-xl hover:bg-white/10 transition w-full text-left"
-          >
-            <div className="relative">
-              <Bell className="text-blue-300" />
-              {unread > 0 && (
-                <span className="absolute -top-2 -right-2 bg-red-500 text-xs px-1.5 py-0.5 rounded-full">
-                  {unread}
-                </span>
-              )}
-            </div>
-            <span>Notifications</span>
+          <button className="flex items-center gap-3 px-4 py-2 rounded-xl hover:bg-white/10">
+            <Bell />
+            Notifications
           </button>
-
-          <SidebarLink icon={<Settings />} label="Settings" href="/settings" />
 
           <button
             onClick={handleLogout}
-            className="flex items-center gap-3 px-4 py-2 rounded-xl text-red-400 hover:bg-red-500/10 transition"
+            className="flex items-center gap-3 px-4 py-2 rounded-xl text-red-400 hover:bg-red-500/10"
           >
             <LogOut />
             Logout
@@ -1011,129 +184,42 @@ export default function DashboardPage() {
       </aside>
 
       {/* ================= CONTENT ================= */}
-      <section className="flex-1 sm:ml-64 p-6 md:p-10 overflow-y-auto relative">
-        {/* 🔙 GO BACK BUTTON (FIXED & STICKY) */}
-        {/* <div className="sticky top-4 z-40 mb-6">
-          <button
-            onClick={() => router.back()}
-            className="flex items-center gap-2 px-4 py-2 rounded-xl 
-            bg-white/10 border border-white/20 backdrop-blur-md
-            text-sm font-medium hover:bg-white/20 hover:scale-105 
-            transition-all duration-300"
-          >
-            ← Go Back
-          </button>
-        </div> */}
-
-        {/* Mobile menu */}
-        <button
-          onClick={() => setSidebarOpen(true)}
-          className="sm:hidden mb-4 p-2 rounded-lg bg-white/10 border border-white/10"
-        >
-          <Menu />
-        </button>
-
-        {/* Welcome */}
-        <motion.h1
-          initial={{ opacity: 0, y: -20 }}
-          animate={{ opacity: 1, y: 0 }}
-          className="text-3xl font-extrabold text-blue-300 mb-2"
-        >
+      <section className="flex-1 sm:ml-64 p-6 md:p-10">
+        <h1 className="text-3xl font-extrabold text-blue-300 mb-8">
           Welcome back, {user?.fullname.split(" ")[0]} ✨
-        </motion.h1>
+        </h1>
 
-        <p className="text-gray-400 mb-8">
-          Manage your skills, requests, and collaborations in one place.
-        </p>
-
-        {/* Profile Card */}
-        <div className="bg-white/5 border border-white/10 rounded-3xl p-6 mb-10 backdrop-blur-xl flex flex-col md:flex-row gap-6 items-center">
-          <Image
-            src={
-              user?.img_url
-                ? `${API_URL}/uploads/${user.img_url}`
-                : "/default-avatar.png"
-            }
-            alt="profile"
-            width={96}
-            height={96}
-            className="rounded-full border-2 border-blue-400"
-          />
-          <div className="flex-1 text-center md:text-left">
-            <h2 className="text-2xl font-bold text-blue-300">
-              {user?.fullname}
-            </h2>
-            <p className="text-gray-400">@{user?.username}</p>
-            <div className="flex flex-wrap gap-4 mt-3 text-sm text-gray-400">
-              <span className="flex items-center gap-1">
-                <Mail size={14} /> {user?.email}
-              </span>
-              <span className="flex items-center gap-1">
-                <Calendar size={14} /> Joined{" "}
-                {new Date(user!.created_at).toLocaleDateString()}
-              </span>
-            </div>
-          </div>
-          <Link
-            href="/create-skill"
-            className="px-6 py-2 rounded-xl bg-gradient-to-r from-blue-600 to-purple-600 hover:scale-105 transition shadow-lg"
-          >
-            + Create Skill
-          </Link>
-        </div>
-
-        {/* Stats */}
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-6 mb-12">
+        {/* ================= STATS (UPGRADED) ================= */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 mb-14">
           <StatCard
             title="Requests Received"
             value={stats.receivedRequests}
+            icon={<Inbox />}
             color="from-blue-500 to-cyan-500"
           />
           <StatCard
             title="Requests Sent"
             value={stats.sendRequests}
+            icon={<Send />}
             color="from-green-500 to-emerald-500"
           />
           <StatCard
             title="Skills Created"
             value={stats.createdSkills}
+            icon={<Layers />}
             color="from-purple-500 to-pink-500"
           />
           <StatCard
-            title="Sucessfull exchange"
+            title="Successful Exchanges"
             value={stats.succesfullExchnage}
-            color="from-purple-500 to-pink-500"
+            icon={<Trophy />}
+            color="from-yellow-400 to-orange-500"
           />
           <StatCard
-            title="Sucessfull exchange"
+            title="Cancelled Exchanges"
             value={stats.canclledExchnaged}
-            color="from-purple-500 to-pink-500"
-          />
-          canclledExchnaged
-        </div>
-
-        {/* Features */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-          <FeatureCard
-            icon={<Sparkles />}
-            title="Showcase Skills"
-            desc="Create skills and get discovered."
-            href="/my-skill"
-            color="from-blue-600 to-indigo-600"
-          />
-          <FeatureCard
-            icon={<Inbox />}
-            title="Manage Requests Recieved"
-            desc="Accept or decline collaborations."
-            href="/request-recieved"
-            color="from-cyan-600 to-teal-600"
-          />
-          <FeatureCard
-            icon={<CheckCircle />}
-            title="Request Sent"
-            desc="Check request that you have sent."
-            href="/request-sent"
-            color="from-purple-600 to-pink-600"
+            icon={<XCircle />}
+            color="from-red-500 to-rose-500"
           />
         </div>
       </section>
@@ -1155,7 +241,7 @@ function SidebarLink({
   return (
     <Link
       href={href}
-      className="flex items-center gap-3 px-4 py-2 rounded-xl hover:bg-white/10 transition"
+      className="flex items-center gap-3 px-4 py-2 rounded-xl hover:bg-white/10"
     >
       <span className="text-blue-300">{icon}</span>
       {label}
@@ -1163,55 +249,503 @@ function SidebarLink({
   );
 }
 
+/* ================= UPGRADED STAT CARD ================= */
+
 function StatCard({
   title,
   value,
+  icon,
   color,
 }: {
   title: string;
   value: number;
+  icon: React.ReactNode;
   color: string;
 }) {
   return (
     <motion.div
-      whileHover={{ scale: 1.05 }}
-      className="p-6 rounded-2xl bg-white/10 border border-white/10 backdrop-blur-xl flex gap-4"
+      initial={{ opacity: 0, y: 20 }}
+      animate={{ opacity: 1, y: 0 }}
+      whileHover={{ y: -6 }}
+      transition={{ type: "spring", stiffness: 200 }}
+      className="relative overflow-hidden rounded-3xl p-6 bg-white/10 backdrop-blur-xl border border-white/10 shadow-lg"
     >
-      <div className={`w-12 h-12 rounded-full bg-gradient-to-br ${color}`} />
-      <div>
-        <p className="text-sm text-gray-400">{title}</p>
-        <h3 className="text-2xl font-bold">{value}</h3>
+      <div className={`absolute inset-0 opacity-20 blur-2xl bg-gradient-to-br ${color}`} />
+
+      <div className="relative z-10 flex items-center gap-4">
+        <div
+          className={`w-14 h-14 rounded-2xl bg-gradient-to-br ${color} flex items-center justify-center shadow-lg`}
+        >
+          {icon}
+        </div>
+
+        <div>
+          <p className="text-sm text-gray-400">{title}</p>
+          <motion.h3
+            key={value}
+            initial={{ scale: 0.8, opacity: 0 }}
+            animate={{ scale: 1, opacity: 1 }}
+            className="text-3xl font-extrabold"
+          >
+            {value}
+          </motion.h3>
+        </div>
       </div>
+
+      <div className={`absolute bottom-0 left-0 h-1 w-full bg-gradient-to-r ${color}`} />
     </motion.div>
   );
 }
 
-function FeatureCard({
-  title,
-  desc,
-  icon,
-  color,
-  href,
-}: {
-  title: string;
-  desc: string;
-  icon: React.ReactNode;
-  color: string;
-  href: string;
-}) {
-  return (
-    <motion.div
-      whileHover={{ scale: 1.05, y: -5 }}
-      className={`p-8 rounded-3xl bg-gradient-to-br ${color} shadow-xl`}
-    >
-      <div className="p-3 bg-white/20 rounded-full w-fit mb-4">
-        {icon}
-      </div>
-      <h3 className="text-xl font-bold mb-2">{title}</h3>
-      <p className="text-white/80 text-sm mb-6">{desc}</p>
-      <Link href={href} className="px-4 py-2 bg-black/30 rounded-lg">
-        Explore →
-      </Link>
-    </motion.div>
-  );
-}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+// "use client";
+
+// import { useEffect, useState } from "react";
+// import { useRouter } from "next/navigation";
+// import Link from "next/link";
+// import Image from "next/image";
+// import { motion } from "framer-motion";
+// import {
+//   Home,
+//   Layers,
+//   Inbox,
+//   CheckCircle,
+//   LogOut,
+//   Settings,
+//   Menu,
+//   X,
+//   Mail,
+//   Calendar,
+//   User,
+//   MessageCircle,
+//   Bell,
+//   Sparkles,
+// } from "lucide-react";
+
+// const API_URL = "https://skillwrap-backend.onrender.com";
+
+// /* ================= TYPES ================= */
+// interface User {
+//   username: string;
+//   fullname: string;
+//   email: string;
+//   img_url?: string;
+//   created_at: string;
+// }
+
+// interface Stats {
+//   createdSkills: number;
+//   sendRequests: number;
+//   receivedRequests: number;
+//   succesfullExchnage: number;
+//    canclledExchnaged: number;
+// }
+
+// /* ================= FETCH PROFILE ================= */
+// async function fetchUserProfile(): Promise<User | null> {
+//   try {
+//     const res = await fetch(`${API_URL}/auth/profile`, {
+//       credentials: "include",
+//       cache: "no-store",
+//     });
+//     if (!res.ok) return null;
+//     const data = await res.json();
+//     return data.user ?? null;
+//   } catch {
+//     return null;
+//   }
+// }
+
+// export default function DashboardPage() {
+//   const router = useRouter();
+
+//   const [user, setUser] = useState<User | null>(null);
+//   const [loading, setLoading] = useState(true);
+//   const [sidebarOpen, setSidebarOpen] = useState(false);
+//   const [stats, setStats] = useState<Stats>({
+//     createdSkills: 0,
+//     sendRequests: 0,
+//     receivedRequests: 0,
+//     succesfullExchnage: 0,
+//      canclledExchnaged: 0,
+//   });
+//   const [unread, setUnread] = useState(0);
+
+//   /* ================= AUTH GUARD ================= */
+//   useEffect(() => {
+//     fetchUserProfile().then((data) => {
+//       if (!data) {
+//         router.replace("/login");
+//         return;
+//       }
+//       setUser(data);
+//       setLoading(false);
+//     });
+//   }, [router]);
+
+//   /* ================= FETCH STATS ================= */
+//   useEffect(() => {
+//     if (!user) return;
+
+//     fetch(`${API_URL}/stats`, {
+//       credentials: "include",
+//       cache: "no-store",
+//     })
+//       .then((res) => res.json())
+//       .then((data) =>
+//         setStats({
+//           createdSkills: data.createdSkill ?? 0,
+//           sendRequests: data.sendRequests ?? 0,
+//           receivedRequests: data.receivedRequests ?? 0,
+//           succesfullExchnage: data.succesfullExchnage ?? 0,
+//           canclledExchnaged: data.canclledExchnaged ?? 0,
+//         })
+//       )
+//       .catch(console.error);
+//   }, [user]);
+
+//   /* ================= FETCH UNREAD NOTIFICATIONS ================= */
+//   useEffect(() => {
+//     fetch(`${API_URL}/notification/unread-count`, {
+//       credentials: "include",
+//     })
+//       .then((res) => res.json())
+//       .then((data) => {
+//         if (data.success) setUnread(data.count);
+//       })
+//       .catch(console.error);
+//   }, []);
+
+//   console.log(stats)
+
+//   /* ================= MARK NOTIFICATIONS READ ================= */
+//   async function markNotificationsRead() {
+//     try {
+//       await fetch(`${API_URL}/notification/mark-all-read`, {
+//         method: "PUT",
+//         credentials: "include",
+//       });
+//       setUnread(0);
+//       router.push("/notifications-route");
+//     } catch (err) {
+//       console.error(err);
+//     }
+//   }
+
+//   /* ================= LOGOUT ================= */
+//   async function handleLogout() {
+//     try {
+//       const res = await fetch(`${API_URL}/auth/logout`, {
+//         method: "POST",
+//         credentials: "include",
+//       });
+
+//       if (res.ok) {
+//         router.replace("/login");
+//       }
+//     } catch (err) {
+//       console.error("Logout failed", err);
+//     }
+//   }
+
+//   if (loading) {
+//     return (
+//       <div className="h-screen flex items-center justify-center text-gray-400">
+//         Loading dashboard...
+//       </div>
+//     );
+//   }
+
+//   return (
+//     <main className="min-h-screen flex bg-gradient-to-br from-[#030712] via-[#0b1220] to-[#1e1b4b] text-white overflow-hidden">
+//       {/* ================= SIDEBAR ================= */}
+//       <aside
+//         className={`fixed inset-y-0 left-0 z-50 w-64 bg-white/10 backdrop-blur-xl border-r border-white/10
+//         transform transition-transform duration-300
+//         ${sidebarOpen ? "translate-x-0" : "-translate-x-full"} sm:translate-x-0`}
+//       >
+//         {/* Header */}
+//         <div className="flex items-center justify-between px-6 py-4 border-b border-white/10">
+//           <div className="flex items-center gap-3">
+//             <Image
+//               src={
+//                 user?.img_url
+//                   ? `${user.img_url}`
+//                   : "/default-avatar.png"
+//               }
+//               alt="avatar"
+//               width={36}
+//               height={36}
+//               className="rounded-full border border-white/20"
+//             />
+//             <span className="font-semibold truncate">{user?.fullname}</span>
+//           </div>
+//           <button className="sm:hidden" onClick={() => setSidebarOpen(false)}>
+//             <X />
+//           </button>
+//         </div>
+
+//         {/* Nav */}
+//         <nav className="p-4 space-y-2 text-sm">
+//           <SidebarLink icon={<Home />} label="Dashboard" href="/dashboard" />
+//           <SidebarLink icon={<User />} label="Profile" href="/profile" />
+//           <SidebarLink icon={<MessageCircle />} label="Chat" href="/chat" />
+//           <SidebarLink icon={<Layers />} label="My Skills" href="/my-skill" />
+//           <SidebarLink
+//             icon={<Inbox />}
+//             label="Requests Received"
+//             href="/request-recieved"
+//           />
+//           <SidebarLink
+//             icon={<CheckCircle />}
+//             label="Requests Sent"
+//             href="/request-sent"
+//           />
+
+//           <button
+//             onClick={markNotificationsRead}
+//             className="flex items-center gap-3 px-4 py-2 rounded-xl hover:bg-white/10 transition w-full text-left"
+//           >
+//             <div className="relative">
+//               <Bell className="text-blue-300" />
+//               {unread > 0 && (
+//                 <span className="absolute -top-2 -right-2 bg-red-500 text-xs px-1.5 py-0.5 rounded-full">
+//                   {unread}
+//                 </span>
+//               )}
+//             </div>
+//             <span>Notifications</span>
+//           </button>
+
+//           <SidebarLink icon={<Settings />} label="Settings" href="/settings" />
+
+//           <button
+//             onClick={handleLogout}
+//             className="flex items-center gap-3 px-4 py-2 rounded-xl text-red-400 hover:bg-red-500/10 transition"
+//           >
+//             <LogOut />
+//             Logout
+//           </button>
+//         </nav>
+//       </aside>
+
+//       {/* ================= CONTENT ================= */}
+//       <section className="flex-1 sm:ml-64 p-6 md:p-10 overflow-y-auto relative">
+//         {/* 🔙 GO BACK BUTTON (FIXED & STICKY) */}
+//         {/* <div className="sticky top-4 z-40 mb-6">
+//           <button
+//             onClick={() => router.back()}
+//             className="flex items-center gap-2 px-4 py-2 rounded-xl 
+//             bg-white/10 border border-white/20 backdrop-blur-md
+//             text-sm font-medium hover:bg-white/20 hover:scale-105 
+//             transition-all duration-300"
+//           >
+//             ← Go Back
+//           </button>
+//         </div> */}
+
+//         {/* Mobile menu */}
+//         <button
+//           onClick={() => setSidebarOpen(true)}
+//           className="sm:hidden mb-4 p-2 rounded-lg bg-white/10 border border-white/10"
+//         >
+//           <Menu />
+//         </button>
+
+//         {/* Welcome */}
+//         <motion.h1
+//           initial={{ opacity: 0, y: -20 }}
+//           animate={{ opacity: 1, y: 0 }}
+//           className="text-3xl font-extrabold text-blue-300 mb-2"
+//         >
+//           Welcome back, {user?.fullname.split(" ")[0]} ✨
+//         </motion.h1>
+
+//         <p className="text-gray-400 mb-8">
+//           Manage your skills, requests, and collaborations in one place.
+//         </p>
+
+//         {/* Profile Card */}
+//         <div className="bg-white/5 border border-white/10 rounded-3xl p-6 mb-10 backdrop-blur-xl flex flex-col md:flex-row gap-6 items-center">
+//           <Image
+//             src={
+//               user?.img_url
+//                 ? `${API_URL}/uploads/${user.img_url}`
+//                 : "/default-avatar.png"
+//             }
+//             alt="profile"
+//             width={96}
+//             height={96}
+//             className="rounded-full border-2 border-blue-400"
+//           />
+//           <div className="flex-1 text-center md:text-left">
+//             <h2 className="text-2xl font-bold text-blue-300">
+//               {user?.fullname}
+//             </h2>
+//             <p className="text-gray-400">@{user?.username}</p>
+//             <div className="flex flex-wrap gap-4 mt-3 text-sm text-gray-400">
+//               <span className="flex items-center gap-1">
+//                 <Mail size={14} /> {user?.email}
+//               </span>
+//               <span className="flex items-center gap-1">
+//                 <Calendar size={14} /> Joined{" "}
+//                 {new Date(user!.created_at).toLocaleDateString()}
+//               </span>
+//             </div>
+//           </div>
+//           <Link
+//             href="/create-skill"
+//             className="px-6 py-2 rounded-xl bg-gradient-to-r from-blue-600 to-purple-600 hover:scale-105 transition shadow-lg"
+//           >
+//             + Create Skill
+//           </Link>
+//         </div>
+
+//         {/* Stats */}
+//         <div className="grid grid-cols-1 sm:grid-cols-3 gap-6 mb-12">
+//           <StatCard
+//             title="Requests Received"
+//             value={stats.receivedRequests}
+//             color="from-blue-500 to-cyan-500"
+//           />
+//           <StatCard
+//             title="Requests Sent"
+//             value={stats.sendRequests}
+//             color="from-green-500 to-emerald-500"
+//           />
+//           <StatCard
+//             title="Skills Created"
+//             value={stats.createdSkills}
+//             color="from-purple-500 to-pink-500"
+//           />
+//           <StatCard
+//             title="Sucessfull exchange"
+//             value={stats.succesfullExchnage}
+//             color="from-blue-500 to-pink-100"
+//           />
+//           <StatCard
+//             title="canclled exchange"
+//             value={stats.canclledExchnaged}
+//             color="from-blue-500 to-pink-500"
+//           />
+     
+//         </div>
+
+//         {/* Features */}
+//         <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+//           <FeatureCard
+//             icon={<Sparkles />}
+//             title="Showcase Skills"
+//             desc="Create skills and get discovered."
+//             href="/my-skill"
+//             color="from-blue-600 to-indigo-600"
+//           />
+//           <FeatureCard
+//             icon={<Inbox />}
+//             title="Manage Requests Recieved"
+//             desc="Accept or decline collaborations."
+//             href="/request-recieved"
+//             color="from-cyan-600 to-teal-600"
+//           />
+//           <FeatureCard
+//             icon={<CheckCircle />}
+//             title="Request Sent"
+//             desc="Check request that you have sent."
+//             href="/request-sent"
+//             color="from-purple-600 to-pink-600"
+//           />
+//         </div>
+//       </section>
+//     </main>
+//   );
+// }
+
+// /* ================= COMPONENTS ================= */
+
+// function SidebarLink({
+//   href,
+//   icon,
+//   label,
+// }: {
+//   href: string;
+//   icon: React.ReactNode;
+//   label: string;
+// }) {
+//   return (
+//     <Link
+//       href={href}
+//       className="flex items-center gap-3 px-4 py-2 rounded-xl hover:bg-white/10 transition"
+//     >
+//       <span className="text-blue-300">{icon}</span>
+//       {label}
+//     </Link>
+//   );
+// }
+
+// function StatCard({
+//   title,
+//   value,
+//   color,
+// }: {
+//   title: string;
+//   value: number;
+//   color: string;
+// }) {
+//   return (
+//     <motion.div
+//       whileHover={{ scale: 1.05 }}
+//       className="p-6 rounded-2xl bg-white/10 border border-white/10 backdrop-blur-xl flex gap-4"
+//     >
+//       <div className={`w-12 h-12 rounded-full bg-gradient-to-br ${color}`} />
+//       <div>
+//         <p className="text-sm text-gray-400">{title}</p>
+//         <h3 className="text-2xl font-bold">{value}</h3>
+//       </div>
+//     </motion.div>
+//   );
+// }
+
+// function FeatureCard({
+//   title,
+//   desc,
+//   icon,
+//   color,
+//   href,
+// }: {
+//   title: string;
+//   desc: string;
+//   icon: React.ReactNode;
+//   color: string;
+//   href: string;
+// }) {
+//   return (
+//     <motion.div
+//       whileHover={{ scale: 1.05, y: -5 }}
+//       className={`p-8 rounded-3xl bg-gradient-to-br ${color} shadow-xl`}
+//     >
+//       <div className="p-3 bg-white/20 rounded-full w-fit mb-4">
+//         {icon}
+//       </div>
+//       <h3 className="text-xl font-bold mb-2">{title}</h3>
+//       <p className="text-white/80 text-sm mb-6">{desc}</p>
+//       <Link href={href} className="px-4 py-2 bg-black/30 rounded-lg">
+//         Explore →
+//       </Link>
+//     </motion.div>
+//   );
+// }

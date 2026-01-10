@@ -1,12 +1,11 @@
 "use client";
 
-import { useState} from "react";
+import { useState } from "react";
 import { useRouter } from "next/navigation";
 
 export default function UploadPic() {
   const router = useRouter();
 
-  // Form state
   const [skillname, setSkillname] = useState("");
   const [description, setDescription] = useState("");
   const [level, setLevel] = useState("");
@@ -16,10 +15,7 @@ export default function UploadPic() {
   const [message, setMessage] = useState("");
   const [loading, setLoading] = useState(false);
 
-
-  // const API_URL = process.env.NEXT_PUBLIC_API_URL 
-  // const API_URL='http://localhos:5000'
-   const API_URL= 'https://skillwrap-backend.onrender.com'
+  const API_URL = "https://skillwrap-backend.onrender.com";
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -48,16 +44,14 @@ export default function UploadPic() {
       if (res.ok && data.success) {
         setMessage("✅ Skill uploaded successfully!");
 
-        // Clear form
         setSkillname("");
         setDescription("");
         setLevel("");
         setCategory("");
         setFile(null);
 
-        // Redirect after 1s
         setTimeout(() => {
-          router.push("/skills"); // or "/dashboard"
+          router.push("/skills");
         }, 1000);
       } else {
         setMessage(`❌ Failed: ${data.error || "Unknown error"}`);
@@ -71,42 +65,38 @@ export default function UploadPic() {
   }
 
   return (
-    <div className="min-h-screen flex flex-col items-center justify-center bg-gradient-to-br from-[#05070c] via-[#0b1220] to-[#05070c] text-white p-6">
+    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-[#05070c] via-[#0b1220] to-[#05070c] text-white p-6">
       <form
         onSubmit={handleSubmit}
-        className="w-full max-w-lg bg-white/10 backdrop-blur-2xl 
-        border border-white/20 rounded-2xl shadow-2xl p-8 space-y-5"
+        className="w-full max-w-lg bg-white/10 backdrop-blur-2xl border border-white/20 rounded-2xl p-8 space-y-5"
       >
-        <h1 className="text-3xl font-bold text-center mb-2 bg-gradient-to-r from-cyan-400 to-blue-500 bg-clip-text text-transparent">
+        <h1 className="text-3xl font-bold text-center bg-gradient-to-r from-cyan-400 to-blue-500 bg-clip-text text-transparent">
           Share Your Skill ✨
         </h1>
 
-        {/* Skill Name */}
         <input
           type="text"
           placeholder="Skill name"
           value={skillname}
           onChange={(e) => setSkillname(e.target.value)}
           required
-          className="w-full px-4 py-3 rounded-xl bg-white/15 border border-white/30 text-white"
+          className="w-full px-4 py-3 rounded-xl bg-white/15 border border-white/30"
         />
 
-        {/* Description */}
         <textarea
           placeholder="Short description"
           value={description}
           maxLength={150}
           onChange={(e) => setDescription(e.target.value)}
           required
-          className="w-full px-4 py-3 rounded-xl bg-white/15 border border-white/30 text-white h-28 resize-none"
+          className="w-full px-4 py-3 rounded-xl bg-white/15 border border-white/30 h-28"
         />
 
-        {/* Level */}
         <select
           value={level}
           onChange={(e) => setLevel(e.target.value)}
           required
-          className="w-full px-4 py-3 rounded-xl bg-white/15 border border-white/30 text-white"
+          className="w-full px-4 py-3 rounded-xl bg-white/15 border border-white/30"
         >
           <option value="">Select level</option>
           <option value="Beginner" className="text-black">Beginner</option>
@@ -114,137 +104,331 @@ export default function UploadPic() {
           <option value="Professional" className="text-black">Professional</option>
         </select>
 
-{/* Category */}
-<select
-  value={category}
-  onChange={(e) => setCategory(e.target.value)}
-  required
-  className="w-full px-4 py-3 rounded-xl bg-white/15 border border-white/30 text-white"
->
-  <option value="">Select category</option>
+        {/* ✅ FIXED CATEGORY VALUES */}
+        <select
+          value={category}
+          onChange={(e) => setCategory(e.target.value)}
+          required
+          className="w-full px-4 py-3 rounded-xl bg-white/15 border border-white/30"
+        >
+          <option value="">Select category</option>
 
-  {/* Tech */}
-  <option value="Web Development" className="text-black">
-    Web Development
-  </option>
-  <option value="Mobile App Development" className="text-black">
-    Mobile App Development
-  </option>
-  <option value="Backend Development" className="text-black">
-    Backend Development
-  </option>
-  <option value="UI/UX Design" className="text-black">
-    UI/UX Design
-  </option>
-  <option value="Graphic Design" className="text-black">
-    Graphic Design
-  </option>
-  <option value="Game Development" className="text-black">
-    Game Development
-  </option>
-  <option value="Data Science" className="text-black">
-    Data Science
-  </option>
-  <option value="Machine Learning / AI" className="text-black">
-    Machine Learning / AI
-  </option>
-  <option value="Cybersecurity" className="text-black">
-    Cybersecurity
-  </option>
+          <option value="Web Development" className="text-black">Web Development</option>
+          <option value="Mobile Development" className="text-black">Mobile App Development</option>
+          <option value="Backend Development" className="text-black">Backend Development</option>
+          <option value="UI UX Design" className="text-black">UI UX Design</option>
+          <option value="Graphic Design" className="text-black">Graphic Design</option>
+          <option value="Game Development" className="text-black">Game Development</option>
+          <option value="Data Science" className="text-black">Data Science</option>
+          <option value="Machine Learning" className="text-black">Machine Learning</option>
+          <option value="Cybersecurity" className="text-black">Cybersecurity</option>
 
-  {/* Creative */}
-  <option value="Content Creation" className="text-black">
-    Content Creation
-  </option>
-  <option value="Photography" className="text-black">
-    Photography
-  </option>
-  <option value="Video Editing" className="text-black">
-    Video Editing
-  </option>
-  <option value="Animation & Motion Design" className="text-black">
-    Animation & Motion Design
-  </option>
-  <option value="Music Production" className="text-black">
-    Music Production
-  </option>
-  <option value="Writing & Copywriting" className="text-black">
-    Writing & Copywriting
-  </option>
+          <option value="Content Creation" className="text-black">Content Creation</option>
+          <option value="Photography" className="text-black">Photography</option>
+          <option value="Video Editing" className="text-black">Video Editing</option>
+          <option value="Motion Design" className="text-black">Animation & Motion Design</option>
+          <option value="Music Production" className="text-black">Music Production</option>
+          <option value="Copywriting" className="text-black">Writing & Copywriting</option>
 
-  {/* Business */}
-  <option value="Digital Marketing" className="text-black">
-    Digital Marketing
-  </option>
-  <option value="SEO" className="text-black">
-    SEO
-  </option>
-  <option value="Product Management" className="text-black">
-    Product Management
-  </option>
-  <option value="Entrepreneurship" className="text-black">
-    Entrepreneurship
-  </option>
-  <option value="Finance & Investing" className="text-black">
-    Finance & Investing
-  </option>
+          <option value="Digital Marketing" className="text-black">Digital Marketing</option>
+          <option value="SEO" className="text-black">SEO</option>
+          <option value="Product Management" className="text-black">Product Management</option>
+          <option value="Entrepreneurship" className="text-black">Entrepreneurship</option>
+          <option value="Finance" className="text-black">Finance & Investing</option>
 
-  {/* Lifestyle */}
-  <option value="Fitness & Health" className="text-black">
-    Fitness & Health
-  </option>
-  <option value="Cooking & Baking" className="text-black">
-    Cooking & Baking
-  </option>
-  <option value="Public Speaking" className="text-black">
-    Public Speaking
-  </option>
-  <option value="Personal Development" className="text-black">
-    Personal Development
-  </option>
+          <option value="Fitness Health" className="text-black">Fitness & Health</option>
+          <option value="Cooking" className="text-black">Cooking & Baking</option>
+          <option value="Public Speaking" className="text-black">Public Speaking</option>
+          <option value="Personal Development" className="text-black">Personal Development</option>
 
-  {/* Other */}
-  <option value="Other" className="text-black">
-    Other
-  </option>
-</select>
+          <option value="Other" className="text-black">Other</option>
+        </select>
 
-
-        {/* Image */}
         <input
           type="file"
           accept="image/*"
           required
           onChange={(e) => setFile(e.target.files?.[0] || null)}
-          className="block w-full text-sm text-gray-300 file:bg-cyan-500 file:text-white file:rounded-xl file:px-4 file:py-2 cursor-pointer"
+          className="block w-full text-sm text-gray-300"
         />
 
-        {/* Submit */}
         <button
           disabled={loading}
-          className="w-full py-3 bg-gradient-to-r from-cyan-500 to-blue-500 rounded-xl font-bold text-white"
+          className="w-full py-3 bg-gradient-to-r from-cyan-500 to-blue-500 rounded-xl font-bold"
         >
           {loading ? "Uploading..." : "Submit Skill"}
         </button>
 
-        {/* Message */}
-        {message && (
-          <p
-            className={`text-center ${
-              message.includes("✅")
-                ? "text-green-400"
-                : message.includes("❌") || message.includes("🚨")
-                ? "text-red-400"
-                : "text-yellow-400"
-            }`}
-          >
-            {message}
-          </p>
-        )}
+        {message && <p className="text-center">{message}</p>}
       </form>
     </div>
   );
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+// "use client";
+
+// import { useState} from "react";
+// import { useRouter } from "next/navigation";
+
+// export default function UploadPic() {
+//   const router = useRouter();
+
+//   // Form state
+//   const [skillname, setSkillname] = useState("");
+//   const [description, setDescription] = useState("");
+//   const [level, setLevel] = useState("");
+//   const [category, setCategory] = useState("");
+//   const [file, setFile] = useState<File | null>(null);
+
+//   const [message, setMessage] = useState("");
+//   const [loading, setLoading] = useState(false);
+
+
+//   // const API_URL = process.env.NEXT_PUBLIC_API_URL 
+//   // const API_URL='http://localhos:5000'
+//    const API_URL= 'https://skillwrap-backend.onrender.com'
+
+//   async function handleSubmit(e: React.FormEvent) {
+//     e.preventDefault();
+
+//     if (!file) return setMessage("⚠️ Please select an image");
+
+//     const formData = new FormData();
+//     formData.append("skillname", skillname);
+//     formData.append("skilldesc", description);
+//     formData.append("skilllevel", level);
+//     formData.append("category", category);
+//     formData.append("image", file);
+
+//     try {
+//       setLoading(true);
+//       setMessage("Uploading skill... ⏳");
+
+//       const res = await fetch(`${API_URL}/create-skill`, {
+//         method: "POST",
+//         body: formData,
+//         credentials: "include",
+//       });
+
+//       const data = await res.json();
+
+//       if (res.ok && data.success) {
+//         setMessage("✅ Skill uploaded successfully!");
+
+//         // Clear form
+//         setSkillname("");
+//         setDescription("");
+//         setLevel("");
+//         setCategory("");
+//         setFile(null);
+
+//         // Redirect after 1s
+//         setTimeout(() => {
+//           router.push("/skills"); // or "/dashboard"
+//         }, 1000);
+//       } else {
+//         setMessage(`❌ Failed: ${data.error || "Unknown error"}`);
+//       }
+//     } catch (err) {
+//       console.error(err);
+//       setMessage("🚨 Network error — try again.");
+//     } finally {
+//       setLoading(false);
+//     }
+//   }
+
+//   return (
+//     <div className="min-h-screen flex flex-col items-center justify-center bg-gradient-to-br from-[#05070c] via-[#0b1220] to-[#05070c] text-white p-6">
+//       <form
+//         onSubmit={handleSubmit}
+//         className="w-full max-w-lg bg-white/10 backdrop-blur-2xl 
+//         border border-white/20 rounded-2xl shadow-2xl p-8 space-y-5"
+//       >
+//         <h1 className="text-3xl font-bold text-center mb-2 bg-gradient-to-r from-cyan-400 to-blue-500 bg-clip-text text-transparent">
+//           Share Your Skill ✨
+//         </h1>
+
+//         {/* Skill Name */}
+//         <input
+//           type="text"
+//           placeholder="Skill name"
+//           value={skillname}
+//           onChange={(e) => setSkillname(e.target.value)}
+//           required
+//           className="w-full px-4 py-3 rounded-xl bg-white/15 border border-white/30 text-white"
+//         />
+
+//         {/* Description */}
+//         <textarea
+//           placeholder="Short description"
+//           value={description}
+//           maxLength={150}
+//           onChange={(e) => setDescription(e.target.value)}
+//           required
+//           className="w-full px-4 py-3 rounded-xl bg-white/15 border border-white/30 text-white h-28 resize-none"
+//         />
+
+//         {/* Level */}
+//         <select
+//           value={level}
+//           onChange={(e) => setLevel(e.target.value)}
+//           required
+//           className="w-full px-4 py-3 rounded-xl bg-white/15 border border-white/30 text-white"
+//         >
+//           <option value="">Select level</option>
+//           <option value="Beginner" className="text-black">Beginner</option>
+//           <option value="Intermediate" className="text-black">Intermediate</option>
+//           <option value="Professional" className="text-black">Professional</option>
+//         </select>
+
+// {/* Category */}
+// <select
+//   value={category}
+//   onChange={(e) => setCategory(e.target.value)}
+//   required
+//   className="w-full px-4 py-3 rounded-xl bg-white/15 border border-white/30 text-white"
+// >
+//   <option value="">Select category</option>
+
+//   {/* Tech */}
+//   <option value="Web Development" className="text-black">
+//     Web Development
+//   </option>
+//   <option value="Mobile App Development" className="text-black">
+//     Mobile App Development
+//   </option>
+//   <option value="Backend Development" className="text-black">
+//     Backend Development
+//   </option>
+//   <option value="UI/UX Design" className="text-black">
+//     UI/UX Design
+//   </option>
+//   <option value="Graphic Design" className="text-black">
+//     Graphic Design
+//   </option>
+//   <option value="Game Development" className="text-black">
+//     Game Development
+//   </option>
+//   <option value="Data Science" className="text-black">
+//     Data Science
+//   </option>
+//   <option value="Machine Learning / AI" className="text-black">
+//     Machine Learning / AI
+//   </option>
+//   <option value="Cybersecurity" className="text-black">
+//     Cybersecurity
+//   </option>
+
+//   {/* Creative */}
+//   <option value="Content Creation" className="text-black">
+//     Content Creation
+//   </option>
+//   <option value="Photography" className="text-black">
+//     Photography
+//   </option>
+//   <option value="Video Editing" className="text-black">
+//     Video Editing
+//   </option>
+//   <option value="Animation & Motion Design" className="text-black">
+//     Animation & Motion Design
+//   </option>
+//   <option value="Music Production" className="text-black">
+//     Music Production
+//   </option>
+//   <option value="Writing & Copywriting" className="text-black">
+//     Writing & Copywriting
+//   </option>
+
+//   {/* Business */}
+//   <option value="Digital Marketing" className="text-black">
+//     Digital Marketing
+//   </option>
+//   <option value="SEO" className="text-black">
+//     SEO
+//   </option>
+//   <option value="Product Management" className="text-black">
+//     Product Management
+//   </option>
+//   <option value="Entrepreneurship" className="text-black">
+//     Entrepreneurship
+//   </option>
+//   <option value="Finance & Investing" className="text-black">
+//     Finance & Investing
+//   </option>
+
+//   {/* Lifestyle */}
+//   <option value="Fitness & Health" className="text-black">
+//     Fitness & Health
+//   </option>
+//   <option value="Cooking & Baking" className="text-black">
+//     Cooking & Baking
+//   </option>
+//   <option value="Public Speaking" className="text-black">
+//     Public Speaking
+//   </option>
+//   <option value="Personal Development" className="text-black">
+//     Personal Development
+//   </option>
+
+//   {/* Other */}
+//   <option value="Other" className="text-black">
+//     Other
+//   </option>
+// </select>
+
+
+//         {/* Image */}
+//         <input
+//           type="file"
+//           accept="image/*"
+//           required
+//           onChange={(e) => setFile(e.target.files?.[0] || null)}
+//           className="block w-full text-sm text-gray-300 file:bg-cyan-500 file:text-white file:rounded-xl file:px-4 file:py-2 cursor-pointer"
+//         />
+
+//         {/* Submit */}
+//         <button
+//           disabled={loading}
+//           className="w-full py-3 bg-gradient-to-r from-cyan-500 to-blue-500 rounded-xl font-bold text-white"
+//         >
+//           {loading ? "Uploading..." : "Submit Skill"}
+//         </button>
+
+//         {/* Message */}
+//         {message && (
+//           <p
+//             className={`text-center ${
+//               message.includes("✅")
+//                 ? "text-green-400"
+//                 : message.includes("❌") || message.includes("🚨")
+//                 ? "text-red-400"
+//                 : "text-yellow-400"
+//             }`}
+//           >
+//             {message}
+//           </p>
+//         )}
+//       </form>
+//     </div>
+//   );
+// }
 
 
 
@@ -805,203 +989,5 @@ export default function UploadPic() {
 
 
 
-
-
-
-
-
-
-
-
-
-
-
-// "use client";
-
-// import { useState } from "react";
-
-// export default function UploadPic() {
-//   const [level, setLevel] = useState("")
-//   const [category, setcategory] = useState("")
-//   const [description, setDescription] = useState("")
-//   const [file, setFile] = useState<File | null>(null);
-//   const [message, setMessage] = useState("");
-//   const [loading, setLoading] = useState(false);
-
-//   async function handleSubmit(e: React.FormEvent) {
-//     e.preventDefault();
-//     if (!file) return setMessage("⚠️ Please select a file first");
-
-//     const formData = new FormData();
-//     formData.append("image", file);
-
-//     try {
-//       setLoading(true);
-//       const res = await fetch("http://localhost:5000/create-skill", {
-//         method: "POST",
-//         body: formData,
-//         credentials: "include", // ensure cookies/auth are included
-//       });
-
-//       const data = await res.json();
-//       if (res.ok) {
-//         setMessage(`✅ Uploaded successfully: ${data.filename}`);
-//       } else {
-//         setMessage(`❌ Upload failed: ${data.error}`);
-//       }
-//     } catch (error) {
-//       console.error(error);
-//       setMessage("Network error — please try again.");
-//     } finally {
-//       setLoading(false);
-//     }
-//   }
-
-//   return (
-//     <div className="min-h-screen flex flex-col items-center justify-center bg-gray-900 text-white">
-//       <form onSubmit={handleSubmit} className="flex flex-col gap-4 p-6 bg-white/10 rounded-lg">
-//         {message && <p>{message}</p>}
-//         <h1 className="text-3xl font-extrabold mb-6 text-center tracking-wide bg-clip-text text-transparent bg-gradient-to-r from-blue-400 to-cyan-300">
-//           Share Your Skill on Skillwrap
-//         </h1>
-
-//         <div className="mb-5">
-//           <label htmlFor="skillname" className="block mb-2 font-semibold text-sm">
-//             Skill Name
-//           </label>
-//           <input
-//             type="text"
-//             id="skillname"
-//             name="skillname"
-//             placeholder="e.g. Web Development"
-//             required
-//             className="w-full px-4 py-3 rounded-xl bg-white/20 border border-white/30 text-white 
-//             placeholder:text-white/50 focus:outline-none focus:ring-2 focus:ring-cyan-400 
-//             focus:border-transparent transition"
-//           />
-//         </div>
-
-//         <div className="mb-5">
-//           <label htmlFor="skilldesc" className="block mb-2 font-semibold text-sm">
-//             Describe Your Skill
-//           </label>
-//           <textarea
-//             id="skilldesc"
-//             name="skilldesc"
-//             placeholder="Write a short description (max 150 chars)"
-//             maxLength={150}
-//             required
-//             className="w-full px-4 py-3 rounded-xl bg-white/20 border border-white/30 text-white 
-//             placeholder:text-white/50 focus:outline-none focus:ring-2 focus:ring-cyan-400 
-//             focus:border-transparent transition resize-none h-28"
-//           />
-//         </div>
-
-//         <div className="mb-5">
-//           <label htmlFor="skilllevel" className="block mb-2 font-semibold text-sm">
-//             Skill Level
-//           </label>
-//           <select
-//             id="skilllevel"
-//             name="skilllevel"
-//             required
-//             defaultValue="" // ✅ use defaultValue instead of selected
-//             className="w-full px-4 py-3 rounded-xl bg-white/20 border border-white/30 text-white 
-//             focus:outline-none focus:ring-2 focus:ring-cyan-400 focus:border-transparent 
-//             appearance-none cursor-pointer transition"
-//           >
-//             <option value="" disabled className="text-gray-400 bg-[#1e293b]">
-//               Select your level
-//             </option>
-//             <option value="Beginner" className="text-black">
-//               Beginner
-//             </option>
-//             <option value="Intermediate" className="text-black">
-//               Intermediate
-//             </option>
-//             <option value="Professional" className="text-black">
-//               Professional
-//             </option>
-//           </select>
-//         </div>
-
-//         <div className="mb-5">
-//           <label htmlFor="category" className="block mb-2 font-semibold text-sm">
-//             Category
-//           </label>
-//           <select
-//             id="category"
-//             name="category"
-//             required
-//             defaultValue=""
-//             className="w-full px-4 py-3 rounded-xl bg-white/20 border border-white/30 text-white 
-//             focus:outline-none focus:ring-2 focus:ring-cyan-400 focus:border-transparent 
-//             appearance-none cursor-pointer transition"
-//           >
-//             <option value="" disabled className="text-gray-400 bg-[#1e293b]">
-//               Select a category
-//             </option>
-//             <option value="Web Development" className="text-black">
-//               Web Development
-//             </option>
-//             <option value="UI/UX Design" className="text-black">
-//               UI/UX Design
-//             </option>
-//             <option value="Graphic Design" className="text-black">
-//               Graphic Design
-//             </option>
-//             <option value="Data Science" className="text-black">
-//               Data Science
-//             </option>
-//             <option value="Cybersecurity" className="text-black">
-//               Cybersecurity
-//             </option>
-//             <option value="Mobile Development" className="text-black">
-//               Mobile Development
-//             </option>
-//             <option value="Digital Marketing" className="text-black">
-//               Digital Marketing
-//             </option>
-//             <option value="Content Writing" className="text-black">
-//               Content Writing
-//             </option>
-//             <option value="Video Editing" className="text-black">
-//               Video Editing
-//             </option>
-//             <option value="Other" className="text-black">
-//               Other
-//             </option>
-//           </select>
-//         </div>
-
-//         <div className="mb-6">
-//           <label htmlFor="image" className="block mb-2 font-semibold text-sm">
-//             Upload Image
-//           </label>
-//           <input
-//             type="file"
-//             id="image"
-//             name="image" // ✅ matches multer field
-//             accept="image/*"
-//             onChange={(e) => setFile(e.target.files?.[0] || null)}
-//             required
-//             className="block w-full text-sm text-gray-300
-//               file:mr-4 file:py-2 file:px-4
-//               file:rounded-xl file:border-0
-//               file:text-sm file:font-semibold
-//               file:bg-gradient-to-r file:from-blue-500 file:to-cyan-500 file:text-white
-//               hover:file:from-cyan-500 hover:file:to-blue-500
-//               cursor-pointer"
-//           />
-//         </div>
-
-//         <button
-//           type="submit">
-//             submit
-//         </button>
-//       </form>
-//     </div>
-//   );
-// }
 
 
