@@ -33,7 +33,7 @@ export default function UploadPic() {
       setLoading(true);
       setMessage("Uploading skill... ⏳");
 
-      const res = await fetch(`${API_URL}/create-skill`, {
+      const res = await fetch(`${API_URL}/create-skills`, {
         method: "POST",
         body: formData,
         credentials: "include",

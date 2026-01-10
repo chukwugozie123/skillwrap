@@ -11,15 +11,11 @@ import {
   Inbox,
   CheckCircle,
   LogOut,
-  Settings,
   Menu,
   X,
-  Mail,
-  Calendar,
   User,
   MessageCircle,
   Bell,
-  Sparkles,
   Send,
   XCircle,
   Trophy,
@@ -65,6 +61,8 @@ export default function DashboardPage() {
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [unread, setUnread] = useState(0);
+
   const [stats, setStats] = useState<Stats>({
     createdSkills: 0,
     sendRequests: 0,
@@ -72,7 +70,6 @@ export default function DashboardPage() {
     succesfullExchnage: 0,
     canclledExchnaged: 0,
   });
-  const [unread, setUnread] = useState(0);
 
   /* ================= AUTH GUARD ================= */
   useEffect(() => {
@@ -169,7 +166,14 @@ export default function DashboardPage() {
           <SidebarLink icon={<CheckCircle />} label="Requests Sent" href="/request-sent" />
 
           <button className="flex items-center gap-3 px-4 py-2 rounded-xl hover:bg-white/10">
-            <Bell />
+            <div className="relative">
+              <Bell />
+              {unread > 0 && (
+                <span className="absolute -top-2 -right-2 bg-red-500 text-xs px-1.5 py-0.5 rounded-full">
+                  {unread}
+                </span>
+              )}
+            </div>
             Notifications
           </button>
 
@@ -185,42 +189,24 @@ export default function DashboardPage() {
 
       {/* ================= CONTENT ================= */}
       <section className="flex-1 sm:ml-64 p-6 md:p-10">
-        <h1 className="text-3xl font-extrabold text-blue-300 mb-8">
+        <button
+          onClick={() => setSidebarOpen(true)}
+          className="sm:hidden mb-4 p-2 rounded-lg bg-white/10"
+        >
+          <Menu />
+        </button>
+
+        <h1 className="text-3xl font-extrabold text-blue-300 mb-10">
           Welcome back, {user?.fullname.split(" ")[0]} ✨
         </h1>
 
         {/* ================= STATS (UPGRADED) ================= */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 mb-14">
-          <StatCard
-            title="Requests Received"
-            value={stats.receivedRequests}
-            icon={<Inbox />}
-            color="from-blue-500 to-cyan-500"
-          />
-          <StatCard
-            title="Requests Sent"
-            value={stats.sendRequests}
-            icon={<Send />}
-            color="from-green-500 to-emerald-500"
-          />
-          <StatCard
-            title="Skills Created"
-            value={stats.createdSkills}
-            icon={<Layers />}
-            color="from-purple-500 to-pink-500"
-          />
-          <StatCard
-            title="Successful Exchanges"
-            value={stats.succesfullExchnage}
-            icon={<Trophy />}
-            color="from-yellow-400 to-orange-500"
-          />
-          <StatCard
-            title="Cancelled Exchanges"
-            value={stats.canclledExchnaged}
-            icon={<XCircle />}
-            color="from-red-500 to-rose-500"
-          />
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+          <StatCard title="Requests Received" value={stats.receivedRequests} icon={<Inbox />} color="from-blue-500 to-cyan-500" />
+          <StatCard title="Requests Sent" value={stats.sendRequests} icon={<Send />} color="from-green-500 to-emerald-500" />
+          <StatCard title="Skills Created" value={stats.createdSkills} icon={<Layers />} color="from-purple-500 to-pink-500" />
+          <StatCard title="Successful Exchanges" value={stats.succesfullExchnage} icon={<Trophy />} color="from-yellow-400 to-orange-500" />
+          <StatCard title="Cancelled Exchanges" value={stats.canclledExchnaged} icon={<XCircle />} color="from-red-500 to-rose-500" />
         </div>
       </section>
     </main>
@@ -229,27 +215,14 @@ export default function DashboardPage() {
 
 /* ================= COMPONENTS ================= */
 
-function SidebarLink({
-  href,
-  icon,
-  label,
-}: {
-  href: string;
-  icon: React.ReactNode;
-  label: string;
-}) {
+function SidebarLink({ href, icon, label }: { href: string; icon: React.ReactNode; label: string }) {
   return (
-    <Link
-      href={href}
-      className="flex items-center gap-3 px-4 py-2 rounded-xl hover:bg-white/10"
-    >
+    <Link href={href} className="flex items-center gap-3 px-4 py-2 rounded-xl hover:bg-white/10">
       <span className="text-blue-300">{icon}</span>
       {label}
     </Link>
   );
 }
-
-/* ================= UPGRADED STAT CARD ================= */
 
 function StatCard({
   title,
@@ -273,40 +246,19 @@ function StatCard({
       <div className={`absolute inset-0 opacity-20 blur-2xl bg-gradient-to-br ${color}`} />
 
       <div className="relative z-10 flex items-center gap-4">
-        <div
-          className={`w-14 h-14 rounded-2xl bg-gradient-to-br ${color} flex items-center justify-center shadow-lg`}
-        >
+        <div className={`w-14 h-14 rounded-2xl bg-gradient-to-br ${color} flex items-center justify-center`}>
           {icon}
         </div>
-
         <div>
           <p className="text-sm text-gray-400">{title}</p>
-          <motion.h3
-            key={value}
-            initial={{ scale: 0.8, opacity: 0 }}
-            animate={{ scale: 1, opacity: 1 }}
-            className="text-3xl font-extrabold"
-          >
+          <motion.h3 key={value} initial={{ scale: 0.8 }} animate={{ scale: 1 }} className="text-3xl font-extrabold">
             {value}
           </motion.h3>
         </div>
       </div>
-
-      <div className={`absolute bottom-0 left-0 h-1 w-full bg-gradient-to-r ${color}`} />
     </motion.div>
   );
 }
-
-
-
-
-
-
-
-
-
-
-
 
 
 

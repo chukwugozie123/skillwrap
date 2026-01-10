@@ -163,7 +163,7 @@ export default function ProfileAvatarEditor({
       setLoading(true);
 
       // ✅ FIXED ENDPOINT
-      const res = await fetch(`${API_URL}/auth/upload-profile`, {
+      const res = await fetch(`${API_URL}/upload-profile`, {
         method: "POST",
         body: formData,
         credentials: "include",
