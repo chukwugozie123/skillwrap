@@ -1,3 +1,5 @@
+export const dynamic = "force-dynamic";
+
 "use client";
 
 import { useState } from "react";
@@ -40,6 +42,14 @@ export default function VerifyEmailPage() {
     }
   }
 
+  if (!email) {
+    return (
+      <div className="min-h-screen flex items-center justify-center text-white">
+        Invalid verification link
+      </div>
+    );
+  }
+
   return (
     <main className="min-h-screen flex items-center justify-center bg-gradient-to-br from-[#030712] via-[#0b1220] to-[#1e1b4b] text-white">
       <form
@@ -51,7 +61,7 @@ export default function VerifyEmailPage() {
         </h1>
 
         <p className="text-gray-400 text-sm mb-6">
-          We sent a 4-digit code to <span className="text-white">{email}</span>
+          Enter the code sent to <span className="text-white">{email}</span>
         </p>
 
         <input
