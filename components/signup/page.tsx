@@ -47,7 +47,9 @@ export default function SignupPage() {
         return;
       }
 
-      router.push("/login");
+      // router.push("/login");
+      router.push(`/verify-email?email=${email}`);
+
     } catch {
       setError("Server error. Please try again.");
     } finally {
