@@ -172,6 +172,10 @@ export default function ProfileAvatarEditor({
         credentials: "include",
       });
 
+      const text = await res.text();
+      console.log("RAW RESPONSE:", text);
+
+
       const data = await res.json();
 
       if (res.ok && data.imageUrl) {
