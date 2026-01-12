@@ -28,7 +28,9 @@ export default function UploadPic() {
     formData.append("skilldesc", description);
     formData.append("skilllevel", level);
     formData.append("category", category);
-    formData.append("image", file);
+    // formData.append("image", file);
+    formData.append("profile", file);
+
 
     try {
       setLoading(true);

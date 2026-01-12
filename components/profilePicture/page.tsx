@@ -158,8 +158,10 @@ export default function ProfileAvatarEditor({
     setPreview(localPreview);
 
     const formData = new FormData();
-    formData.append("image", file);
+    // formData.append("image", file);
+    formData.append("profile", file);
 
+  
     try {
       setLoading(true);
 
