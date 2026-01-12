@@ -132,8 +132,8 @@ interface Props {
   onUploadSuccess?: (newUrl: string) => void;
 }
 
-// const API_URL = "https://skillwrap-backend.onrender.com";
-const API_URL='http://localhost:5000'
+const API_URL = "https://skillwrap-backend.onrender.com";
+// const API_URL='http://localhost:5000'
 
 export default function ProfileAvatarEditor({
   imageUrl,
