@@ -5,6 +5,16 @@ import { useRouter, useSearchParams } from "next/navigation";
 
 const API_URL = "https://skillwrap-backend.onrender.com";
 
+/* ================= HELPERS ================= */
+
+function maskEmail(email: string) {
+  const [name, domain] = email.split("@");
+  if (!name || !domain) return email;
+  return `${name.slice(0, 2)}****${name.slice(-2)}@${domain}`;
+}
+
+/* ================= COMPONENT ================= */
+
 export default function VerifyEmailClient() {
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -16,14 +26,7 @@ export default function VerifyEmailClient() {
   const [success, setSuccess] = useState("");
   const [cooldown, setCooldown] = useState(0);
 
-  /* 🔁 Resend cooldown timer */
-  useEffect(() => {
-    if (cooldown === 0) return;
-    const timer = setInterval(() => {
-      setCooldown((c) => (c > 0 ? c - 1 : 0));
-    }, 1000);
-    return () => clearInterval(timer);
-  }, [cooldown]);
+  /* ================= REDIRECT SAFETY ================= */
 
   if (!email) {
     return (
@@ -33,7 +36,29 @@ export default function VerifyEmailClient() {
     );
   }
 
-  /* 🔢 OTP input handling */
+  /* ================= COOLDOWN TIMER ================= */
+
+  useEffect(() => {
+    if (cooldown === 0) return;
+
+    const timer = setInterval(() => {
+      setCooldown((c) => (c > 0 ? c - 1 : 0));
+    }, 1000);
+
+    return () => clearInterval(timer);
+  }, [cooldown]);
+
+  /* ================= AUTO VERIFY ================= */
+
+  useEffect(() => {
+    const code = otp.join("");
+    if (code.length === 4 && !loading) {
+      handleVerify(code);
+    }
+  }, [otp]);
+
+  /* ================= OTP INPUT ================= */
+
   function handleChange(value: string, index: number) {
     if (!/^\d?$/.test(value)) return;
 
@@ -52,20 +77,15 @@ export default function VerifyEmailClient() {
     }
   }
 
-  async function handleVerify() {
+  /* ================= VERIFY OTP ================= */
+
+  async function handleVerify(code: string) {
     setError("");
     setSuccess("");
-
-    const code = otp.join("");
-    if (code.length !== 4) {
-      setError("Enter the 4-digit code");
-      return;
-    }
-
     setLoading(true);
 
     try {
-      const res = await fetch(`${API_URL}/auth/verify-email-otp`, {
+      const res = await fetch(`${API_URL}/verify-email-otp`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ email, otp: code }),
@@ -74,18 +94,27 @@ export default function VerifyEmailClient() {
       const data = await res.json();
 
       if (!res.ok) {
-        setError(data.error || "Verification failed");
+        setError(data.error || "Invalid or expired code");
+        setOtp(["", "", "", ""]);
+        document.getElementById("otp-0")?.focus();
         return;
       }
 
       setSuccess("Email verified successfully 🎉");
-      setTimeout(() => router.push("/login"), 1500);
+
+      setTimeout(() => {
+        router.push("/login");
+      }, 1500);
     } catch {
-      setError("Server error");
+      setError("Server error. Please try again.");
+      setOtp(["", "", "", ""]);
+      document.getElementById("otp-0")?.focus();
     } finally {
       setLoading(false);
     }
   }
+
+  /* ================= RESEND OTP ================= */
 
   async function handleResend() {
     setError("");
@@ -93,7 +122,7 @@ export default function VerifyEmailClient() {
     setCooldown(60);
 
     try {
-      const res = await fetch(`${API_URL}/auth/resend-email-otp`, {
+      const res = await fetch(`${API_URL}/resend-email-otp`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ email }),
@@ -107,12 +136,16 @@ export default function VerifyEmailClient() {
         return;
       }
 
-      setSuccess("New OTP sent to your email");
+      setSuccess("New verification code sent");
+      setOtp(["", "", "", ""]);
+      document.getElementById("otp-0")?.focus();
     } catch {
-      setError("Server error");
+      setError("Server error. Please try again.");
       setCooldown(0);
     }
   }
+
+  /* ================= UI ================= */
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-[#020617] via-[#050b2e] to-[#020617] px-6">
@@ -122,11 +155,14 @@ export default function VerifyEmailClient() {
         </h1>
 
         <p className="text-center text-gray-400 mb-6">
-          Code sent to <span className="text-cyan-400">{email}</span>
+          Code sent to{" "}
+          <span className="text-cyan-400">
+            {maskEmail(email)}
+          </span>
         </p>
 
         {/* OTP INPUTS */}
-        <div className="flex justify-center gap-4 mb-6">
+        <div className="flex justify-center gap-4 mb-4">
           {otp.map((digit, i) => (
             <input
               key={i}
@@ -135,37 +171,51 @@ export default function VerifyEmailClient() {
               onChange={(e) => handleChange(e.target.value, i)}
               onKeyDown={(e) => handleBackspace(e, i)}
               maxLength={1}
-              className="w-14 h-14 text-center text-2xl font-bold rounded-xl 
-                         bg-white/10 border border-white/20 backdrop-blur-md
-                         focus:outline-none focus:ring-2 focus:ring-cyan-400"
+              disabled={loading}
+              className={`w-14 h-14 text-center text-2xl font-bold rounded-xl 
+                bg-white/10 border border-white/20 backdrop-blur-md
+                focus:outline-none focus:ring-2 focus:ring-cyan-400
+                ${loading ? "opacity-50 cursor-not-allowed" : ""}
+              `}
             />
           ))}
         </div>
 
-        {error && <p className="text-red-400 text-center mb-3">{error}</p>}
-        {success && <p className="text-green-400 text-center mb-3">{success}</p>}
+        {loading && (
+          <p className="text-center text-sm text-cyan-400 animate-pulse mb-3">
+            Verifying code…
+          </p>
+        )}
 
-        <button
-          onClick={handleVerify}
-          disabled={loading}
-          className="w-full py-3 rounded-xl font-semibold bg-gradient-to-r 
-                     from-cyan-500 to-blue-600 hover:shadow-cyan-400/40 
-                     transition disabled:opacity-50"
-        >
-          {loading ? "Verifying..." : "Verify Email"}
-        </button>
+        {error && (
+          <p className="text-red-400 text-center mb-3">
+            {error}
+          </p>
+        )}
+
+        {success && (
+          <p className="text-green-400 text-center mb-3">
+            {success}
+          </p>
+        )}
 
         {/* RESEND */}
-        <div className="mt-6 text-center">
-          <button
-            onClick={handleResend}
-            disabled={cooldown > 0}
-            className="text-sm text-cyan-400 hover:underline disabled:text-gray-500"
-          >
-            {cooldown > 0
-              ? `Resend in ${cooldown}s`
-              : "Resend verification code"}
-          </button>
+        <div className="mt-6 text-center text-sm">
+          {cooldown > 0 ? (
+            <p className="text-gray-400">
+              You can resend a new code in{" "}
+              <span className="text-cyan-400 font-semibold">
+                {cooldown}s
+              </span>
+            </p>
+          ) : (
+            <button
+              onClick={handleResend}
+              className="text-cyan-400 hover:underline"
+            >
+              Didn’t get a code? Resend
+            </button>
+          )}
         </div>
       </div>
     </div>
