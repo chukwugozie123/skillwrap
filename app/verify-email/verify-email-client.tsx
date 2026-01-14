@@ -55,7 +55,7 @@ export default function VerifyEmailClient() {
     if (code.length === 4 && !loading) {
       handleVerify(code);
     }
-  }, [otp]);
+  }, [otp, loading]);
 
   /* ================= OTP INPUT ================= */
 
@@ -71,7 +71,7 @@ export default function VerifyEmailClient() {
     }
   }
 
-  function handleBackspace(e: any, index: number) {
+  function handleBackspace(e: React.KeyboardEvent<HTMLInputElement>, index: number) {
     if (e.key === "Backspace" && !otp[index] && index > 0) {
       document.getElementById(`otp-${index - 1}`)?.focus();
     }
@@ -85,15 +85,18 @@ export default function VerifyEmailClient() {
     setLoading(true);
 
     try {
-      const res = await fetch(`${API_URL}/verify-email-otp`, {
+      const response = await fetch(`${API_URL}/verify-email-otp`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email, otp: code }),
+        body: JSON.stringify({
+          email,
+          otp: code,
+        }),
       });
 
-      const data = await res.json();
+      const data = await response.json();
 
-      if (!res.ok) {
+      if (!response.ok) {
         setError(data.error || "Invalid or expired code");
         setOtp(["", "", "", ""]);
         document.getElementById("otp-0")?.focus();
@@ -122,15 +125,15 @@ export default function VerifyEmailClient() {
     setCooldown(60);
 
     try {
-      const res = await fetch(`${API_URL}/resend-email-otp`, {
+      const response = await fetch(`${API_URL}/resend-email-otp`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ email }),
       });
 
-      const data = await res.json();
+      const data = await response.json();
 
-      if (!res.ok) {
+      if (!response.ok) {
         setError(data.error || "Failed to resend OTP");
         setCooldown(0);
         return;
