@@ -38,7 +38,7 @@ async function loginAction(
 
     const data = await res.json();
 
-    // // 🚨 EMAIL NOT VERIFIED
+    // 🚨 EMAIL NOT VERIFIED
     // if (!res.ok && data.error === "EMAIL_NOT_VERIFIED") {
     //   return {
     //     message: "Please verify your email",
