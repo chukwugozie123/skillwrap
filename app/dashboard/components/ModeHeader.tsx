@@ -1,5 +1,17 @@
-export default function ModeHeader({ title, subtitle, accent }: any) {
-  const map = {
+type Accent = "cyan" | "purple" | "blue";
+
+interface ModeHeaderProps {
+  title: string;
+  subtitle: string;
+  accent: Accent;
+}
+
+export default function ModeHeader({
+  title,
+  subtitle,
+  accent,
+}: ModeHeaderProps) {
+  const map: Record<Accent, string> = {
     cyan: "from-cyan-500 to-blue-600",
     purple: "from-purple-600 to-indigo-600",
     blue: "from-blue-600 to-indigo-600",
