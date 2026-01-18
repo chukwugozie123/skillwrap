@@ -446,14 +446,19 @@ export default function DashboardPage() {
         body: JSON.stringify({ mode: selectedMode }),
       });
 
+      console.log(selectedMode, "selected mode")
+
       if (!res.ok) throw new Error();
 
       const data = await res.json();
+      console.log(data.mode, 'checking mode')
 
       // ✅ trust backend response
-      setUser((prev) =>
-        prev ? { ...prev, mode: data.mode } : prev
-      );
+
+    setUser(data.mode)
+      // setUser((prev) =>
+      //   prev ? { ...prev, mode: data.mode } : prev
+      // );
 
       setShowModeModal(false);
     } catch {
