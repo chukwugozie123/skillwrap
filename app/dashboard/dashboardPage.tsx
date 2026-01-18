@@ -454,11 +454,10 @@ export default function DashboardPage() {
       console.log(data.mode, 'checking mode')
 
       // ✅ trust backend response
+    setUser((prev) =>
+  prev ? { ...prev, mode: data.mode } : prev
+);
 
-    setUser(data.mode)
-      // setUser((prev) =>
-      //   prev ? { ...prev, mode: data.mode } : prev
-      // );
 
       setShowModeModal(false);
     } catch {
