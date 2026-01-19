@@ -284,9 +284,6 @@
 
 
 
-
-
-
 "use client";
 
 import { useEffect, useRef, useState } from "react";
@@ -315,6 +312,8 @@ export default function SkillsPage() {
   const [searchTerm, setSearchTerm] = useState("");
 
   const typingTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+
+  // ✅ CORRECT URL
   const API_URL = "https://skillwrap-backend.onrender.com";
 
   /* ================= FETCH USER MODE ================= */
@@ -325,15 +324,11 @@ export default function SkillsPage() {
       .catch(() => setUserMode(null));
   }, []);
 
-  /* ================= FETCH SKILLS ================= */
+  /* ================= FETCH SKILLS (WITH DEBOUNCE) ================= */
   useEffect(() => {
-    return () => {
-  if (typingTimeoutRef.current) {
-    clearTimeout(typingTimeoutRef.current);
-  }
-};
-
-    // if (typingTimeoutRef.current) clearTimeout(typingTimeoutRef.current);
+    if (typingTimeoutRef.current) {
+      clearTimeout(typingTimeoutRef.current);
+    }
 
     typingTimeoutRef.current = setTimeout(async () => {
       try {
@@ -345,6 +340,9 @@ export default function SkillsPage() {
           : `${API_URL}/skills`;
 
         const res = await fetch(endpoint, { credentials: "include" });
+
+        if (!res.ok) throw new Error("Failed to fetch skills");
+
         const data = await res.json();
 
         const normalizedSkills: Skill[] = Array.isArray(data.skills)
@@ -361,17 +359,19 @@ export default function SkillsPage() {
           : [];
 
         setSkills(normalizedSkills);
-      } catch {
+      } catch (err) {
         setError("Unable to load skills");
       } finally {
         setLoading(false);
       }
     }, 400);
 
-    return () => typingTimeoutRef.current && clearTimeout(typingTimeoutRef.current);
+    return () => {
+      if (typingTimeoutRef.current) {
+        clearTimeout(typingTimeoutRef.current);
+      }
+    };
   }, [searchTerm]);
-
-  console.log(setUserMode, 'mode')
 
   /* ================= UI ================= */
   return (
