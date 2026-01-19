@@ -324,6 +324,8 @@ export default function SkillsPage() {
       .catch(() => setUserMode(null));
   }, []);
 
+  console.log(userMode, 'mode')
+
   /* ================= FETCH SKILLS (WITH DEBOUNCE) ================= */
   useEffect(() => {
     if (typingTimeoutRef.current) {
