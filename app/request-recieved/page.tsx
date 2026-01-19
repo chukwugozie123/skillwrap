@@ -562,6 +562,7 @@ type ExchangeRequest = {
   requested_skill_title: string;
   status: "pending" | "accepted" | "declined";
   created_at: string;
+  mode: string;
 };
 
 type Notification = {
@@ -615,6 +616,8 @@ export default function ReceivedRequestsPage() {
 
     loadRequests();
   }, []);
+
+  console.log(requests)
 
   // ================= ACCEPT =================
   const handleAccept = async (req: ExchangeRequest) => {
@@ -775,6 +778,8 @@ const notif = data.notifications
                 {req.requested_skill_title}
               </p>
 
+              <p>mode: {req.mode}</p>
+
               <div className="mt-6 flex justify-between">
                 {req.status === "pending" ? (
                   <div className="flex gap-3">
@@ -816,18 +821,11 @@ const notif = data.notifications
               <X />
             </button>
 
+
             {loadingDetails ? (
               <p className="text-center">Loading...</p>
             ) : selectedNotif ? (
               <>
-                {/* <p className="mb-4">
-                  Room ID:{" "}
-                  <b>
-                    {selectedNotif.roomId ||
-                      selectedNotif.roomid ||
-                      "Not available"}
-                  </b>
-                </p> */}
 
                 {activeExchangeId && (
                   <Link
