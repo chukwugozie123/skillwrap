@@ -228,6 +228,8 @@ export default function RequestLearning() {
       return;
     }
 
+    console.log(requestedSkill, 'lll')
+
     const toUserId =
       requestedSkill.user_id ?? requestedSkill.ownerId;
 

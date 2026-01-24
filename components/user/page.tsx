@@ -51,7 +51,7 @@ export default function UserPage({
       router.push("/exchange_skill");
     }
 
-    console.log(userMode)
+    console.log(userMode, skill)
   };
 
   return (

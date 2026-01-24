@@ -280,6 +280,8 @@ export default function ExchangePage() {
       return;
     }
 
+    console.log(requestedSkill, 'l')
+
     const toUserId =
       requestedSkill.user_id ?? requestedSkill.ownerId;
 

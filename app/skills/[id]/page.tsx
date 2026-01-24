@@ -91,19 +91,30 @@ export default function SkillDetailsPage() {
 
   const firstLetter = skill.username.charAt(0).toUpperCase();
 
+console.log(skill)
+
   // Determine button label based on user's mode
   let actionButtonLabel = "";
   if (user?.mode === "learning") actionButtonLabel = "Request to Learn";
   else if (user?.mode === "exchanging") actionButtonLabel = "Request Exchange";
 
-  const handleActionClick = () => {
-    if (!user?.mode) {
-      alert("Please choose a mode first in your dashboard.");
-      return;
-    }
-    sessionStorage.setItem("selectedSkill", JSON.stringify(skill));
+const handleActionClick = () => {
+  if (!user?.mode) {
+    alert("Please choose a mode first in your dashboard.");
+    return;
+  }
+
+  // Store the selected skill in session storage
+  sessionStorage.setItem("selectedSkill", JSON.stringify(skill));
+
+  // Redirect based on user's mode
+  if (user.mode === "learning") {
+    router.push("/request_learn");
+  } else if (user.mode === "exchanging") {
     router.push("/exchange_skill");
-  };
+  }
+};
+
 
   return (
     <div className="relative min-h-screen px-6 py-16 bg-gradient-to-br from-[#020617] via-[#071a36] to-[#020617] text-white overflow-hidden font-['Josefin_Sans']">
