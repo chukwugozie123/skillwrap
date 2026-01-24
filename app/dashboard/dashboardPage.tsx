@@ -525,7 +525,7 @@ console.log(user, 'checking user')
           <SidebarLink href="/request-recieved" icon={<Inbox />} label="Requests Received" />
           <SidebarLink href="/request-sent" icon={<CheckCircle />} label="Requests Sent" />
 
-          <SidebarLink href="/notification-route" icon={<Bell />} label="Notifications">
+          <SidebarLink href="/notifications-route" icon={<Bell />} label="Notifications">
             {unread > 0 && (
               <span className="ml-auto bg-red-500 text-xs px-2 rounded-full">
                 {unread}

@@ -236,6 +236,8 @@ export default function RequestLearning() {
       requestedSkill.id ??
       requestedSkill.skill_id;
 
+console.log(skillRequestedId, toUserId)
+
     if (!toUserId || !skillRequestedId) {
       setMessage("❌ Invalid skill data.");
       return;

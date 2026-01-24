@@ -288,6 +288,8 @@ export default function ExchangePage() {
       requestedSkill.id ??
       requestedSkill.skill_id;
 
+      console.log(skillRequestedId, toUserId)
+
     try {
       const res = await fetch(`${API_URL}/exchange-skill`, {
         method: "POST",
