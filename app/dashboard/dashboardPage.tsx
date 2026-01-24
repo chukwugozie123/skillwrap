@@ -173,6 +173,8 @@ export default function DashboardPage() {
     router.replace("/login");
   }
 
+  console.log(user, 'scheckinf user')
+
   if (loading) {
     return (
       <div className="h-screen flex items-center justify-center text-gray-400">
@@ -212,8 +214,14 @@ export default function DashboardPage() {
           <SidebarLink href="/my-skill" icon={<Layers />} label="My Skills" />
           <SidebarLink href="/request-recieved" icon={<Inbox />} label="Requests Received" />
           <SidebarLink href="/request-sent" icon={<CheckCircle />} label="Requests Sent" />
+          <SidebarLink href="/notification_route" icon={<Bell />} label="notification"    
+                {unread > 0 && (
+                    <span className="ml-auto bg-red-500 text-xs px-2 rounded-full">
+                      {unread}
+                    </span>
+                )}/>
 
-          <button className="flex items-center gap-3 px-4 py-2 rounded-xl hover:bg-white/10">
+          {/* <button className="flex items-center gap-3 px-4 py-2 rounded-xl hover:bg-white/10">
             <Bell />
             Notifications
             {unread > 0 && (
@@ -221,7 +229,7 @@ export default function DashboardPage() {
                 {unread}
               </span>
             )}
-          </button>
+          </button> */}
 
           <SidebarLink href="/settings" icon={<Settings />} label="Settings" />
 
@@ -235,15 +243,17 @@ export default function DashboardPage() {
         </nav>
       </aside>
 
+      
+
       {/* ================= CONTENT ================= */}
       <section className="flex-1 p-8">
         <h1 className="text-3xl font-extrabold text-blue-300 mb-6">
           Welcome back, {user.fullname.split(" ")[0]} ✨
         </h1>
 
-        {user.mode === "learning" && <LearningDashboard stats={stats} />}
-        {user.mode === "teaching" && <TeachingDashboard stats={stats} />}
-        {user.mode === "exchanging" && <ExchangeDashboard stats={stats} />}
+        {user.mode === "learning" && <LearningDashboard stats={stats} user={user} />}
+        {user.mode === "teaching" && <TeachingDashboard stats={stats}  user={user} />}
+        {user.mode === "exchanging" && <ExchangeDashboard stats={stats}  user={user}/>}
       </section>
 
       {/* ================= MODE MODAL ================= */}
@@ -260,6 +270,7 @@ export default function DashboardPage() {
               This helps personalize your dashboard. You can change it later.
             </p>
 
+()
             {["learning", "teaching", "exchanging"].map((mode) => (
               <label
                 key={mode}

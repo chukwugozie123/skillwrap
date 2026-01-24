@@ -41,6 +41,8 @@ export default function ProfilePage() {
       }
     }
 
+    console.log(user)
+
     fetchProfile();
   }, [router]);
 
@@ -49,6 +51,7 @@ export default function ProfilePage() {
       method: "POST",
       credentials: "include",
     });
+
     router.push("/login");
   }
 
@@ -61,6 +64,9 @@ export default function ProfilePage() {
     );
   }
 
+
+  console.log(user, 'checking user')
+  
   if (!user) return null;
 
   return (

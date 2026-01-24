@@ -27,7 +27,7 @@ export default function ExchangeDashboard({ stats, user }: any) {
 
         <div className="flex-1">
           <h2 className="text-xl font-semibold text-white">
-            {user?.username || "Skill Exchanger"}
+            {user?.username}
           </h2>
           <p className="text-sm text-gray-300">{user?.email}</p>
           <p className="text-xs text-gray-400 mt-1">
