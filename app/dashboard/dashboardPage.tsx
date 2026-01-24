@@ -493,6 +493,8 @@ export default function DashboardPage() {
     );
   }
 
+console.log(user, 'checking user')
+
   if (!user) return null;
 
   return (

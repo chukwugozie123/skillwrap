@@ -52,13 +52,19 @@ interface SidebarLinkProps {
   href: string;
   icon: ReactNode;
   label: string;
-  children?: ReactNode; // ✅ ADD THIS
+
+  /** Optional unread count / badge */
+  badge?: number;
+
+  /** Optional custom right-side content */
+  children?: ReactNode;
 }
 
 export default function SidebarLink({
   href,
   icon,
   label,
+  badge,
   children,
 }: SidebarLinkProps) {
   const pathname = usePathname();
@@ -70,15 +76,28 @@ export default function SidebarLink({
       className={`flex items-center gap-3 px-4 py-2 rounded-xl transition
         ${
           isActive
-            ? "bg-blue-500/20 text-blue-300"
-            : "hover:bg-white/10 text-white"
+            ? "bg-blue-600/20 text-blue-300"
+            : "text-gray-300 hover:bg-white/10"
         }`}
     >
+      {/* Icon */}
       {icon}
-      <span>{label}</span>
 
-      {/* ✅ optional right-side content (badge, count, etc.) */}
-      {children && <div className="ml-auto">{children}</div>}
+      {/* Label */}
+      <span className="whitespace-nowrap">{label}</span>
+
+      {/* Right-side content */}
+      <div className="ml-auto flex items-center gap-2">
+        {/* Badge prop */}
+        {typeof badge === "number" && badge > 0 && (
+          <span className="bg-red-500 text-xs px-2 py-0.5 rounded-full">
+            {badge}
+          </span>
+        )}
+
+        {/* Children slot (optional override / extension) */}
+        {children}
+      </div>
     </Link>
   );
 }
