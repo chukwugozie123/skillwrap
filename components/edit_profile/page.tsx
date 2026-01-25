@@ -1,17 +1,156 @@
+// "use client";
+
+// import { useState, useEffect, FormEvent } from "react";
+// import { useRouter } from "next/navigation";
+// import Link from "next/link";
+
+// // Define the profile type
+// type Profile = {
+//   fullname: string;
+//   username: string;
+//   email: string;
+//   bio: string;
+// };
+
+// // Define props type
+// interface EditProfileProps {
+//   initialProfile: Profile;
+// }
+
+// export default function EditProfile({ initialProfile }: EditProfileProps) {
+//   const [fullname, setFullname] = useState(initialProfile.fullname);
+//   const [username, setUsername] = useState(initialProfile.username);
+//   const [email, setEmail] = useState(initialProfile.email);
+//   const [bio, setBio] = useState(initialProfile.bio);
+//   const [message, setMessage] = useState("");
+
+//  const API_URL= 'https://skillwrap-backend.onrender.com'
+//   //  const API_URL = process.env.NEXT_PUBLIC_API_URL;
+
+//   const router = useRouter();
+
+//   async function handleSubmit(e: FormEvent<HTMLFormElement>) {
+//     e.preventDefault();
+
+//     try {
+//       const res = await fetch(`${API_URL}/auth/edit-profile`, {
+//         method: "PATCH",
+//         headers: { "Content-Type": "application/json" },
+//         credentials: "include",
+//         body: JSON.stringify({ fullname, username, email, bio }),
+//       });
+
+//       const data = await res.json();
+
+//       if (res.ok) {
+//         setMessage("Profile updated!");
+//       } else {
+//         setMessage(data.error || "Failed to update profile");
+//       }
+//     } catch (err) {
+//       console.error(err);
+//       setMessage("Network error — please try again");
+//     }
+//   }
+
+//   useEffect(() => {
+//     if (message === "Profile updated!") {
+//       router.push("/profile");
+//     }
+//   }, [message, router]);
+
+//   return (
+//     <div className="flex items-center justify-center min-h-screen bg-gradient-to-br from-[#0a0f1c] via-[#0f1e3a] to-[#0a0f1c] text-white relative overflow-hidden">
+//       {/* floating glow effects */}
+//       <div className="absolute top-20 left-20 w-72 h-72 bg-gradient-to-br from-cyan-500/30 to-blue-500/20 rounded-full blur-3xl animate-pulse" />
+//       <div className="absolute bottom-20 right-20 w-64 h-64 bg-gradient-to-tr from-fuchsia-500/30 to-purple-500/20 rounded-full blur-3xl animate-pulse delay-300" />
+
+//       {/* main glass card */}
+//       <div className="relative w-full max-w-md p-8 rounded-2xl shadow-2xl backdrop-blur-2xl bg-white/10 border border-white/10">
+//         <div className="absolute inset-0 rounded-2xl bg-gradient-to-br from-purple-500/10 via-transparent to-cyan-500/10 blur-xl"></div>
+
+//         <h1 className="text-3xl font-semibold text-center text-cyan-100 mb-6 tracking-wide">
+//           Edit Profile
+//         </h1>
+
+//         {message && (
+//           <p
+//             className={`text-center mb-4 font-medium transition-all ${
+//               message.includes("✅") ? "text-green-400" : "text-red-400"
+//             }`}
+//           >
+//             {message}
+//           </p>
+//         )}
+
+//         <form onSubmit={handleSubmit} className="flex flex-col gap-5 relative z-10">
+//           <input
+//             type="text"
+//             value={fullname}
+//             onChange={(e) => setFullname(e.target.value)}
+//             placeholder="Full Name"
+//             className="p-3 rounded-lg bg-white/10 text-cyan-100 placeholder-cyan-300/50 outline-none focus:ring-2 focus:ring-cyan-400 focus:scale-[1.02] transition-all duration-200"
+//           />
+//           <input
+//             type="text"
+//             value={username}
+//             onChange={(e) => setUsername(e.target.value)}
+//             placeholder="Username"
+//             className="p-3 rounded-lg bg-white/10 text-cyan-100 placeholder-cyan-300/50 outline-none focus:ring-2 focus:ring-cyan-400 focus:scale-[1.02] transition-all duration-200"
+//           />
+//           <input
+//             type="email"
+//             value={email}
+//             onChange={(e) => setEmail(e.target.value)}
+//             placeholder="Email"
+//             className="p-3 rounded-lg bg-white/10 text-cyan-100 placeholder-cyan-300/50 outline-none focus:ring-2 focus:ring-cyan-400 focus:scale-[1.02] transition-all duration-200"
+//           />
+
+//           <input 
+//             type="text"
+//             value={bio}
+//             onChange={(e) => setBio(e.target.value)}
+//              placeholder="Bio"
+//             className="p-3 rounded-lg bg-white/10 text-cyan-100 placeholder-cyan-300/50 outline-none focus:ring-2 focus:ring-cyan-400 focus:scale-[1.02] transition-all duration-200"
+//            />
+
+//           <button
+//             type="submit"
+//             className="bg-gradient-to-r from-cyan-500 via-blue-500 to-fuchsia-500 text-white font-semibold py-3 rounded-lg hover:opacity-90 hover:scale-[1.03] transition-all shadow-lg shadow-cyan-500/30"
+//           >
+//             Save Changes
+//           </button>
+//         </form>
+
+//         <Link href={"/dashboard"}>
+//           <button className="mt-4 text-sm text-cyan-400 hover:underline">Go back</button>
+//         </Link>
+//       </div>
+//     </div>
+//   );
+// }
+
+
+
+
+
+
+
+
+
 "use client";
 
 import { useState, useEffect, FormEvent } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 
-// Define the profile type
 type Profile = {
   fullname: string;
   username: string;
   email: string;
+  bio: string;
 };
 
-// Define props type
 interface EditProfileProps {
   initialProfile: Profile;
 }
@@ -20,103 +159,124 @@ export default function EditProfile({ initialProfile }: EditProfileProps) {
   const [fullname, setFullname] = useState(initialProfile.fullname);
   const [username, setUsername] = useState(initialProfile.username);
   const [email, setEmail] = useState(initialProfile.email);
-  const [message, setMessage] = useState("");
+  const [bio, setBio] = useState(initialProfile.bio);
+  const [message, setMessage] = useState<string | null>(null);
+  const [loading, setLoading] = useState(false);
 
- const API_URL= 'https://skillwrap-backend.onrender.com'
-  //  const API_URL = process.env.NEXT_PUBLIC_API_URL;
-
+  const API_URL = "https://skillwrap-backend.onrender.com";
   const router = useRouter();
 
   async function handleSubmit(e: FormEvent<HTMLFormElement>) {
     e.preventDefault();
+    setLoading(true);
+    setMessage(null);
 
     try {
       const res = await fetch(`${API_URL}/auth/edit-profile`, {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
         credentials: "include",
-        body: JSON.stringify({ fullname, username, email }),
+        body: JSON.stringify({ fullname, username, email, bio }),
       });
 
       const data = await res.json();
 
       if (res.ok) {
-        setMessage("Profile updated!");
+        setMessage("Profile updated successfully");
       } else {
         setMessage(data.error || "Failed to update profile");
       }
     } catch (err) {
       console.error(err);
       setMessage("Network error — please try again");
+    } finally {
+      setLoading(false);
     }
   }
 
   useEffect(() => {
-    if (message === "Profile updated!") {
-      router.push("/profile");
+    if (message === "Profile updated successfully") {
+      const t = setTimeout(() => router.push("/profile"), 1200);
+      return () => clearTimeout(t);
     }
   }, [message, router]);
 
   return (
-    <div className="flex items-center justify-center min-h-screen bg-gradient-to-br from-[#0a0f1c] via-[#0f1e3a] to-[#0a0f1c] text-white relative overflow-hidden">
-      {/* floating glow effects */}
-      <div className="absolute top-20 left-20 w-72 h-72 bg-gradient-to-br from-cyan-500/30 to-blue-500/20 rounded-full blur-3xl animate-pulse" />
-      <div className="absolute bottom-20 right-20 w-64 h-64 bg-gradient-to-tr from-fuchsia-500/30 to-purple-500/20 rounded-full blur-3xl animate-pulse delay-300" />
+    <main className="min-h-screen flex items-center justify-center px-6 bg-gradient-to-br from-[#05070c] via-[#0b1220] to-[#05070c] text-white relative overflow-hidden">
 
-      {/* main glass card */}
-      <div className="relative w-full max-w-md p-8 rounded-2xl shadow-2xl backdrop-blur-2xl bg-white/10 border border-white/10">
-        <div className="absolute inset-0 rounded-2xl bg-gradient-to-br from-purple-500/10 via-transparent to-cyan-500/10 blur-xl"></div>
+      {/* background blobs */}
+      <div className="absolute inset-0 -z-10">
+        <div className="absolute top-16 left-16 w-72 h-72 bg-blue-600/30 rounded-full blur-3xl animate-pulse" />
+        <div className="absolute bottom-16 right-16 w-72 h-72 bg-purple-600/20 rounded-full blur-3xl animate-pulse delay-300" />
+      </div>
 
-        <h1 className="text-3xl font-semibold text-center text-cyan-100 mb-6 tracking-wide">
+      {/* glass card */}
+      <div className="w-full max-w-md bg-white/10 border border-white/20 backdrop-blur-xl rounded-2xl p-8 shadow-2xl">
+
+        <h1 className="text-3xl font-semibold text-center mb-6 text-blue-300">
           Edit Profile
         </h1>
 
         {message && (
           <p
-            className={`text-center mb-4 font-medium transition-all ${
-              message.includes("✅") ? "text-green-400" : "text-red-400"
+            className={`text-center mb-4 font-medium ${
+              message.includes("success")
+                ? "text-green-400"
+                : "text-red-400"
             }`}
           >
             {message}
           </p>
         )}
 
-        <form onSubmit={handleSubmit} className="flex flex-col gap-5 relative z-10">
+        <form onSubmit={handleSubmit} className="space-y-5">
           <input
             type="text"
             value={fullname}
             onChange={(e) => setFullname(e.target.value)}
-            placeholder="Full Name"
-            className="p-3 rounded-lg bg-white/10 text-cyan-100 placeholder-cyan-300/50 outline-none focus:ring-2 focus:ring-cyan-400 focus:scale-[1.02] transition-all duration-200"
+            placeholder="Full name"
+            className="w-full p-3 rounded-xl bg-white/10 border border-white/20 text-white placeholder-gray-400 focus:ring-2 focus:ring-blue-400 outline-none transition"
           />
+
           <input
             type="text"
             value={username}
             onChange={(e) => setUsername(e.target.value)}
             placeholder="Username"
-            className="p-3 rounded-lg bg-white/10 text-cyan-100 placeholder-cyan-300/50 outline-none focus:ring-2 focus:ring-cyan-400 focus:scale-[1.02] transition-all duration-200"
+            className="w-full p-3 rounded-xl bg-white/10 border border-white/20 text-white placeholder-gray-400 focus:ring-2 focus:ring-blue-400 outline-none transition"
           />
+
           <input
             type="email"
             value={email}
             onChange={(e) => setEmail(e.target.value)}
             placeholder="Email"
-            className="p-3 rounded-lg bg-white/10 text-cyan-100 placeholder-cyan-300/50 outline-none focus:ring-2 focus:ring-cyan-400 focus:scale-[1.02] transition-all duration-200"
+            className="w-full p-3 rounded-xl bg-white/10 border border-white/20 text-white placeholder-gray-400 focus:ring-2 focus:ring-blue-400 outline-none transition"
+          />
+
+          <textarea
+            value={bio}
+            onChange={(e) => setBio(e.target.value)}
+            placeholder="Tell people about yourself..."
+            rows={3}
+            className="w-full p-3 rounded-xl bg-white/10 border border-white/20 text-white placeholder-gray-400 focus:ring-2 focus:ring-blue-400 outline-none transition resize-none"
           />
 
           <button
             type="submit"
-            className="bg-gradient-to-r from-cyan-500 via-blue-500 to-fuchsia-500 text-white font-semibold py-3 rounded-lg hover:opacity-90 hover:scale-[1.03] transition-all shadow-lg shadow-cyan-500/30"
+            disabled={loading}
+            className="w-full py-3 rounded-xl bg-blue-600/60 hover:bg-blue-600 font-semibold transition disabled:opacity-50"
           >
-            Save Changes
+            {loading ? "Saving..." : "Save Changes"}
           </button>
         </form>
 
-        <Link href={"/dashboard"}>
-          <button className="mt-4 text-sm text-cyan-400 hover:underline">Go back</button>
-        </Link>
+        <div className="text-center mt-4">
+          <Link href="/dashboard" className="text-blue-400 hover:underline text-sm">
+            ← Back to dashboard
+          </Link>
+        </div>
       </div>
-    </div>
+    </main>
   );
 }
-

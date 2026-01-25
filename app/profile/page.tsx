@@ -15,6 +15,7 @@ interface User {
   email: string;
   bio?: string;
   img_url?: string;
+  mode?: string;
 }
 
 export default function ProfilePage() {
@@ -108,6 +109,8 @@ export default function ProfilePage() {
               <span className="absolute bottom-2 right-2 w-4 h-4 bg-green-400 rounded-full border-2 border-[#0b1220]" />
             </div>
 
+
+ <p>mode: {user.mode}</p>
             {/* Info */}
             <div className="flex-1 text-center sm:text-left">
               <h1 className="text-3xl sm:text-4xl font-bold">
