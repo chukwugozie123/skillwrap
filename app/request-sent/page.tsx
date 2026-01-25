@@ -332,6 +332,8 @@ export default function RequestPage() {
     }
   }
 
+    console.log(requests, 'check')
+
   return (
     <main className="min-h-screen px-6 py-14 bg-gradient-to-br from-[#020617] via-[#0b1228] to-[#1e1b4b] text-white overflow-hidden">
 

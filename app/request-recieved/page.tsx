@@ -358,7 +358,7 @@
 //         body: JSON.stringify({
 //           exchange_id: req.exchange_id,
 //           status: "accepted",
-//           roomCode: newRoom,
+//           
 //         }),
 //       });
 
@@ -604,24 +604,13 @@
 
 
 
-
-
-
-
 "use client";
 
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import { toast, ToastContainer, Slide } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
-import {
-  CheckCircle,
-  XCircle,
-  Eye,
-  X,
-  Sparkles,
-  Clock,
-} from "lucide-react";
+import { CheckCircle, XCircle, Eye, X, Sparkles, Clock } from "lucide-react";
 
 type ExchangeRequest = {
   exchange_id: string;
@@ -643,8 +632,7 @@ export default function ReceivedRequestsPage() {
   const [requests, setRequests] = useState<ExchangeRequest[]>([]);
   const [loading, setLoading] = useState(true);
   const [detailsPopup, setDetailsPopup] = useState(false);
-  const [selectedExchange, setSelectedExchange] =
-    useState<ExchangeRequest | null>(null);
+  const [selectedExchange, setSelectedExchange] = useState<ExchangeRequest | null>(null);
 
   useEffect(() => {
     const loadRequests = async () => {
@@ -675,6 +663,94 @@ export default function ReceivedRequestsPage() {
     return map[status];
   };
 
+  // ====== ACCEPT REQUEST ======
+  const handleAccept = async (req: ExchangeRequest) => {
+    const newRoom = Math.floor(100000 + Math.random() * 900000).toString();
+    try {
+      // Update exchange status
+      await fetch(`${API_URL}/update-exchange-status`, {
+        method: "PATCH",
+        credentials: "include",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          exchange_id: req.exchange_id,
+          status: "accepted",
+          roomCode: newRoom,
+        }),
+      });
+
+      // Send notification to sender
+      await fetch(`${API_URL}/send-notification`, {
+        method: "POST",
+        credentials: "include",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          exchange_id: req.exchange_id,
+          receiverId: req.from_user_id,
+          message: "Your skill exchange request was accepted 🎉",
+          metadata: req.exchange_id,
+          roomCode: newRoom,
+        }),
+      });
+
+      // Update UI
+      setRequests((prev) =>
+        prev.map((r) =>
+          r.exchange_id === req.exchange_id
+            ? { ...r, status: "accepted", roomCode: newRoom }
+            : r
+        )
+      );
+
+      toast.success("Request accepted successfully", { theme: "dark", transition: Slide });
+    } catch (err) {
+      console.error(err);
+      toast.error("Server error");
+    }
+  };
+
+  // ====== DECLINE REQUEST ======
+  const handleDecline = async (req: ExchangeRequest) => {
+    try {
+      await fetch(`${API_URL}/update-exchange-status`, {
+        method: "PATCH",
+        credentials: "include",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          exchange_id: req.exchange_id,
+          status: "declined",
+        }),
+      });
+
+
+            // Send notification to sender
+      await fetch(`${API_URL}/send-notification`, {
+        method: "POST",
+        credentials: "include",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          exchange_id: req.exchange_id,
+          receiverId: req.from_user_id,
+          message: "Your skill exchange request was declined 🎉",
+          metadata: req.exchange_id,
+        }),
+      });
+
+      setRequests((prev) =>
+        prev.map((r) =>
+          r.exchange_id === req.exchange_id ? { ...r, status: "declined" } : r
+        )
+      );
+
+      toast.error("Request declined", { theme: "dark", transition: Slide });
+    } catch (err) {
+      console.error(err);
+      toast.error("Server error");
+    }
+  };
+
+  console.log(requests)
+
   return (
     <main className="min-h-screen bg-gradient-to-br from-[#020617] via-[#0b1228] to-[#1e1b4b] px-6 py-14 text-white">
       <ToastContainer newestOnTop />
@@ -696,9 +772,7 @@ export default function ReceivedRequestsPage() {
             >
               <div className="absolute top-4 right-4">
                 <span
-                  className={`px-3 py-1 text-xs rounded-full ${statusBadge(
-                    req.status
-                  )}`}
+                  className={`px-3 py-1 text-xs rounded-full ${statusBadge(req.status)}`}
                 >
                   {req.status}
                 </span>
@@ -726,11 +800,17 @@ export default function ReceivedRequestsPage() {
               <div className="mt-6 flex justify-between">
                 {req.status === "pending" ? (
                   <div className="flex gap-3">
-                    <button className="px-4 py-2 bg-emerald-600 rounded-xl flex gap-2 items-center hover:bg-emerald-500 transition">
+                    <button
+                      onClick={() => handleAccept(req)}
+                      className="px-4 py-2 bg-emerald-600 rounded-xl flex gap-2 items-center hover:bg-emerald-500 transition"
+                    >
                       <CheckCircle size={16} />
                       Accept
                     </button>
-                    <button className="px-4 py-2 bg-red-600 rounded-xl flex gap-2 items-center hover:bg-red-500 transition">
+                    <button
+                      onClick={() => handleDecline(req)}
+                      className="px-4 py-2 bg-red-600 rounded-xl flex gap-2 items-center hover:bg-red-500 transition"
+                    >
                       <XCircle size={16} />
                       Decline
                     </button>
@@ -771,16 +851,13 @@ export default function ReceivedRequestsPage() {
 
             <div className="mt-6 space-y-3 text-gray-200">
               <p>
-                <span className="text-gray-400">From:</span>{" "}
-                {selectedExchange.from_fullname}
+                <span className="text-gray-400">From:</span> {selectedExchange.from_fullname}
               </p>
               <p>
-                <span className="text-gray-400">Offered:</span>{" "}
-                {selectedExchange.skill_offered_title}
+                <span className="text-gray-400">Offered:</span> {selectedExchange.skill_offered_title}
               </p>
               <p>
-                <span className="text-gray-400">Requested:</span>{" "}
-                {selectedExchange.requested_skill_title}
+                <span className="text-gray-400">Requested:</span> {selectedExchange.requested_skill_title}
               </p>
               {selectedExchange.note && (
                 <p className="bg-white/5 p-3 rounded-xl border border-white/10">
@@ -788,12 +865,15 @@ export default function ReceivedRequestsPage() {
                 </p>
               )}
               <p>
-                <span className="text-gray-400">Mode:</span>{" "}
-                {selectedExchange.mode}
+                <span className="text-gray-400">Mode:</span> {selectedExchange.mode}
+              </p>
+              <p>
+                <span className="text-gray-400">Requested At:</span>{" "}
+                {new Date(selectedExchange.created_at).toLocaleString()}
               </p>
             </div>
 
-            {selectedExchange.status === "accepted" && (
+            {selectedExchange.status === "accepted" && selectedExchange.roomCode && (
               <Link
                 href={`/chat/${selectedExchange.exchange_id}`}
                 className="block mt-8 text-center py-3 rounded-xl bg-gradient-to-r from-blue-600 to-purple-600 hover:opacity-90 transition"
