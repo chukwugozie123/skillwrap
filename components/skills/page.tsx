@@ -348,6 +348,8 @@ export default function SkillsPage() {
 
         const data = await res.json();
 
+        console.log(data.skills)
+
         const normalizedSkills: Skill[] = Array.isArray(data.skills)
           ? data.skills.map((s: any) => ({
               skillId: s.skillId ?? s.id,
@@ -358,6 +360,7 @@ export default function SkillsPage() {
               username: s.username,
               skill_img: s.skill_img,
               image_url: s.image_url,
+              ownerId: s.owner_id,
             }))
           : [];
 
