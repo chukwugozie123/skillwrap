@@ -505,125 +505,145 @@ export default function ReceivedRequestsPage() {
         <p className="text-center text-gray-400">No requests yet</p>
       ) : (
         <div className="grid md:grid-cols-2 xl:grid-cols-3 gap-8 max-w-7xl mx-auto">
-          {requests.map((req) => (
-            <div
-              key={req.exchange_id}
-              className="relative rounded-3xl bg-white/10 backdrop-blur-xl border border-white/20 p-6 shadow-xl hover:scale-[1.015] transition-all"
-            >
-              <div className="absolute top-4 right-4">
-                <span
-                  className={`px-3 py-1 text-xs rounded-full ${statusBadge(req.status)}`}
-                >
-                  {req.status}
-                </span>
-              </div>
+         {/* ================= REQUEST CARD ================= */}
+{requests.map((req) => (
+  <div
+    key={req.exchange_id}
+    className="relative rounded-3xl bg-white/10 backdrop-blur-xl border border-white/20 p-6 shadow-xl hover:scale-[1.015] transition-all"
+  >
+    <div className="absolute top-4 right-4">
+      <span className={`px-3 py-1 text-xs rounded-full ${statusBadge(req.status)}`}>
+        {req.status}
+      </span>
+    </div>
 
-              <h2 className="text-xl font-semibold text-blue-300">
-                {req.from_fullname}
-              </h2>
+    <h2 className="text-xl font-semibold text-blue-300">
+      {req.from_fullname}
+    </h2>
 
-              <div className="mt-4 space-y-1 text-sm text-gray-200">
-                <p>
-                  <span className="text-gray-400">Offers:</span>{" "}
-                  {req.skill_offered_title}
-                </p>
-                <p>
-                  <span className="text-gray-400">Wants:</span>{" "}
-                  {req.requested_skill_title}
-                </p>
-                <p className="flex items-center gap-1 text-gray-400">
-                  <Clock size={14} />
-                  {new Date(req.created_at).toLocaleDateString()}
-                </p>
-              </div>
-
-              <div className="mt-6 flex justify-between">
-                {req.status === "pending" ? (
-                  <div className="flex gap-3">
-                    <button
-                      onClick={() => handleAccept(req)}
-                      className="px-4 py-2 bg-emerald-600 rounded-xl flex gap-2 items-center hover:bg-emerald-500 transition"
-                    >
-                      <CheckCircle size={16} />
-                      Accept
-                    </button>
-                    <button
-                      onClick={() => handleDecline(req)}
-                      className="px-4 py-2 bg-red-600 rounded-xl flex gap-2 items-center hover:bg-red-500 transition"
-                    >
-                      <XCircle size={16} />
-                      Decline
-                    </button>
-                  </div>
-                ) : (
-                  <button
-                    onClick={() => {
-                      setSelectedExchange(req);
-                      setDetailsPopup(true);
-                    }}
-                    className="px-4 py-2 bg-blue-600/30 rounded-xl flex gap-2 items-center hover:bg-blue-600/40 transition"
-                  >
-                    <Eye size={16} />
-                    View Details
-                  </button>
-                )}
-              </div>
-            </div>
-          ))}
-        </div>
+    <div className="mt-4 space-y-1 text-sm text-gray-200">
+      {/* Hide offered skill if mode is learning */}
+      {req.mode !== "learning" && (
+        <p>
+          <span className="text-gray-400">Offers:</span> {req.skill_offered_title}
+        </p>
       )}
+      <p>
+        <span className="text-gray-400">Wants:</span> {req.requested_skill_title}
+      </p>
+      <p className="flex items-center gap-1 text-gray-400">
+        <Clock size={14} />
+        {new Date(req.created_at).toLocaleDateString()}
+      </p>
+    </div>
 
-      {/* DETAILS MODAL */}
-      {detailsPopup && selectedExchange && (
-        <div className="fixed inset-0 bg-black/70 backdrop-blur-sm flex items-center justify-center z-50">
-          <div className="relative bg-gradient-to-br from-[#0b1228] to-[#020617] border border-white/20 rounded-3xl p-8 w-full max-w-lg shadow-2xl">
-            <button
-              onClick={() => setDetailsPopup(false)}
-              className="absolute top-4 right-4 text-gray-400 hover:text-white"
-            >
-              <X />
-            </button>
+    <div className="mt-6 flex justify-between">
+      {req.status === "pending" ? (
+        <div className="flex gap-3">
+          <button
+            onClick={() => handleAccept(req)}
+            className="px-4 py-2 bg-emerald-600 rounded-xl flex gap-2 items-center hover:bg-emerald-500 transition"
+          >
+            <CheckCircle size={16} />
+            Accept
+          </button>
+          <button
+            onClick={() => handleDecline(req)}
+            className="px-4 py-2 bg-red-600 rounded-xl flex gap-2 items-center hover:bg-red-500 transition"
+          >
+            <XCircle size={16} />
+            Decline
+          </button>
+        </div>
+      ) : (
+        <button
+          onClick={() => {
+            setSelectedExchange(req);
+            setDetailsPopup(true);
+          }}
+          className="px-4 py-2 bg-blue-600/30 rounded-xl flex gap-2 items-center hover:bg-blue-600/40 transition"
+        >
+          <Eye size={16} />
+          View Details
+        </button>
+      )}
+    </div>
+  </div>
+))}
 
-            <h2 className="text-2xl font-bold text-blue-300 flex items-center gap-2">
-              <Sparkles size={20} />
-              Exchange Details
-            </h2>
+{/* ================= DETAILS MODAL ================= */}
+{detailsPopup && selectedExchange && (
+  <div className="fixed inset-0 bg-black/70 backdrop-blur-sm flex items-center justify-center z-50">
+    <div className="relative bg-gradient-to-br from-[#0b1228] to-[#020617] border border-white/20 rounded-3xl p-8 w-full max-w-lg shadow-2xl">
+      <button
+        onClick={() => setDetailsPopup(false)}
+        className="absolute top-4 right-4 text-gray-400 hover:text-white"
+      >
+        <X />
+      </button>
 
-            <div className="mt-6 space-y-3 text-gray-200">
-              <p>
-                <span className="text-gray-400">From:</span> {selectedExchange.from_fullname}
-              </p>
-              <p>
-                <span className="text-gray-400">Offered:</span> {selectedExchange.skill_offered_title}
-              </p>
-              <p>
-                <span className="text-gray-400">Requested:</span> {selectedExchange.requested_skill_title}
-              </p>
-              {selectedExchange.note && (
-                <p className="bg-white/5 p-3 rounded-xl border border-white/10">
-                  {selectedExchange.note}
-                </p>
-              )}
-              <p>
-                <span className="text-gray-400">Mode:</span> {selectedExchange.mode}
-              </p>
-              <p>
-                <span className="text-gray-400">Requested At:</span>{" "}
-                {new Date(selectedExchange.created_at).toLocaleString()}
-              </p>
-            </div>
+      <h2 className="text-2xl font-bold text-blue-300 flex items-center gap-2">
+        <Sparkles size={20} />
+        Exchange Details
+      </h2>
 
-            {selectedExchange.status === "accepted" && selectedExchange.roomCode && (
-              <Link
-                href={`/chat/${selectedExchange.exchange_id}`}
-                className="block mt-8 text-center py-3 rounded-xl bg-gradient-to-r from-blue-600 to-purple-600 hover:opacity-90 transition"
-              >
-                Enter Chat 💬
-              </Link>
-            )}
-          </div>
+      <div className="mt-6 space-y-3 text-gray-200">
+        <p>
+          <span className="text-gray-400">From:</span> {selectedExchange.from_fullname}
+        </p>
+
+        {/* Hide offered skill if mode is learning */}
+        {selectedExchange.mode !== "learning" && (
+          <p>
+            <span className="text-gray-400">Offered:</span> {selectedExchange.skill_offered_title}
+          </p>
+        )}
+
+        <p>
+          <span className="text-gray-400">Requested:</span> {selectedExchange.requested_skill_title}
+        </p>
+
+        {selectedExchange.note && (
+          <p className="bg-white/5 p-3 rounded-xl border border-white/10">
+            {selectedExchange.note}
+          </p>
+        )}
+
+        <p>
+          <span className="text-gray-400">Mode:</span> {selectedExchange.mode}
+        </p>
+        <p>
+          <span className="text-gray-400">Requested At:</span>{" "}
+          {new Date(selectedExchange.created_at).toLocaleString()}
+        </p>
+      </div>
+
+      {selectedExchange.status === "accepted" && selectedExchange.roomCode && (
+        <Link
+          href={`/chat/${selectedExchange.exchange_id}`}
+          className="block mt-8 text-center py-3 rounded-xl bg-gradient-to-r from-blue-600 to-purple-600 hover:opacity-90 transition"
+        >
+          Enter Chat 💬
+        </Link>
+      )}
+    </div>
+  </div>
+)}
+
         </div>
       )}
     </main>
   );
 }
+
+
+
+
+
+
+
+
+
+
+
+/// see dont show that offerd skill p tag when mode = learning u get bucause it nulll an dalso in view deatils
