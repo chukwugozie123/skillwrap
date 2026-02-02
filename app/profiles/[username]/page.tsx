@@ -81,6 +81,7 @@ export default function ProfilePage() {
   if (!data) return null;
 
   const { profile, stats, skills } = data;
+  console.log(skills)
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-[#020617] via-[#050b2e] to-[#020617] text-white px-6 py-12">
