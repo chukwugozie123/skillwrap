@@ -27,7 +27,9 @@ interface ApiResponse {
 export default function ViewSkill() {
   const [skills, setSkills] = useState<Skill[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
+  
   const API_URL = "https://skillwrap-backend.onrender.com";
+// const API_URL = "http://localhost:4000";
 
   // Fetch skills from backend
   useEffect(() => {

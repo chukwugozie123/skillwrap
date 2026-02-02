@@ -39,6 +39,8 @@ export default function SkillDetailsPage() {
   const [liked, setLiked] = useState(false);
 
   const API_URL = "https://skillwrap-backend.onrender.com";
+//  const API_URL='http://localhost:4000'
+
 
   // Fetch skill data
   useEffect(() => {

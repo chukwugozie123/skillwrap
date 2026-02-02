@@ -109,6 +109,7 @@ export default function ProfilePage() {
                 alt="avatar"
                 width={140}
                 height={140}
+                unoptimized
                 className="rounded-full border-4 border-cyan-400 object-cover"
               />
               <span className="absolute bottom-2 right-2 bg-green-500 w-4 h-4 rounded-full border-2 border-black" />

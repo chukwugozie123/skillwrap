@@ -256,6 +256,7 @@ interface Props {
   onUploadSuccess?: (newUrl: string) => void;
 }
 
+// const API_URL = "http://localhost:4000";
 const API_URL = "https://skillwrap-backend.onrender.com";
 // const API_URL = "http://localhost:5000";
 
@@ -321,7 +322,7 @@ export default function ProfileAvatarEditor({
         return;
       }
 
-      onUploadSuccess?.(data.imageUrl);
+      onUploadSuccess?.(data.img_url);
       setError(null);
 
     } catch (err: any) {
@@ -349,6 +350,7 @@ export default function ProfileAvatarEditor({
         {displayImage ? (
           <Image
             src={displayImage}
+            unoptimized
             alt="Profile picture"
             fill
             className="object-cover"

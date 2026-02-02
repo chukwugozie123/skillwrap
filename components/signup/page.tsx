@@ -4,6 +4,7 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 
 const API_URL = "https://skillwrap-backend.onrender.com";
+// const API_URL = "http://localhost:4000";
 
 export default function SignupPage() {
   const router = useRouter();
@@ -47,25 +48,26 @@ export default function SignupPage() {
         return;
       }
 
+       router.push(`/login`);
 
-    // sending verification otp
-    const res2 = await fetch(`${API_URL}/send-verification-otp`, {
-  method: "POST",
-  headers: { "Content-Type": "application/json" },
-  body: JSON.stringify({ email }),
-});
+//     // sending verification otp
+//     const res2 = await fetch(`${API_URL}/send-verification-otp`, {
+//   method: "POST",
+//   headers: { "Content-Type": "application/json" },
+//   body: JSON.stringify({ email }),
+// });
 
-const data2 = await res2.json();
+// const data2 = await res2.json();
 
-if (!res2.ok) {
-  setError(
-    data2.error ||
-    "We couldn’t send the verification code. Please try again."
-  );
-  return;
-}
+// if (!res2.ok) {
+//   setError(
+//     data2.error ||
+//     "We couldn’t send the verification code. Please try again."
+//   );
+//   return;
+// }
 
-      router.push(`/verify-email?email=${email}`);
+      // router.push(`/verify-email?email=${email}`);
 
     } catch {
       setError("Server error. Please try again.");

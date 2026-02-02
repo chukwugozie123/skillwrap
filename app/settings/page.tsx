@@ -211,6 +211,7 @@ interface UserType {
   avatar?: string;
   bio?: string;
   mode?: string;
+  img_url?: string;
 }
 
 const MODES = ["learning", "teaching", "exchanging"];
@@ -222,6 +223,7 @@ export default function SettingsPage() {
   const [loading, setLoading] = useState(false);
 
   const API_URL = "https://skillwrap-backend.onrender.com";
+  // const API_URL = "http://localhost:4000"; // Your backend URL
 
   useEffect(() => {
     async function load() {
@@ -273,10 +275,11 @@ export default function SettingsPage() {
       {/* PROFILE CARD */}
       <div className="max-w-xl mx-auto bg-white/10 border border-white/20 backdrop-blur-xl rounded-2xl p-6 flex gap-4 items-center shadow-xl">
         <Image
-          src={user.avatar || "/default-avatar.png"}
+          src={user.img_url|| "/default-avatar.png"}
           alt="avatar"
           width={64}
           height={64}
+          unoptimized
           className="rounded-full border border-blue-400/40"
         />
 

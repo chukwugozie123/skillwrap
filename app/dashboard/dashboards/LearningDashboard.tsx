@@ -17,10 +17,11 @@ export default function LearningDashboard({ stats, user }: any) {
       {/* PROFILE OVERVIEW */}
       <div className="mb-10 p-6 rounded-2xl bg-white/10 border border-white/20 backdrop-blur-xl flex flex-col sm:flex-row items-center gap-6">
         <Image
-          src={user?.image_url || "/avatar.png"}
+          src={user?.img_url || "/avatar.png"}
           alt="Profile"
           width={80}
-          height={80}
+          height={70}
+            unoptimized
           className="rounded-full border border-cyan-400/40"
         />
 

@@ -1,9 +1,22 @@
+// /** @type {import('next').NextConfig} */
+// const nextConfig = {
+//   images: {
+//     domains: ["res.cloudinary.com"],
+//   },
+
+// };
+
+// module.exports = nextConfig;
+
 /** @type {import('next').NextConfig} */
 const nextConfig = {
+  reactStrictMode: true,
   images: {
-    domains: ["res.cloudinary.com"],
+    domains: [
+      "images.unsplash.com", // allow Unsplash images
+      "randomuser.me",      // allow profile pics
+    ],
   },
-
 };
 
 module.exports = nextConfig;

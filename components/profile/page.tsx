@@ -7,6 +7,7 @@ import Link from "next/link";
 import Image from "next/image";
 
 const API_URL = "https://skillwrap-backend.onrender.com";
+// const API_URL = "http://localhost:4000";
 
 interface User {
   username: string;

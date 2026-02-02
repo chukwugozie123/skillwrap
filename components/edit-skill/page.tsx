@@ -391,6 +391,7 @@ interface SkillType {
 }
 
 const API_URL = "https://skillwrap-backend.onrender.com";
+// const API_URL = "http://localhost:4000";
 
 export default function EditSkill() {
   const { id } = useParams<{ id: string }>();

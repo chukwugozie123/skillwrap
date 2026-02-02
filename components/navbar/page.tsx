@@ -20,6 +20,8 @@ export default function Navbar() {
    const API_URL= 'https://skillwrap-backend.onrender.com'
   //  const API_URL = process.env.NEXT_PUBLIC_API_URL;
 
+  // const API_URL = "http://localhost:4000";
+
   // ✅ Fetch user data on mount
   useEffect(() => {
     async function fetchUser() {
@@ -96,6 +98,7 @@ export default function Navbar() {
                       alt={`${user.username}'s profile picture`}
                       width={32}
                       height={32}
+                      unoptimized
                       className="rounded-full border border-white/20"
                     />
                   ) : (
@@ -167,6 +170,7 @@ export default function Navbar() {
                     alt={`${user.username}'s profile picture`}
                     width={32}
                     height={32}
+                    unoptimized
                     className="rounded-full border border-white/20"
                   />
                 ) : (

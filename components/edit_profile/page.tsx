@@ -164,6 +164,7 @@ export default function EditProfile({ initialProfile }: EditProfileProps) {
   const [loading, setLoading] = useState(false);
 
   const API_URL = "https://skillwrap-backend.onrender.com";
+  // const API_URL = "http://localhost:4000";
   const router = useRouter();
 
   async function handleSubmit(e: FormEvent<HTMLFormElement>) {
