@@ -15,6 +15,7 @@ const nextConfig = {
     domains: [
       "images.unsplash.com", // allow Unsplash images
       "randomuser.me",      // allow profile pics
+      "res.cloudinary.com",
     ],
   },
 };
