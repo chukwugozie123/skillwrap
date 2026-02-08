@@ -287,6 +287,20 @@ export default function UploadSkill() {
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-[#05070c] via-[#0b1220] to-[#05070c] text-white p-6">
+     
+                 {/* 🔙 GO BACK BUTTON */}
+      <div className="flex items-center mb-6">
+        <button
+          onClick={() => router.back()}
+          className="flex items-center gap-2 px-4 py-2 rounded-xl 
+          bg-white/10 border border-white/20 backdrop-blur-md
+          text-sm font-medium hover:bg-white/20 hover:scale-105 
+          transition-all duration-300"
+        >
+          ← Go Back
+        </button>
+      </div>
+     
       <form onSubmit={handleSubmit} className="w-full max-w-lg bg-white/10 backdrop-blur-2xl border border-white/20 rounded-2xl p-8 space-y-5">
         <h1 className="text-3xl font-bold text-center bg-gradient-to-r from-cyan-400 to-blue-500 bg-clip-text text-transparent">
           Share Your Skill ✨

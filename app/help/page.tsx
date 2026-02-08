@@ -3,10 +3,11 @@
 import { motion } from "framer-motion";
 import { ChevronDown, Sparkles } from "lucide-react";
 import { useState } from "react";
+import { useRouter } from "next/navigation";
 
 export default function HelpCenterPage() {
   const [open, setOpen] = useState<number | null>(null);
-
+  const router = useRouter()
   const faqs = [
     {
       q: "What is SkillWrap?",
@@ -83,6 +84,18 @@ export default function HelpCenterPage() {
     <div className="min-h-screen bg-gradient-to-br from-[#05070c] via-[#0b1220] to-[#05070c] text-white px-6 py-16">
       <div className="max-w-5xl mx-auto">
 
+            {/* 🔙 GO BACK BUTTON */}
+      <div className="flex items-center mb-6">
+        <button
+          onClick={() => router.back()}
+          className="flex items-center gap-2 px-4 py-2 rounded-xl 
+          bg-white/10 border border-white/20 backdrop-blur-md
+          text-sm font-medium hover:bg-white/20 hover:scale-105 
+          transition-all duration-300"
+        >
+          ← Go Back
+        </button>
+      </div>
         {/* HEADER */}
         <motion.div
           initial={{ opacity: 0, y: -30 }}

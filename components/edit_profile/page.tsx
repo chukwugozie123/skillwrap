@@ -273,8 +273,8 @@ export default function EditProfile({ initialProfile }: EditProfileProps) {
         </form>
 
         <div className="text-center mt-4">
-          <Link href="/dashboard" className="text-blue-400 hover:underline text-sm">
-            ← Back to dashboard
+          <Link href="/profile" className="text-blue-400 hover:underline text-sm">
+            ← Back to profile
           </Link>
         </div>
       </div>

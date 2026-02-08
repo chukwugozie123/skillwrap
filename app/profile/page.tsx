@@ -98,7 +98,7 @@ export default function ProfilePage() {
           <div className="flex flex-col sm:flex-row items-center sm:items-start gap-8">
             {/* Avatar */}
             <div className="relative shrink-0">
- =
+ 
 <ProfileAvatarEditor
   imageUrl={user.img_url}
   username={user.username}
@@ -110,7 +110,7 @@ export default function ProfilePage() {
             </div>
 
 
- <p>mode: {user.mode}</p>
+              <p>mode: {user.mode}</p>
             {/* Info */}
             <div className="flex-1 text-center sm:text-left">
               <h1 className="text-3xl sm:text-4xl font-bold">

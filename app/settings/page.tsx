@@ -202,6 +202,7 @@ import {
 } from "lucide-react";
 import Link from "next/link";
 import Image from "next/image";
+import { useRouter } from "next/navigation";
 
 interface UserType {
   id: number;
@@ -221,6 +222,8 @@ export default function SettingsPage() {
   const [openModePopup, setOpenModePopup] = useState(false);
   const [selectedMode, setSelectedMode] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
+
+  const router = useRouter()
 
   const API_URL = "https://skillwrap-backend.onrender.com";
   // const API_URL = "http://localhost:4000"; // Your backend URL
@@ -269,6 +272,18 @@ export default function SettingsPage() {
 
   return (
     <main className="min-h-screen px-6 py-12 bg-gradient-to-br from-[#05070c] via-[#0b1220] to-[#05070c] text-white">
+            {/* 🔙 GO BACK BUTTON */}
+      <div className="flex items-center mb-6">
+        <button
+          onClick={() => router.back()}
+          className="flex items-center gap-2 px-4 py-2 rounded-xl 
+          bg-white/10 border border-white/20 backdrop-blur-md
+          text-sm font-medium hover:bg-white/20 hover:scale-105 
+          transition-all duration-300"
+        >
+          ← Go Back
+        </button>
+      </div>
 
       <h1 className="text-3xl font-bold text-center mb-10">Settings ⚙️</h1>
 

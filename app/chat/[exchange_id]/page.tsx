@@ -567,6 +567,18 @@ export default function ChatPage() {
   /* ---------------- UI ---------------- */
   return (
     <div className="flex flex-col h-screen bg-[#0c0e1a] text-white">
+                  {/* 🔙 GO BACK BUTTON */}
+      <div className="flex items-center mb-6">
+        <button
+          onClick={() => router.back()}
+          className="flex items-center gap-2 px-4 py-2 rounded-xl 
+          bg-white/10 border border-white/20 backdrop-blur-md
+          text-sm font-medium hover:bg-white/20 hover:scale-105 
+          transition-all duration-300"
+        >
+          ← Go Back
+        </button>
+      </div>
       {!joined ? (
         <div className="flex items-center justify-center h-full">
           <button

@@ -1,12 +1,266 @@
+// "use client";
+
+// import { useEffect, useState } from "react";
+// import Link from "next/link";
+// import { motion } from "framer-motion";
+// import { toast, ToastContainer } from "react-toastify";
+// import "react-toastify/dist/ReactToastify.css";
+// import { Trash2, Edit3, ExternalLink, Youtube } from "lucide-react";
+// import { useRouter } from "next/navigation";
+
+// import SkillImageEditor from "@/components/skillPicture/page";
+
+// interface Skill {
+//   id: string;
+//   title: string;
+//   description: string;
+//   category: string;
+//   level: string;
+//   created_at: string;
+//   skill_img: string;
+
+//   // 🔥 upgraded fields
+//   learningpoint?: string;
+//   portfolio_link?: string | null;
+//   youtubelink?: string | null;
+//   user_id?: number;
+//   skill_img_public_id?: string | null;
+// }
+
+// interface ApiResponse {
+//   success: boolean;
+//   skills: Skill[];
+//   error?: string;
+// }
+
+// export default function ViewSkill() {
+//   const [skills, setSkills] = useState<Skill[]>([]);
+//   const [loading, setLoading] = useState(true);
+//   const router = useRouter();
+
+//   const API_URL = "http://localhost:4000";
+//   // const API_URL = "https://skillwrap-backend.onrender.com";
+
+//   useEffect(() => {
+//     async function fetchSkills() {
+//       try {
+//         const res = await fetch(`${API_URL}/view-skill`, {
+//           credentials: "include",
+//         });
+//         const data: ApiResponse = await res.json();
+
+//         if (!data.success) {
+//           toast.error(data.error || "Failed to load skills");
+//           return;
+//         }
+
+//         setSkills(data.skills);
+//       } catch {
+//         toast.error("Network error");
+//       } finally {
+//         setLoading(false);
+//       }
+//     }
+
+//     fetchSkills();
+//   }, []);
+
+//   async function handleDelete(skillId: string, title: string) {
+//     if (!confirm(`Delete "${title}"?`)) return;
+
+//     try {
+//       const res = await fetch(`${API_URL}/skill/${skillId}`, {
+//         method: "DELETE",
+//         credentials: "include",
+//       });
+
+//       const data = await res.json();
+
+//       if (!data.success) {
+//         toast.error(data.error || "Delete failed");
+//         return;
+//       }
+
+//       setSkills((prev) => prev.filter((s) => s.id !== skillId));
+//       toast.success("Skill deleted");
+//     } catch {
+//       toast.error("Network error");
+//     }
+//   }
+
+//   console.log(skills)
+
+//   if (loading) {
+//     return (
+//       <div className="h-screen grid place-items-center text-blue-300">
+//         Loading skills...
+//       </div>
+//     );
+//   }
+
+//   if (skills.length === 0) {
+//     return (
+//       <div className="h-screen grid place-items-center text-gray-400">
+//         No skills yet 😔
+//       </div>
+//     );
+//   }
+
+//   return (
+//     <main className="min-h-screen bg-gradient-to-br from-[#050617] via-[#0b1220] to-[#05070c] px-6 py-14">
+//       <ToastContainer newestOnTop />
+
+//       <button
+//         onClick={() => router.back()}
+//         className="mb-10 px-5 py-2 rounded-2xl bg-white/10 border border-white/20 hover:bg-white/20 transition"
+//       >
+//         ← Go Back
+//       </button>
+
+//       <h1 className="text-4xl font-extrabold text-center mb-14 bg-gradient-to-r from-blue-400 to-cyan-400 bg-clip-text text-transparent">
+//         Your Skills Dashboard ⚡
+//       </h1>
+
+//       <div className="grid md:grid-cols-2 xl:grid-cols-3 gap-10 max-w-7xl mx-auto">
+//         {skills.map((skill, index) => {
+//           let learningPoints: string[] = [];
+
+//           try {
+//             learningPoints = skill.learningpoint
+//               ? JSON.parse(skill.learningpoint)
+//               : [];
+//           } catch {
+//             learningPoints = [];
+//           }
+
+//           return (
+//             <motion.div
+//               key={skill.id}
+//               initial={{ opacity: 0, y: 40 }}
+//               animate={{ opacity: 1, y: 0 }}
+//               transition={{ delay: index * 0.08 }}
+//               className="bg-white/10 border border-white/20 backdrop-blur-2xl rounded-3xl p-6 hover:scale-[1.02] transition"
+//             >
+//               {/* 🔥 IMAGE EDITOR */}
+//               <SkillImageEditor
+//                 imageUrl={skill.skill_img}
+//                 skillId={skill.id}
+//                 title={skill.title}
+//                 onUploadSuccess={(newUrl) => {
+//                   setSkills((prev) =>
+//                     prev.map((s) =>
+//                       s.id === skill.id ? { ...s, skill_img: newUrl } : s
+//                     )
+//                   );
+//                 }}
+//               />
+
+//               <h2 className="text-2xl font-semibold text-cyan-300 mt-5 capitalize">
+//                 {skill.title}
+//               </h2>
+
+//               <p className="text-gray-300 text-sm mt-2 leading-relaxed">
+//                 {skill.description}
+//               </p>
+
+//               {/* 📌 Learning points */}
+//               {learningPoints.length > 0 && (
+//                 <ul className="mt-4 space-y-2 text-sm text-gray-300 list-disc list-inside">
+//                   {learningPoints.map((point, i) => (
+//                     <li key={i}>{point}</li>
+//                   ))}
+//                 </ul>
+//               )}
+
+//               {/* 🏷 Meta */}
+//               <div className="flex justify-between items-center text-xs text-gray-400 mt-6">
+//                 <span className="px-3 py-1 rounded-full bg-white/10">
+//                   {skill.category}
+//                 </span>
+//                 <span className="px-3 py-1 rounded-full bg-white/10">
+//                   {skill.level}
+//                 </span>
+//               </div>
+
+//               {/* 🔗 Links */}
+//               <div className="mt-5 flex flex-col gap-2">
+//                 {skill.portfolio_link && (
+//                   <a
+//                     href={skill.portfolio_link}
+//                     target="_blank"
+//                     className="flex items-center gap-2 text-cyan-400 text-sm hover:underline"
+//                   >
+//                     <ExternalLink size={15} />
+//                     View Portfolio
+//                   </a>
+//                 )}
+
+//                 {skill.youtubelink && (
+//                   <a
+//                     href={skill.youtubelink}
+//                     target="_blank"
+//                     className="flex items-center gap-2 text-red-400 text-sm hover:underline"
+//                   >
+//                     <Youtube size={15} />
+//                     Watch on YouTube
+//                   </a>
+//                 )}
+//               </div>
+
+//               {/* ⚙ Actions */}
+//               <div className="flex gap-3 mt-7">
+//                 <Link href={`/skill/${skill.id}/edit-skill`} className="flex-1">
+//                   <button className="w-full flex justify-center items-center gap-2 bg-blue-500 hover:bg-blue-600 px-4 py-2 rounded-xl transition">
+//                     <Edit3 size={16} /> Edit
+//                   </button>
+//                 </Link>
+
+//                 <button
+//                   onClick={() => handleDelete(skill.id, skill.title)}
+//                   className="flex-1 flex justify-center items-center gap-2 bg-red-600 hover:bg-red-700 px-4 py-2 rounded-xl transition"
+//                 >
+//                   <Trash2 size={16} /> Delete
+//                 </button>
+//               </div>
+//             </motion.div>
+//           );
+//         })}
+//       </div>
+//     </main>
+//   );
+// }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 "use client";
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
-import Image from "next/image";
 import { motion } from "framer-motion";
 import { toast, ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
-import { Trash2, Edit3 } from "lucide-react";
+import { Trash2, Edit3, ExternalLink, Youtube } from "lucide-react";
+import { useRouter } from "next/navigation";
+
+import SkillImageEditor from "@/components/skillPicture/page";
 
 interface Skill {
   id: string;
@@ -14,8 +268,15 @@ interface Skill {
   description: string;
   category: string;
   level: string;
-  img_url?: string | null;
   created_at: string;
+  skill_img: string;
+
+  // upgraded fields
+  learningpoint?: string;
+  portfolio_link?: string | null;
+  youtubelink?: string | null;
+  user_id?: number;
+  skill_img_public_id?: string | null;
 }
 
 interface ApiResponse {
@@ -26,38 +287,40 @@ interface ApiResponse {
 
 export default function ViewSkill() {
   const [skills, setSkills] = useState<Skill[]>([]);
-  const [loading, setLoading] = useState<boolean>(true);
-  
-  const API_URL = "https://skillwrap-backend.onrender.com";
-// const API_URL = "http://localhost:4000";
+  const [loading, setLoading] = useState(true);
+  const router = useRouter();
 
-  // Fetch skills from backend
+const API_URL = "https://skillwrap-backend.onrender.com";
+  // const API_URL = "http://localhost:4000";
+
+  // Fetch skills
   useEffect(() => {
     async function fetchSkills() {
       try {
-        const res = await fetch(`${API_URL}/view-skill`, { credentials: "include" });
+        const res = await fetch(`${API_URL}/view-skill`, {
+          credentials: "include",
+        });
         const data: ApiResponse = await res.json();
 
         if (!data.success) {
-          toast.error(data.error || "Failed to load skills", { position: "top-right" });
+          toast.error(data.error || "Failed to load skills");
           return;
         }
 
         setSkills(data.skills);
-      } catch (err) {
-        toast.error("Network error — please try again", { position: "top-right" });
+      } catch {
+        toast.error("Network error");
       } finally {
         setLoading(false);
       }
     }
 
     fetchSkills();
-  }, [API_URL]);
+  }, []);
 
-  // Delete skill with proper error handling
+  // Delete skill
   async function handleDelete(skillId: string, title: string) {
-    const confirmDelete = window.confirm(`Delete skill "${title}"?`);
-    if (!confirmDelete) return;
+    if (!confirm(`Delete "${title}"?`)) return;
 
     try {
       const res = await fetch(`${API_URL}/skill/${skillId}`, {
@@ -65,103 +328,161 @@ export default function ViewSkill() {
         credentials: "include",
       });
 
-      const data: { success?: boolean; error?: string } = await res.json();
+      const data = await res.json();
 
-      if (!res.ok || !data.success) {
-        toast.error(data.error || "❌ Failed to delete skill", { position: "top-right" });
+      if (!data.success) {
+        toast.error(data.error || "Delete failed");
         return;
       }
 
-      setSkills((prev) => prev.filter((skill) => skill.id !== skillId));
-      toast.success(`✅ Deleted "${title}" successfully`, { position: "top-right" });
+      setSkills((prev) => prev.filter((s) => s.id !== skillId));
+      toast.success("Skill deleted");
     } catch {
-      toast.error("⚠️ Network error — please try again.", { position: "top-right" });
+      toast.error("Network error");
     }
   }
 
   if (loading) {
     return (
-      <div className="flex justify-center items-center h-screen text-blue-300 text-lg font-josefin">
-        Loading your skills...
+      <div className="h-screen grid place-items-center text-blue-300">
+        Loading skills...
       </div>
     );
   }
 
   if (skills.length === 0) {
     return (
-      <div className="flex justify-center items-center h-screen text-gray-500 text-xl font-semibold font-josefin">
-        You haven’t added any skills yet 😔
+      <div className="h-screen grid place-items-center text-gray-400">
+        No skills yet 😔
       </div>
     );
   }
 
   return (
-    <main className="min-h-screen bg-gradient-to-br from-[#050617] via-[#0b1220] to-[#05070c] text-white px-6 py-14 relative overflow-hidden">
+    <main className="min-h-screen bg-gradient-to-br from-[#050617] via-[#0b1220] to-[#05070c] px-6 py-14">
       <ToastContainer newestOnTop />
 
-      {/* Background Glass Blobs */}
-      <div className="absolute inset-0 -z-10">
-        <div className="absolute top-10 left-10 w-72 h-72 bg-blue-600/20 rounded-full blur-3xl animate-pulse"></div>
-        <div className="absolute bottom-10 right-10 w-72 h-72 bg-purple-600/20 rounded-full blur-3xl animate-pulse delay-300"></div>
-      </div>
+      <button
+        onClick={() => router.back()}
+        className="mb-10 px-5 py-2 rounded-2xl bg-white/10 border border-white/20 hover:bg-white/20 transition"
+      >
+        ← Go Back
+      </button>
 
-      <h1 className="text-4xl font-extrabold text-center mb-12 bg-gradient-to-r from-blue-400 via-purple-400 to-cyan-400 bg-clip-text text-transparent">
+      <h1 className="text-4xl font-extrabold text-center mb-14 bg-gradient-to-r from-blue-400 to-cyan-400 bg-clip-text text-transparent">
         Your Skills Dashboard ⚡
       </h1>
 
-      <div className="grid md:grid-cols-2 xl:grid-cols-3 gap-8 max-w-7xl mx-auto">
-        {skills.map((skill, index) => (
-          <motion.div
-            key={skill.id}
-            initial={{ opacity: 0, y: 30 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: index * 0.1 }}
-            className="relative group bg-white/10 border border-white/20 backdrop-blur-2xl rounded-3xl p-6 shadow-xl hover:scale-[1.02] transition-all"
-          >
-            {skill.img_url && (
-              <div className="relative w-full h-40 mb-4 rounded-xl overflow-hidden">
-                <Image src={skill.img_url} alt={skill.title} fill className="object-cover" />
+      <div className="grid md:grid-cols-2 xl:grid-cols-3 gap-10 max-w-7xl mx-auto">
+        {skills.map((skill, index) => {
+          let learningPoints: string[] = [];
+
+          if (skill.learningpoint) {
+            try {
+              // Handle over-escaped learningpoint JSON
+              let temp = skill.learningpoint;
+              while (typeof temp === "string") {
+                temp = JSON.parse(temp);
+              }
+              learningPoints = Array.isArray(temp) ? temp : [];
+            } catch {
+              learningPoints = [];
+            }
+          }
+
+          return (
+            <motion.div
+              key={skill.id}
+              initial={{ opacity: 0, y: 40 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: index * 0.08 }}
+              className="bg-white/10 border border-white/20 backdrop-blur-2xl rounded-3xl p-6 hover:scale-[1.02] transition"
+            >
+              {/* IMAGE EDITOR */}
+              <SkillImageEditor
+                imageUrl={skill.skill_img}
+                skillId={skill.id}
+                title={skill.title}
+                onUploadSuccess={(newUrl) => {
+                  setSkills((prev) =>
+                    prev.map((s) =>
+                      s.id === skill.id ? { ...s, skill_img: newUrl } : s
+                    )
+                  );
+                }}
+              />
+
+              <h2 className="text-2xl font-semibold text-cyan-300 mt-5 capitalize">
+                {skill.title}
+              </h2>
+
+              <p className="text-gray-300 text-sm mt-2 leading-relaxed">
+                {skill.description}
+              </p>
+
+              {/* Learning Points */}
+              {learningPoints.length > 0 && (
+                <ul className="mt-4 space-y-2 text-sm text-gray-300 list-disc list-inside">
+                  {learningPoints.map((point, i) => (
+                    <li key={i}>{point}</li>
+                  ))}
+                </ul>
+              )}
+
+              {/* Meta */}
+              <div className="flex justify-between items-center text-xs text-gray-400 mt-6">
+                <span className="px-3 py-1 rounded-full bg-white/10">
+                  {skill.category}
+                </span>
+                <span className="px-3 py-1 rounded-full bg-white/10">
+                  {skill.level}
+                </span>
               </div>
-            )}
 
-            <h2 className="text-2xl font-semibold text-blue-300 mb-1">{skill.title}</h2>
-            <p className="text-gray-300 text-sm mb-1">
-              <span className="text-cyan-300 font-medium">Category:</span> {skill.category}
-            </p>
-            <p className="text-gray-400 mb-3 line-clamp-3">{skill.description}</p>
+              {/* Links */}
+              <div className="mt-5 flex flex-col gap-2">
+                {skill.portfolio_link && (
+                  <a
+                    href={skill.portfolio_link}
+                    target="_blank"
+                    className="flex items-center gap-2 text-cyan-400 text-sm hover:underline"
+                  >
+                    <ExternalLink size={15} />
+                    View Portfolio
+                  </a>
+                )}
 
-            <div className="flex justify-between text-sm text-gray-400 mb-4">
-              <p>
-                <span className="text-purple-400 font-medium">Level:</span> {skill.level}
-              </p>
-              <p>
-                Added{" "}
-                {new Date(skill.created_at).toLocaleDateString("en-US", {
-                  month: "short",
-                  day: "numeric",
-                  year: "numeric",
-                })}
-              </p>
-            </div>
+                {skill.youtubelink && (
+                  <a
+                    href={skill.youtubelink}
+                    target="_blank"
+                    className="flex items-center gap-2 text-red-400 text-sm hover:underline"
+                  >
+                    <Youtube size={15} />
+                    Watch on YouTube
+                  </a>
+                )}
+              </div>
 
-            <div className="flex gap-3">
-              <Link href={`/skill/${skill.id}/edit-skill`}>
-                <button className="flex items-center gap-2 bg-blue-500/80 hover:bg-blue-400 px-4 py-2 rounded-xl font-semibold">
-                  <Edit3 className="w-4 h-4" /> Edit
+              {/* Actions */}
+              <div className="flex gap-3 mt-7">
+                <Link href={`/skill/${skill.id}/edit-skill`} className="flex-1">
+                  <button className="w-full flex justify-center items-center gap-2 bg-blue-500 hover:bg-blue-600 px-4 py-2 rounded-xl transition">
+                    <Edit3 size={16} /> Edit
+                  </button>
+                </Link>
+
+                <button
+                  onClick={() => handleDelete(skill.id, skill.title)}
+                  className="flex-1 flex justify-center items-center gap-2 bg-red-600 hover:bg-red-700 px-4 py-2 rounded-xl transition"
+                >
+                  <Trash2 size={16} /> Delete
                 </button>
-              </Link>
-
-              <button
-                onClick={() => handleDelete(skill.id, skill.title)}
-                className="flex items-center gap-2 bg-gradient-to-r from-red-600 to-pink-500 px-4 py-2 rounded-xl font-semibold"
-              >
-                <Trash2 className="w-4 h-4" /> Delete
-              </button>
-            </div>
-          </motion.div>
-        ))}
+              </div>
+            </motion.div>
+          );
+        })}
       </div>
     </main>
   );
 }
-

@@ -2,11 +2,25 @@
 
 import { motion } from "framer-motion";
 import React from "react";
+import { useRouter } from "next/navigation";
 
 export default function PrivacyPage() {
+  const router = useRouter()
   return (
     <div className="min-h-screen bg-gradient-to-br from-[#05070c] via-[#0b1220] to-[#05070c] text-white px-6 py-16">
       <div className="max-w-4xl mx-auto">
+                    {/* 🔙 GO BACK BUTTON */}
+      <div className="flex items-center mb-6">
+        <button
+          onClick={() => router.back()}
+          className="flex items-center gap-2 px-4 py-2 rounded-xl 
+          bg-white/10 border border-white/20 backdrop-blur-md
+          text-sm font-medium hover:bg-white/20 hover:scale-105 
+          transition-all duration-300"
+        >
+          ← Go Back
+        </button>
+      </div>
         {/* TITLE */}
         <motion.h1
           initial={{ opacity: 0, y: -20 }}

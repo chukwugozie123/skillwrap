@@ -374,8 +374,6 @@
 
 
 
-
-
 "use client";
 
 import { useEffect, useState } from "react";
@@ -388,13 +386,21 @@ interface SkillType {
   category: string;
   description: string;
   level: string;
+  youtubelink?: string;
+  portfolio_link?: string;
+  learningpoint?: string;
 }
 
 const API_URL = "https://skillwrap-backend.onrender.com";
 // const API_URL = "http://localhost:4000";
 
 export default function EditSkill() {
-  const { id } = useParams<{ id: string }>();
+  // const params = useParams(); // ✅ correct usage
+  // const id = params?.id as string; // ✅ safely extract id
+
+const params = useParams();
+const id = params.id as string;
+
   const router = useRouter();
 
   const [skill, setSkill] = useState<SkillType | null>(null);
@@ -406,25 +412,33 @@ export default function EditSkill() {
   const [category, setCategory] = useState("");
   const [description, setDesc] = useState("");
   const [level, setLevel] = useState("");
-
+  const [youtubeLink, setYoutubeLink] = useState("");
+  const [portfolioLink, setPortfolioLink] = useState("");
+  const [learningpoint, setLearningpoint] = useState("");
+console.log(id)
   // 🔹 Fetch skill
   useEffect(() => {
     if (!id) return;
 
     async function fetchSkill() {
       try {
-        const res = await fetch(`${API_URL}/skill/${id}`, {
+        const res = await fetch(`${API_URL}/skills/${id}`, {
           credentials: "include",
+          cache: "no-store",
         });
 
         const data = await res.json();
         if (!res.ok) throw new Error(data.error);
 
         setSkill(data.skill);
+
         setTitle(data.skill.title);
         setCategory(data.skill.category);
         setDesc(data.skill.description);
         setLevel(data.skill.level);
+        setYoutubeLink(data.skill.youtubelink || "");
+        setPortfolioLink(data.skill.portfolio_link || "");
+        setLearningpoint(data.skill.learningpoint || "");
       } catch (err) {
         console.error(err);
         setMessage("❌ Failed to load skill");
@@ -447,14 +461,22 @@ export default function EditSkill() {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
         credentials: "include",
-        body: JSON.stringify({ title, category, description, level }),
+        body: JSON.stringify({
+          title,
+          category,
+          description,
+          level,
+          youtubeLink,
+          portfolioLink,
+          learningpoint,
+        }),
       });
 
       const data = await res.json();
 
       if (res.ok) {
         setMessage("✅ Skill updated successfully!");
-        setTimeout(() => router.push("/skills"), 1200);
+        setTimeout(() => router.push("/my-skills"), 1200);
       } else {
         setMessage(data.error || "❌ Failed to update skill");
       }
@@ -485,7 +507,7 @@ export default function EditSkill() {
   }
 
   return (
-    <div className="relative flex items-center justify-center min-h-screen bg-gradient-to-br from-[#0a0f1c] via-[#0f1e3a] to-[#0a0f1c] text-white">
+    <div className="relative flex items-center justify-center min-h-screen bg-gradient-to-br from-[#0a0f1c] via-[#0f1e3a] to-[#0a0f1c] text-white px-4">
       <form
         onSubmit={handleSubmit}
         className="w-full max-w-md p-8 rounded-2xl bg-white/10 backdrop-blur-xl border border-white/10 shadow-xl"
@@ -504,7 +526,7 @@ export default function EditSkill() {
           value={title}
           onChange={(e) => setTitle(e.target.value)}
           disabled={saving}
-          className="w-full p-3 rounded-lg bg-white/10 mb-3 outline-none disabled:opacity-50"
+          className="w-full p-3 rounded-lg bg-white/10 mb-3 outline-none"
           placeholder="Title"
           required
         />
@@ -513,17 +535,18 @@ export default function EditSkill() {
           value={category}
           onChange={(e) => setCategory(e.target.value)}
           disabled={saving}
-          className="w-full p-3 rounded-lg bg-white/10 mb-3 outline-none disabled:opacity-50"
+          className="w-full p-3 rounded-lg bg-white/10 mb-3 outline-none"
           placeholder="Category"
           required
         />
 
-        <input
+        <textarea
           value={description}
           onChange={(e) => setDesc(e.target.value)}
           disabled={saving}
-          className="w-full p-3 rounded-lg bg-white/10 mb-3 outline-none disabled:opacity-50"
+          className="w-full p-3 rounded-lg bg-white/10 mb-3 outline-none resize-none"
           placeholder="Description"
+          rows={3}
           required
         />
 
@@ -531,22 +554,47 @@ export default function EditSkill() {
           value={level}
           onChange={(e) => setLevel(e.target.value)}
           disabled={saving}
-          className="w-full p-3 rounded-lg bg-white/10 mb-5 outline-none disabled:opacity-50"
+          className="w-full p-3 rounded-lg bg-white/10 mb-3 outline-none"
           placeholder="Level"
           required
         />
 
+        <input
+          value={youtubeLink}
+          onChange={(e) => setYoutubeLink(e.target.value)}
+          disabled={saving}
+          className="w-full p-3 rounded-lg bg-white/10 mb-3 outline-none"
+          placeholder="YouTube link"
+        />
+
+        <input
+          value={portfolioLink}
+          onChange={(e) => setPortfolioLink(e.target.value)}
+          disabled={saving}
+          className="w-full p-3 rounded-lg bg-white/10 mb-3 outline-none"
+          placeholder="Portfolio link"
+        />
+
+        <textarea
+          value={learningpoint}
+          onChange={(e) => setLearningpoint(e.target.value)}
+          disabled={saving}
+          className="w-full p-3 rounded-lg bg-white/10 mb-5 outline-none resize-none"
+          placeholder='Learning points (JSON array)'
+          rows={3}
+        />
+
         <button
           disabled={saving}
-          className="w-full py-3 rounded-lg bg-gradient-to-r from-cyan-500 to-blue-500 font-semibold hover:opacity-90 transition disabled:opacity-50"
+          className="w-full py-3 rounded-lg bg-gradient-to-r from-cyan-500 to-blue-500 font-semibold hover:opacity-90 transition"
         >
           {saving ? "Saving..." : "Save Changes"}
         </button>
       </form>
 
       <Link
-        href="/skills"
-        className="absolute bottom-10 left-10 text-blue-400 hover:underline"
+        href="/my-skills"
+        className="absolute bottom-8 left-8 text-blue-400 hover:underline"
       >
         ← Back
       </Link>
