@@ -264,9 +264,10 @@ export default function SkillDetailsPage() {
   const [error, setError] = useState("");
   const [liked, setLiked] = useState(false);
 
-  const API_URL = "https://skillwrap-backend.onrender.com";
-  // const API_URL='http://localhost:4000'
+  // const API_URL = "https://skillwrap-backend.onrender.com";
+  const API_URL='http://localhost:4000'
 
+  console.log(skill, user, 'dskpa')
   // Fetch skill data
   useEffect(() => {
     async function fetchSkill() {
@@ -300,6 +301,8 @@ export default function SkillDetailsPage() {
     fetchUser();
   }, []);
 
+  console.log(skill, user, 'dskpa')
+
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-[#050b19] text-gray-400 animate-pulse">
@@ -328,9 +331,10 @@ export default function SkillDetailsPage() {
       alert("Please choose a mode first in your dashboard.");
       return;
     }
-
+const userMode = user?.mode
     // Store the selected skill in session storage
     sessionStorage.setItem("selectedSkill", JSON.stringify(skill));
+        sessionStorage.setItem("selectedUser", JSON.stringify(userMode));
 
     // Redirect based on user's mode
     if (user.mode === "learning") {
@@ -339,6 +343,8 @@ export default function SkillDetailsPage() {
       router.push("/exchange_skill");
     }
   };
+
+  console.log(user, 'sssddd')
 
   return (
     <div className="relative min-h-screen px-6 py-16 bg-gradient-to-br from-[#020617] via-[#071a36] to-[#020617] text-white overflow-hidden font-['Josefin_Sans']">

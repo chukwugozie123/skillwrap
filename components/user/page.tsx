@@ -169,7 +169,6 @@ export default function UserPage({
 
   const getImageSrc = (skill: Skill) => {
     // Log each skill image
-    console.log(`Skill ID: ${skill.skillId}, skill_img:`, skill.skill_img, ", image_url:", skill.image_url);
     return skill.skill_img || skill.image_url || "/default-skill.png";
   };
 
@@ -184,7 +183,7 @@ export default function UserPage({
       router.push("/exchange_skill");
     }
 
-    console.log("UserMode:", userMode, "Skill clicked:", skill);
+console.log(userMode)
   };
 
   return (

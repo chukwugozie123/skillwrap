@@ -175,17 +175,27 @@ interface Skill {
   title: string;
   user_id?: number;
   ownerId?: number;
+    mode?: "learning" | "teaching" | "exchange" | "exchanging";
+  user?: {
+    id: number;
+    mode: "learning" | "teaching" | "exchange" | "exchanging";
+  };
 }
 
 /* ================= PAGE ================= */
 export default function RequestLearning() {
+    const [myMode, setMyMode] = useState<
+    "learning" | "teaching" | "exchanging" | null
+  >(null);
   const [requestedSkill, setRequestedSkill] = useState<Skill | null>(null);
   const [loading, setLoading] = useState(true);
   const [note, setNote] = useState("");
   const [message, setMessage] = useState("");
 
   const router = useRouter();
+
   const API_URL = "https://skillwrap-backend.onrender.com";
+    // const API_URL = "http://localhost:4000";
 
   /* ================= AUTH CHECK ================= */
   useEffect(() => {
@@ -195,6 +205,10 @@ export default function RequestLearning() {
           credentials: "include",
         });
         if (!res.ok) router.replace("/login");
+
+        
+        const data = await res.json();
+        setMyMode(data.user.mode);
       } catch {
         router.replace("/login");
       }
@@ -214,12 +228,43 @@ export default function RequestLearning() {
     setLoading(false);
   }, [router]);
 
+
+  // ================= VALIDATION =================
+  function isValidExchange() {
+    if (!myMode || !requestedSkill) return false;
+
+    // extract receiver mode safely
+    const receiverRawMode =
+      requestedSkill.user?.mode || requestedSkill.mode;
+
+      console.log(receiverRawMode, 'reciever')
+
+    const receiverMode = (receiverRawMode);
+    console.log(receiverMode, 'reciever')
+
+    if (!receiverMode) return false;
+
+    // Exchange ↔ Exchange
+    if (myMode === "exchanging" && receiverMode === "exchanging") return true;
+
+    // Learning → Teaching
+    if (myMode === "learning" && receiverMode === "teaching") return true;
+
+    return false;
+  }
+
+
   /* ================= SEND LEARNING REQUEST ================= */
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    if (!requestedSkill) {
-      setMessage("⚠️ No skill selected.");
+    if (!requestedSkill || myMode ) {
+      setMessage("⚠️ Missing infomations");
+      return;
+    }
+
+    if (!isValidExchange()) {
+      setMessage("❌ Mode mismatch. Exchange not allowed.");
       return;
     }
 
@@ -231,12 +276,15 @@ export default function RequestLearning() {
     console.log(requestedSkill, 'lll')
 
     const toUserId =
-      requestedSkill.user_id ?? requestedSkill.ownerId;
+      requestedSkill.user?.id ??
+      requestedSkill.user_id ??
+      requestedSkill.ownerId;
 
     const skillRequestedId =
       requestedSkill.skillId ??
       requestedSkill.id ??
       requestedSkill.skill_id;
+
 
 console.log(skillRequestedId, toUserId)
 
@@ -280,6 +328,9 @@ console.log(skillRequestedId, toUserId)
       setMessage("❌ Network error");
     }
   };
+
+    console.log(myMode, requestedSkill, 'neote')
+
 
   if (loading) {
     return <p className="text-center text-cyan-300">Loading...</p>;

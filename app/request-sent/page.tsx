@@ -729,15 +729,15 @@ type RequestItem = {
   to_fullname: string;
   to_username: string;
   requested_skill_title: string;
-  skill_offered?: string;
+skill_offered_title?: string;
   note?: string;
-  mode: "learning" | "teaching" | "exchanging";
+  mode: "learning" | "teaching" | "exchange";
   created_at: string;
   status: string;
 };
 
 interface Props {
-  userMode: "learning" | "teaching" | "exchanging";
+  userMode: "learning" | "teaching" | "exchange";
 }
 
 export default function RequestPage({ userMode }: Props) {
@@ -768,7 +768,7 @@ export default function RequestPage({ userMode }: Props) {
   /* ───────────── DELETE ───────────── */
   async function handleDelete(req: RequestItem) {
     const confirmDelete = window.confirm(
-      `Delete exchange for "${req.skill_offered || req.requested_skill_title}"?`
+      `Delete exchange for "${req.skill_offered_title || req.requested_skill_title}"?`
     );
     if (!confirmDelete) return;
 
@@ -790,6 +790,8 @@ export default function RequestPage({ userMode }: Props) {
     }
   }
 
+
+  console.log(requests, "checking request")
   return (
     <main className="min-h-screen px-6 py-14 bg-gradient-to-br from-[#020617] via-[#0b1228] to-[#1e1b4b] text-white overflow-hidden">
 
@@ -842,12 +844,13 @@ export default function RequestPage({ userMode }: Props) {
                     <span className="text-gray-400">Requested:</span>{" "}
                     {req.requested_skill_title}
                   </p>
+                  
 
                   {/* Show offered skill only if not learning */}
-                  {userMode !== "learning" && req.skill_offered && (
+            {req.mode === "exchange" && req.skill_offered_title && (
                     <p>
                       <span className="text-gray-400">Offered:</span>{" "}
-                      {req.skill_offered}
+                      {req.skill_offered_title}
                     </p>
                   )}
                 </div>
@@ -897,10 +900,11 @@ export default function RequestPage({ userMode }: Props) {
               </p>
 
               {/* Show offered skill if mode allows */}
-              {selectedReq.mode !== "learning" && selectedReq.skill_offered && (
+             {selectedReq.mode === "exchange" && selectedReq.skill_offered_title && (
+
                 <p>
                   <span className="text-gray-400">Offered:</span>{" "}
-                  {selectedReq.skill_offered}
+                  {selectedReq.skill_offered_title}
                 </p>
               )}
 

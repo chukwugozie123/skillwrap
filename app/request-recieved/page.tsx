@@ -491,7 +491,8 @@ export default function ReceivedRequestsPage() {
     }
   };
 
-  console.log(requests)
+  // console.log(requests)
+    console.log(requests, "checking request")
 
   return (
     <main className="min-h-screen bg-gradient-to-br from-[#020617] via-[#0b1228] to-[#1e1b4b] px-6 py-14 text-white">
