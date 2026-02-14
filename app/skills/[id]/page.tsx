@@ -264,8 +264,8 @@ export default function SkillDetailsPage() {
   const [error, setError] = useState("");
   const [liked, setLiked] = useState(false);
 
-  // const API_URL = "https://skillwrap-backend.onrender.com";
-  const API_URL='http://localhost:4000'
+  const API_URL = "https://skillwrap-backend.onrender.com";
+  // const API_URL='http://localhost:4000'
 
   console.log(skill, user, 'dskpa')
   // Fetch skill data

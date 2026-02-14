@@ -162,8 +162,8 @@ export default function SkillsPage() {
 
   const typingTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
-  const API_URL = "http://localhost:4000"; // Your backend URL
-    // const API_URL = "https://skillwrap-backend.onrender.com";
+  // const API_URL = "http://localhost:4000"; // Your backend URL
+    const API_URL = "https://skillwrap-backend.onrender.com";
 
   /* ================= FETCH USER MODE ================= */
   useEffect(() => {
