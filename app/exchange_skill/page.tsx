@@ -438,6 +438,7 @@ export default function ExchangePage() {
   const [message, setMessage] = useState("");
   const [loading, setLoading] = useState(true);
 
+
   // ================= GET MY PROFILE =================
   useEffect(() => {
     async function loadProfile() {
@@ -513,6 +514,8 @@ export default function ExchangePage() {
 
   // ================= SUBMIT =================
   const handleSubmit = async () => {
+
+
     if (!requestedSkill || !myMode) {
       setMessage("⚠️ Missing data");
       return;
@@ -538,6 +541,8 @@ export default function ExchangePage() {
       requestedSkill.id ??
       requestedSkill.skill_id;
 
+      console.log(requestedSkill,selectedMySkillId,myMode, toUserId, 'sdsada')
+
     try {
       const res = await fetch(`${API_URL}/exchange-skill`, {
         method: "POST",
@@ -552,6 +557,7 @@ export default function ExchangePage() {
         }),
       });
 
+  
       if (!res.ok) {
         setMessage("❌ Exchange failed");
         return;

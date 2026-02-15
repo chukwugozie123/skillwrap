@@ -202,7 +202,8 @@ export default function SkillsPage() {
               username: s.username,
               skill_img: s.skillImg,
               image_url: s.image_url,
-              ownerId: s.owner_id,
+              ownerId: s.ownerId,
+              mode: s.mode,
             }))
           : [];
 
@@ -214,7 +215,7 @@ export default function SkillsPage() {
       }
     }, 400);
 
-    console.log(skills, "skills")
+    console.log(skills, "skillss")
 
     return () => {
       if (typingTimeoutRef.current) clearTimeout(typingTimeoutRef.current);

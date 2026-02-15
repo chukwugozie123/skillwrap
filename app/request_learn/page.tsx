@@ -209,6 +209,7 @@ export default function RequestLearning() {
         
         const data = await res.json();
         setMyMode(data.user.mode);
+        console.log(data.user.mode ,' ss')
       } catch {
         router.replace("/login");
       }
@@ -253,12 +254,13 @@ export default function RequestLearning() {
     return false;
   }
 
+  console.log(myMode, requestedSkill)
 
   /* ================= SEND LEARNING REQUEST ================= */
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    if (!requestedSkill || myMode ) {
+    if (!requestedSkill || !myMode ) {
       setMessage("⚠️ Missing infomations");
       return;
     }
@@ -272,7 +274,6 @@ export default function RequestLearning() {
       setMessage("⚠️ Please tell the teacher what you want to gain.");
       return;
     }
-
     console.log(requestedSkill, 'lll')
 
     const toUserId =
