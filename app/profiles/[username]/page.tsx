@@ -221,11 +221,6 @@ export default function ProfilePage() {
         // normalize user_mode to lowercase
         const skillMode = skill.user_mode?.toLowerCase();
 
-        // Current user mode fetched from profile or state
-        // For demonstration, assume myMode is globally available
-        // Replace 'myMode' with your actual state if needed
-        // replace with actual current user mode
-
         // Check mode rules
         if (myMode === "learning" && skillMode === "teaching") {
           actionBtn = {
@@ -233,7 +228,7 @@ export default function ProfilePage() {
             style: "bg-cyan-500 hover:bg-cyan-600",
             onClick: () => {
               sessionStorage.setItem("selectedSkill", JSON.stringify(skill));
-              router.push("/request-learning");
+              router.push("/request_learn");
             },
           };
         } else if (myMode === "exchanging" && skillMode === "exchanging") {
@@ -242,7 +237,7 @@ export default function ProfilePage() {
             style: "bg-purple-500 hover:bg-purple-600",
             onClick: () => {
               sessionStorage.setItem("selectedSkill", JSON.stringify(skill));
-              router.push("/exchange");
+              router.push("/exchange_skill");
             },
           };
         }
