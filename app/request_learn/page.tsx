@@ -176,6 +176,7 @@ interface Skill {
   user_id?: number;
   ownerId?: number;
     mode?: "learning" | "teaching" | "exchange" | "exchanging";
+     user_mode?: "learning" | "teaching" | "exchanging"; 
   user?: {
     id: number;
     mode: "learning" | "teaching" | "exchange" | "exchanging";
@@ -236,7 +237,7 @@ export default function RequestLearning() {
 
     // extract receiver mode safely
     const receiverRawMode =
-      requestedSkill.user?.mode || requestedSkill.mode;
+      requestedSkill.user?.mode || requestedSkill.mode || requestedSkill.user_mode;
 
       console.log(receiverRawMode, 'reciever')
 

@@ -414,6 +414,7 @@ interface Skill {
   user_id?: number;
   ownerId?: number;
   mode?: "learning" | "teaching" | "exchanging";
+  user_mode?: "learning" | "teaching" | "exchanging"; 
   user?: {
     id: number;
     mode: "learning" | "teaching" | "exchanging";
@@ -494,7 +495,7 @@ export default function ExchangePage() {
     if (!myMode || !requestedSkill) return false;
 
     const receiverMode =
-      requestedSkill.user?.mode || requestedSkill.mode;
+      requestedSkill.user?.mode || requestedSkill.mode || requestedSkill.user_mode;
 
     console.log("My mode:", myMode);
     console.log("Receiver mode:", receiverMode);

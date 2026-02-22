@@ -1022,7 +1022,7 @@ export default function DashboardPage() {
         <nav className="p-4 space-y-2 text-sm flex-1">
           <SidebarLink href="/dashboard" icon={<Home />} label="Dashboard" />
           <SidebarLink href="/profile" icon={<User />} label="Profile" />
-          <SidebarLink href="/chat" icon={<MessageCircle />} label="Chat" />
+          <SidebarLink href="/chats" icon={<MessageCircle />} label="Chat" />
           <SidebarLink href="/my-skill" icon={<Layers />} label="My Skills" />
           <SidebarLink href="/request-recieved" icon={<Inbox />} label="Requests Received" />
           <SidebarLink href="/request-sent" icon={<CheckCircle />} label="Requests Sent" />
