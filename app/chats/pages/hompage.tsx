@@ -157,6 +157,7 @@ export default function MyRoomsPage() {
 //   const chatContainerRef = useRef<HTMLDivElement>(null)
 //   const typingTimeoutRef = useRef<NodeJS.Timeout | null>(null)
 
+//   // const API_URL = "http://localhost:4000";
 //   const API_URL = "https://skillwrap-backend.onrender.com"
 
 //   /* ================= LOAD USER ================= */

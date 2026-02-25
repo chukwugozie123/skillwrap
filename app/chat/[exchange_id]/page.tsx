@@ -464,409 +464,308 @@
 
 
 
+// "use client";
 
-
-// "use client"
-
-// import EmojiPicker from "emoji-picker-react"
-// import { Phone, Video, Smile } from "lucide-react"
-// import { useEffect, useRef, useState } from "react"
-// import { useParams } from "next/navigation"
-// import { socket } from "@/lib/socketClient"
+// import EmojiPicker from "emoji-picker-react";
+// import { Smile, X, Paperclip } from "lucide-react";
+// import { useEffect, useRef, useState } from "react";
+// import { useParams } from "next/navigation";
+// import { socket } from "@/lib/socketClient";
+// import AttachmentPopup from "./AttachmentPopup";
 
 // interface Message {
-//   id?: number
-//   username: string
-//   text: string
-//   created_at?: string
+//   id?: number;
+//   username: string;
+//   text: string;
+//   created_at?: string;
 // }
 
 // interface Exchange {
-//   exchange_id: number
-//   from_user_id: number
-//   to_user_id: number
-//   from_username: string
-//   to_username: string
-//   skill_offered_title: string
-//   skill_requested_title: string
-//   exchange_status: string
-//   status: string
-//   created_at: string
-//   mode?: string
-//   note?: string
+//   exchange_id: number;
+//   from_username: string;
+//   to_username: string;
+//   skill_offered_title: string;
+//   skill_requested_title: string;
+//   exchange_status: string;
+//   note?: string;
+// }
+
+// interface Attachment {
+//   duration: number;
+//   intensity: string;
+//   steps: number;
+//   goal: string;
+//   rules: string;
 // }
 
 // export default function ChatPage() {
-//   const params = useParams()
-//   const { exchange_id } = params as { exchange_id: string }
+//   const params = useParams();
+//   const { exchange_id } = params as { exchange_id: string };
 
-//   const API_URL = "https://skillwrap-backend.onrender.com"
+//   // const API_URL = "https://skillwrap-backend.onrender.com";
+//     const API_URL = "http://localhost:4000";
 
-//   const [connected, setConnected] = useState(false)
-//   const [userId, setUserId] = useState<number | null>(null)
-//   const [username, setUsername] = useState("")
-//   const [message, setMessage] = useState("")
-//   const [messages, setMessages] = useState<Message[]>([])
-//   const [typingUser, setTypingUser] = useState("")
-//   const [roomUsers, setRoomUsers] = useState<string[]>([])
-//   const [userCount, setUserCount] = useState(0)
-//   const [showEmoji, setShowEmoji] = useState(false)
-//   const [exchange, setExchange] = useState<Exchange | null>(null)
+//   const [userId, setUserId] = useState<number | null>(null);
+//   const [username, setUsername] = useState("");
+//   const [message, setMessage] = useState("");
+//   const [messages, setMessages] = useState<Message[]>([]);
+//   const [exchange, setExchange] = useState<Exchange | null>(null);
+//   const [attachment, setAttachment] = useState<Attachment | null>(null);
+//   const [showAttachmentPopup, setShowAttachmentPopup] = useState(false);
+//   const [showEmoji, setShowEmoji] = useState(false);
 
-//   const chatContainerRef = useRef<HTMLDivElement>(null)
-//   const typingTimeoutRef = useRef<NodeJS.Timeout | null>(null)
+//   const chatContainerRef = useRef<HTMLDivElement>(null);
 
-//   const room = exchange_id
+//   const room = exchange_id;
+//   const isActive = exchange?.exchange_status === "in progress";
 
 //   /* ================= LOAD USER ================= */
 //   useEffect(() => {
 //     async function fetchUser() {
 //       const res = await fetch(`${API_URL}/auth/profile`, {
 //         credentials: "include",
-//       })
-//       if (!res.ok) return
-//       const data = await res.json()
-//       setUserId(data.user.id)
-//       setUsername(data.user.username)
+//       });
+//       if (!res.ok) return;
+//       const data = await res.json();
+//       setUserId(data.user.id);
+//       setUsername(data.user.username);
 //     }
-//     fetchUser()
-//   }, [])
+//     fetchUser();
+//   }, []);
 
 //   /* ================= LOAD EXCHANGE ================= */
 //   useEffect(() => {
+//     if (!exchange_id) return;
+
 //     async function fetchExchange() {
-//       if (!exchange_id) return
+//       const res = await fetch(`${API_URL}/exchange/${exchange_id}`, {
+//         credentials: "include",
+//       });
+//       if (!res.ok) return;
+//       const data = await res.json();
+//       console.log(data.exchange)
+//       setExchange(data.exchange);
+//     }
+//     fetchExchange();
+//   }, [exchange_id]);
 
-//       const res = await fetch(`https://skillwrap-backend.onrender.com/exchange/${exchange_id}`, {
-//   credentials: "include",
-// })
+//   /* ================= LOAD ATTACHMENT ================= */
+//   useEffect(() => {
+//     if (!exchange_id) return;
 
-      
-//       if (!res.ok) return
-//       const data = await res.json()
-//       setExchange(data.exchange)
+//     async function fetchAttachment() {
+//       const res = await fetch(
+//         `${API_URL}/user/attachment/${exchange_id}`,
+//         {
+//           credentials: "include",
+//         }
+//       );
+
+//       if (!res.ok) return;
+
+//       const data = await res.json();
+
+//       if (data.success && data.attachment) {
+//         console.log("Attachment loaded:", data.attachment);
+//         setAttachment(data.attachment);
+//       }
 //     }
 
-//     fetchExchange()
-//   }, [exchange_id])
+//     fetchAttachment();
+//   }, [exchange_id]);
 
-// /* ================= SOCKET ================= */
-// useEffect(() => {
-//   if (!userId || !room) return
+//   /* ================= SOCKET ================= */
+//   useEffect(() => {
+//     if (!userId || !room) return;
 
-//   socket.connect()
+//     socket.connect();
 
-//   socket.on("connect", () => {
-//     setConnected(true)
+//     socket.on("connect", () => {
+//       socket.emit("enterRoom", { roomId: room, userId });
+//     });
 
-//     // 🔥 FIX: use roomId not roomName
-//     socket.emit("enterRoom", {
-//       roomId: room,   // 👈 FIXED
-//       userId,
-//     })
-//   })
+//     socket.on("previousMessages", (msgs: Message[]) => {
+//       setMessages(msgs);
+//     });
 
-//   socket.on("disconnect", () => setConnected(false))
+//     socket.on("message", (msg: Message) => {
+//       setMessages((prev) => [...prev, msg]);
+//     });
 
-//   socket.on("previousMessages", (msgs: Message[]) => {
-//     setMessages(msgs)
-//   })
-
-//   socket.on("message", (msg: Message) => {
-//     setMessages(prev => [...prev, msg])
-//   })
-
-//   socket.on("typing", ({ name }) => {
-//     if (name === username) return
-//     setTypingUser(name)
-
-//     if (typingTimeoutRef.current)
-//       clearTimeout(typingTimeoutRef.current)
-
-//     typingTimeoutRef.current = setTimeout(() => {
-//       setTypingUser("")
-//     }, 2000)
-//   })
-
-//   socket.on("roomUsers", ({ users, count }) => {
-//     setRoomUsers(users)
-//     setUserCount(count)
-//   })
-
-//   return () => {
-//     socket.disconnect()
-//   }
-// }, [userId, room, username])
+//     return () => {
+//       socket.disconnect();
+//     };
+//   }, [userId, room]);
 
 //   /* ================= AUTO SCROLL ================= */
 //   useEffect(() => {
-//     const container = chatContainerRef.current
-//     if (!container) return
-//     container.scrollTop = container.scrollHeight
-//   }, [messages])
+//     const container = chatContainerRef.current;
+//     if (!container) return;
+//     container.scrollTop = container.scrollHeight;
+//   }, [messages]);
 
 //   /* ================= SEND MESSAGE ================= */
 //   function handleSend(e: React.FormEvent) {
-//     e.preventDefault()
-//     if (!message.trim()) return
+//     e.preventDefault();
+//     if (!message.trim()) return;
 
-
-// socket.emit("message", {
-//   text: message,
-// })
-
-//     setMessage("")
+//     socket.emit("message", { text: message });
+//     setMessage("");
 //   }
 
-//   function handleTyping(value: string) {
-//     setMessage(value)
-//     socket.emit("typing", {
-//       name: username,
-//     })
-//   }
+//   /* ================= HANDLE ATTACHMENT SUBMIT ================= */
+//   const handleAttachmentSubmit = async (data: any) => {
+//     console.log("Submitting attachment:", data);
 
-//   function handleImageUpload(
-//     e: React.ChangeEvent<HTMLInputElement>
-//   ) {
-//     const file = e.target.files?.[0]
-//     if (!file) return
+//     try {
+//       const res = await fetch(`${API_URL}/user/set/attachment`, {
+//         method: "POST",
+//         headers: {
+//           "Content-Type": "application/json",
+//         },
+//         credentials: "include",
+//         body: JSON.stringify({
+//           ...data,
+//           exchange_id,
+//         }),
+//       });
 
-//     const reader = new FileReader()
-//     reader.onloadend = () => {
-//       socket.emit("message", {
-//         text: reader.result,
-//       })
+//       const response = await res.json();
+
+//       console.log(exchange_id, 'checking id')
+//       console.log("Backend response:", response);
+
+//       if (!response.success) {
+//         alert("Failed to set attachment");
+//         return;
+//       }
+
+//       setAttachment(data);
+//       setShowAttachmentPopup(false);
+//     } catch (error) {
+//       console.log("Error:", error);
 //     }
-//     reader.readAsDataURL(file)
-//   }
-
-//   function onEmojiClick(emojiData: any) {
-//     setMessage(prev => prev + emojiData.emoji)
-//   }
-
-//   const isActive = exchange?.exchange_status === "in progress"
+//   };
 
 //   /* ================= UI ================= */
 //   return (
-//     <div className="min-h-screen bg-gradient-to-br from-[#0a0f2c] via-[#0f1b4d] to-[#050816] text-white flex items-center justify-center p-4">
-//       <div className="w-full max-w-7xl h-[92vh] rounded-3xl bg-white/5 border border-blue-900/40 flex overflow-hidden">
+//     <div className="min-h-screen bg-gradient-to-br from-[#0f1b3d] via-[#142f5e] to-[#050816] text-white flex">
 
-//         {/* SIDEBAR */}
-//         <div className="hidden md:flex w-72 bg-blue-950/50 border-r border-blue-900/40 p-6 flex-col">
-//           <h2 className="font-semibold text-lg mb-1">
-//             Participants
-//           </h2>
-//           <p className="text-sm text-blue-300 mb-6">
-//             {userCount} Online
-//           </p>
+//       {/* SIDEBAR */}
+//       <div className="w-80 hidden md:flex flex-col bg-blue-950/60 border-r border-blue-900/50 p-6 space-y-6">
 
-//           {roomUsers.map((u, i) => (
-//             <div
-//               key={i}
-//               className="px-4 py-2 rounded-xl bg-blue-900/40 text-sm"
-//             >
-//               {u}
-//             </div>
-//           ))}
-//         </div>
+//         <h2 className="text-xl font-bold">Exchange Info</h2>
 
-//         {/* CHAT AREA */}
-//         <div className="flex-1 flex flex-col">
+//         {exchange && (
+//           <div className="space-y-2 text-sm text-gray-300">
+//             <p><strong>ID:</strong> {exchange.exchange_id}</p>
+//             <p><strong>Status:</strong> {exchange.exchange_status}</p>
+//             <p><strong>Offered:</strong> {exchange.skill_offered_title}</p>
+//             <p><strong>Requested:</strong> {exchange.skill_requested_title}</p>
+//           </div>
+//         )}
 
-//           {/* HEADER */}
-//           <div className="px-6 py-5 border-b border-blue-900/40 bg-blue-950/60 space-y-4">
-
-//             <div className="flex justify-between items-center">
-//               <div>
-//                 <h2 className="text-xl font-bold">
-//                   Skill Exchange #{exchange?.exchange_id}
-//                 </h2>
-
-//                 {exchange && (
-//                   <p className="text-sm text-blue-300">
-//                     {exchange.from_username} ↔{" "}
-//                     {exchange.to_username}
-//                   </p>
-//                 )}
-
-//                 <p className="text-xs text-gray-400">
-//                   You are: {username}
-//                 </p>
-//               </div>
-
-//               {exchange && (
-//                 <span
-//                   className={`px-4 py-1 text-xs rounded-full font-semibold ${
-//                     exchange.exchange_status ===
-//                     "in progress"
-//                       ? "bg-green-500/20 text-green-400 border border-green-500/40"
-//                       : exchange.exchange_status ===
-//                         "completed"
-//                       ? "bg-purple-500/20 text-purple-400 border border-purple-500/40"
-//                       : "bg-yellow-500/20 text-yellow-400 border border-yellow-500/40"
-//                   }`}
-//                 >
-//                   {exchange.exchange_status}
-//                 </span>
-//               )}
-//             </div>
-
-//             {exchange && (
-//               <div className="bg-blue-900/40 border border-blue-800/40 rounded-2xl p-4 flex flex-col md:flex-row md:items-center md:justify-between gap-4">
-
-//                 <div>
-//                   <p className="text-xs text-blue-300">
-//                     Skill Offered
-//                   </p>
-//                   <p className="font-semibold text-lg">
-//                     {exchange.skill_offered_title}
-//                   </p>
-//                 </div>
-
-//                 <div className="text-2xl text-cyan-400 font-bold">
-//                   ⇄
-//                 </div>
-
-//                 <div>
-//                   <p className="text-xs text-blue-300">
-//                     Skill Requested
-//                   </p>
-//                   <p className="font-semibold text-lg">
-//                     {exchange.skill_requested_title}
-//                   </p>
-//                 </div>
-
-//                 {exchange.note && (
-//                   <div className="text-xs text-gray-300">
-//                     Note: {exchange.note}
-//                   </div>
-//                 )}
-//               </div>
+//         {/* ATTACHMENT DISPLAY */}
+//         {attachment ? (
+//           <div className="bg-gradient-to-br from-cyan-500/20 to-blue-600/20 p-5 rounded-2xl border border-cyan-500/40 space-y-3 shadow-lg">
+//             <h3 className="text-lg font-semibold text-cyan-300">
+//               Session Plan
+//             </h3>
+//             <p><strong>Duration:</strong> {attachment.duration} mins</p>
+//             <p><strong>Intensity:</strong> {attachment.intensity}</p>
+//             <p><strong>Steps:</strong> {attachment.steps}</p>
+//             <p><strong>Goal:</strong> {attachment.goal}</p>
+//             {attachment.rules && (
+//               <p><strong>Rules:</strong> {attachment.rules}</p>
 //             )}
 //           </div>
+//         ) : (
+//           isActive && (
+//             <button
+//               onClick={() => setShowAttachmentPopup(true)}
+//               className="flex items-center justify-center gap-2 bg-cyan-600 hover:bg-cyan-500 transition px-4 py-3 rounded-xl font-semibold"
+//             >
+//               <Paperclip size={16} /> Set Session Plan
+//             </button>
+//           )
+//         )}
+//       </div>
 
-//           {/* MESSAGES */}
-//           <div
-//             ref={chatContainerRef}
-//             className="flex-1 overflow-y-auto p-6 space-y-4"
-//           >
-//             {messages.map((msg, i) => {
-//               const isMe = msg.username === username
-//               const isImage =
-//                 typeof msg.text === "string" &&
-//                 msg.text.startsWith("data:image")
+//       {/* CHAT AREA */}
+//       <div className="flex-1 flex flex-col">
 
-//               return (
+//         {/* MESSAGES */}
+//         <div
+//           ref={chatContainerRef}
+//           className="flex-1 overflow-y-auto p-6 space-y-4"
+//         >
+//           {messages.map((msg, i) => {
+//             const isMe = msg.username === username;
+//             return (
+//               <div
+//                 key={i}
+//                 className={`flex ${
+//                   isMe ? "justify-end" : "justify-start"
+//                 }`}
+//               >
 //                 <div
-//                   key={i}
-//                   className={`flex ${
+//                   className={`max-w-[70%] p-4 rounded-2xl ${
 //                     isMe
-//                       ? "justify-end"
-//                       : "justify-start"
+//                       ? "bg-gradient-to-r from-cyan-400 to-blue-600 text-black"
+//                       : "bg-blue-900/40 border border-blue-800/40"
 //                   }`}
 //                 >
-//                   <div
-//                     className={`max-w-[70%] p-4 rounded-2xl ${
-//                       isMe
-//                         ? "bg-gradient-to-r from-blue-600 to-cyan-500"
-//                         : "bg-blue-900/40 border border-blue-800/40"
-//                     }`}
-//                   >
-//                     {!isMe && (
-//                       <p className="text-xs opacity-60 mb-1">
-//                         {msg.username}
-//                       </p>
-//                     )}
-
-//                     {isImage ? (
-//                       <img
-//                         src={msg.text}
-//                         className="rounded-xl max-h-60"
-//                       />
-//                     ) : (
-//                       <p>{msg.text}</p>
-//                     )}
-
-//                     {msg.created_at && (
-//                       <p className="text-[10px] opacity-40 mt-2 text-right">
-//                         {new Date(
-//                           msg.created_at
-//                         ).toLocaleTimeString()}
-//                       </p>
-//                     )}
-//                   </div>
+//                   <p>{msg.text}</p>
 //                 </div>
-//               )
-//             })}
-//           </div>
+//               </div>
+//             );
+//           })}
+//         </div>
 
-//           {typingUser && (
-//             <div className="px-6 text-xs text-cyan-300">
-//               {typingUser} is typing...
+//         {/* INPUT */}
+//         <form
+//           onSubmit={handleSend}
+//           className="p-4 border-t border-blue-900/40 flex gap-3"
+//         >
+//           <button
+//             type="button"
+//             onClick={() => setShowEmoji(!showEmoji)}
+//             className="p-3 rounded-full bg-blue-900/40"
+//           >
+//             <Smile size={18} />
+//           </button>
+
+//           {showEmoji && (
+//             <div className="absolute bottom-24 left-6">
+//               <EmojiPicker
+//                 onEmojiClick={(e) =>
+//                   setMessage((prev) => prev + e.emoji)
+//                 }
+//               />
 //             </div>
 //           )}
 
-//           {/* INPUT */}
-//           <form
-//             onSubmit={handleSend}
-//             className="p-4 bg-blue-950/60 border-t border-blue-900/40 flex gap-3 items-center"
-//           >
-//             <button
-//               type="button"
-//               onClick={() =>
-//                 setShowEmoji(!showEmoji)
-//               }
-//               className="p-3 rounded-full bg-blue-900/40"
-//               disabled={!isActive}
-//             >
-//               <Smile size={18} />
-//             </button>
+//           <input
+//             value={message}
+//             onChange={(e) => setMessage(e.target.value)}
+//             className="flex-1 p-3 rounded-full bg-blue-900/40 border border-blue-800 focus:outline-none"
+//             placeholder="Type a message..."
+//           />
 
-//             {showEmoji && isActive && (
-//               <div className="absolute bottom-24 left-6 z-50">
-//                 <EmojiPicker
-//                   onEmojiClick={onEmojiClick}
-//                 />
-//               </div>
-//             )}
-
-//             <input
-//               value={message}
-//               disabled={!isActive}
-//               onChange={e =>
-//                 handleTyping(e.target.value)
-//               }
-//               className="flex-1 p-3 rounded-full bg-blue-900/40 border border-blue-800 focus:outline-none disabled:opacity-40"
-//               placeholder={
-//                 isActive
-//                   ? "Type a message..."
-//                   : "Exchange is not active"
-//               }
-//             />
-
-//             <label
-//               className="cursor-pointer bg-blue-800 px-4 py-3 rounded-full disabled:opacity-40"
-//             >
-//               📷
-//               <input
-//                 type="file"
-//                 hidden
-//                 onChange={handleImageUpload}
-//                 disabled={!isActive}
-//               />
-//             </label>
-
-//             <button
-//               disabled={!isActive}
-//               className="bg-gradient-to-r from-blue-600 to-cyan-500 px-6 py-3 rounded-full disabled:opacity-40"
-//             >
-//               Send
-//             </button>
-//           </form>
-//         </div>
+//           <button className="bg-gradient-to-r from-cyan-400 to-blue-600 px-6 py-3 rounded-full">
+//             Send
+//           </button>
+//         </form>
 //       </div>
+
+//       {showAttachmentPopup && (
+//         <AttachmentPopup
+//           onClose={() => setShowAttachmentPopup(false)}
+//           onSubmit={handleAttachmentSubmit}
+//         />
+//       )}
 //     </div>
-//   )
+//   );
 // }
 
 
@@ -907,6 +806,406 @@
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+// "use client";
+
+// import EmojiPicker from "emoji-picker-react";
+// import { Smile, Paperclip } from "lucide-react";
+// import { useEffect, useRef, useState } from "react";
+// import { useParams, useRouter } from "next/navigation";
+// import { socket } from "@/lib/socketClient";
+// import AttachmentPopup from "./AttachmentPopup";
+
+// interface Message {
+//   id?: number;
+//   username: string;
+//   text: string;
+//   created_at?: string;
+// }
+
+// interface Exchange {
+//   exchange_id: number;
+//   from_username: string;
+//   to_username: string;
+//   skill_offered_title: string;
+//   skill_requested_title: string;
+//   exchange_status: string;
+//   created_at?: string;
+// }
+
+// interface Attachment {
+//   duration: number;
+//   intensity: string;
+//   steps: number;
+//   goal: string;
+//   rules: string;
+// }
+
+// export default function ChatPage() {
+//   const params = useParams();
+//   const router = useRouter();
+//   const { exchange_id } = params as { exchange_id: string };
+
+//   const API_URL = "http://localhost:4000";
+
+//   const [userId, setUserId] = useState<number | null>(null);
+//   const [username, setUsername] = useState("");
+//   const [message, setMessage] = useState("");
+//   const [messages, setMessages] = useState<Message[]>([]);
+//   const [exchange, setExchange] = useState<Exchange | null>(null);
+//   const [attachment, setAttachment] = useState<Attachment | null>(null);
+//   const [showAttachmentPopup, setShowAttachmentPopup] = useState(false);
+//   const [showEmoji, setShowEmoji] = useState(false);
+//   const [countdown, setCountdown] = useState("");
+//   const [showExchangePopup, setShowExchangePopup] = useState(false);
+//   const [showtyping, setShowTyping] = useState(false)
+//   const [quitPopup, setQuitPopup] = useState(false);
+
+//   const chatContainerRef = useRef<HTMLDivElement>(null);
+
+//   const room = exchange_id;
+//   const isActive = exchange?.exchange_status === "in progress";
+
+//   // ✅ ADDED LOCK CHECK
+//   const isLocked =
+//     exchange?.exchange_status === "cancelled" ||
+//     exchange?.exchange_status === "completed";
+
+//   /* ================= LOAD USER ================= */
+//   useEffect(() => {
+//     async function fetchUser() {
+//       const res = await fetch(`${API_URL}/auth/profile`, { credentials: "include" });
+//       if (!res.ok) return;
+//       const data = await res.json();
+//       setUserId(data.user.id);
+//       setUsername(data.user.username);
+//     }
+//     fetchUser();
+//   }, []);
+
+//   /* ================= LOAD EXCHANGE ================= */
+//   useEffect(() => {
+//     if (!exchange_id) return;
+//     async function fetchExchange() {
+//       const res = await fetch(`${API_URL}/exchange/${exchange_id}`, { credentials: "include" });
+//       if (!res.ok) return;
+//       const data = await res.json();
+//       setExchange(data.exchange);
+//     }
+//     fetchExchange();
+//   }, [exchange_id]);
+
+//   /* ================= LOAD ATTACHMENT ================= */
+//   useEffect(() => {
+//     if (!exchange_id) return;
+//     async function fetchAttachment() {
+//       const res = await fetch(`${API_URL}/user/attachment/${exchange_id}`, { credentials: "include" });
+//       if (!res.ok) return;
+//       const data = await res.json();
+//       if (data.success && data.attachment) setAttachment(data.attachment);
+//     }
+//     fetchAttachment();
+//   }, [exchange_id]);
+
+//   /* ================= SOCKET ================= */
+//   useEffect(() => {
+//     if (!userId || !room) return;
+
+//     if (!socket.connected) socket.connect();
+
+//     const onConnect = () => {
+//       socket.emit("enterRoom", { roomId: parseInt(room), userId });
+//     };
+
+//     socket.on("connect", onConnect);
+
+//     socket.on("previousMessages", (msgs: Message[]) => {
+//       setMessages(msgs);
+//     });
+
+//     socket.on("message", (msg: Message) => {
+//       setMessages((prev) => [...prev, msg]);
+//     });
+
+//     socket.on("countdown", (time: string) => {
+//       setCountdown(time);
+//     });
+
+//     socket.on("countdownEnded", async () => {
+//       await fetch(`${API_URL}/exchange/update-status`, {
+//         method: "PATCH",
+//         credentials: "include",
+//         headers: { "Content-Type": "application/json" },
+//         body: JSON.stringify({ exchange_id, exchange_status: "completed" }),
+//       });
+//       setShowExchangePopup(true);
+//     });
+
+//     socket.on("exchangeQuit", async () => {
+//       alert("Exchange was quit by a participant.");
+//       await fetch(`${API_URL}/exchange/update-status`, {
+//         method: "PATCH",
+//         credentials: "include",
+//         headers: { "Content-Type": "application/json" },
+//         body: JSON.stringify({ exchange_id, exchange_status: "cancelled" }),
+//       });
+//       router.push(`/review/${exchange_id}`);
+//     });
+
+//     socket.on("typing", async() => {
+//       setShowTyping(true)
+//     })
+
+//     return () => {
+//       socket.off("connect", onConnect);
+//       socket.off("previousMessages");
+//       socket.off("message");
+//       socket.off("countdown");
+//       socket.off("countdownEnded");
+//       socket.off("exchangeQuit");
+//     };
+//   }, [userId, room]);
+
+//   /* ================= AUTO SCROLL ================= */
+//   useEffect(() => {
+//     const container = chatContainerRef.current;
+//     if (!container) return;
+//     container.scrollTop = container.scrollHeight;
+//   }, [messages]);
+
+//   /* ================= SEND ================= */
+//   function handleSend(e: React.FormEvent) {
+//     e.preventDefault();
+//     if (isLocked) return; // ✅ BLOCK SEND
+//     if (!message.trim()) return;
+//     socket.emit("message", { text: message });
+//     console.log('emmites message', message)
+//     setMessage("");
+//   }
+
+//   /* ================= ATTACHMENT ================= */
+//   const handleAttachmentSubmit = async (data: any) => {
+//     const res = await fetch(`${API_URL}/user/set/attachment`, {
+//       method: "POST",
+//       headers: { "Content-Type": "application/json" },
+//       credentials: "include",
+//       body: JSON.stringify({ ...data, exchange_id }),
+//     });
+//     const response = await res.json();
+//     if (!response.success) return alert("Attachment failed");
+//     setAttachment(data);
+//     setShowAttachmentPopup(false);
+//   };
+
+//   /* ================= START ================= */
+//   const startCountdown = () => {
+//     if (isLocked) return; // ✅ BLOCK START
+//     if (attachment && room && exchange) {
+//       socket.emit("startCountdown", {
+//         roomId: parseInt(room),
+//         exchangeId: exchange.exchange_id,
+//         duration: attachment.duration,
+//       });
+//     }
+//   };
+
+//   /* ================= QUIT ================= */
+//   const handleQuitExchange = () => {
+//     if (isLocked) return; // ✅ BLOCK QUIT
+//     setQuitPopup(true)
+//     if (confirm("Are you sure you want to quit this exchange?")) {
+//       socket.emit("quitExchange", {
+//         roomId: parseInt(room),
+//         exchangeId: exchange?.exchange_id,
+//       });
+//     }
+//   };
+
+  
+
+//   return (
+//     <div className="min-h-screen bg-[#0b1120] text-white flex flex-col">
+
+//       {/* HEADER */}
+//       <div className="w-full bg-[#111827] border-b border-gray-800 px-6 py-6 space-y-4">
+//         {exchange && (
+//           <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+//             <div>
+//               <h2 className="text-2xl font-bold">
+//                 {exchange.from_username} ↔ {exchange.to_username}
+//               </h2>
+//               <p className="text-sm text-gray-400 mt-1">
+//                 {exchange.skill_offered_title} ⇄ {exchange.skill_requested_title}
+//               </p>
+//               <span className="inline-block mt-2 text-xs px-3 py-1 bg-green-600 rounded-full">
+//                 {exchange.exchange_status}
+//               </span>
+//             </div>
+
+//             {attachment ? (
+//               <div className="bg-gradient-to-r from-cyan-500/20 to-blue-600/20 border border-cyan-400/40 p-5 rounded-2xl w-full md:w-[400px] space-y-2">
+//                 <h3 className="text-cyan-300 font-semibold text-lg">Session Plan</h3>
+//                 <p><strong>Duration:</strong> {attachment.duration} mins</p>
+//                 <p><strong>Intensity:</strong> {attachment.intensity}</p>
+//                 <p><strong>Steps:</strong> {attachment.steps}</p>
+//                 <p><strong>Goal:</strong> {attachment.goal}</p>
+//                 {attachment.rules && <p><strong>Rules:</strong> {attachment.rules}</p>}
+//                 <div className="mt-3 text-center text-sm font-semibold text-yellow-400">
+//                   ⏳ {countdown}
+//                 </div>
+
+//                 <div className="flex gap-2 mt-2">
+//                   <button disabled={isLocked} onClick={startCountdown} className="bg-green-600 px-4 py-2 rounded-md">
+//                     Start Session
+//                   </button>
+//                   <button disabled={isLocked} onClick={handleQuitExchange} className="bg-red-600 px-4 py-2 rounded-md">
+//                     Quit Exchange
+//                   </button>
+//                 </div>
+//               </div>
+//             ) : (
+//               isActive && !isLocked && (
+//                 <button
+//                   onClick={() => setShowAttachmentPopup(true)}
+//                   className="bg-cyan-600 hover:bg-cyan-500 px-6 py-3 rounded-xl font-semibold"
+//                 >
+//                   <Paperclip size={16} className="inline mr-2" />
+//                   Set Session Plan
+//                 </button>
+//               )
+//             )}
+//           </div>
+//         )}
+//       </div>
+
+//       {/* CHAT */}
+//       <div ref={chatContainerRef} className="flex-1 overflow-y-auto p-6 space-y-4">
+//         {messages.map((msg, i) => {
+//           const isMe = msg.username === username;
+//           return (
+//             <div key={i} className={`flex ${isMe ? "justify-end" : "justify-start"}`}>
+//               <div className={`max-w-[70%] p-4 rounded-2xl ${isMe ? "bg-gradient-to-r from-cyan-400 to-blue-600 text-black" : "bg-[#1f2937]"}`}>
+//                 <p>{msg.text}</p>
+//               </div>
+//             </div>
+//           );
+//         })}
+//       </div>
+
+//       {/* INPUT */}
+//       {isLocked ? (
+//         <div className="p-4 border-t border-gray-800 bg-[#111827] text-center text-red-400 font-semibold">
+//           This exchange has been {exchange?.exchange_status}. Chat is locked.
+//         </div>
+//       ) : (
+//         <form onSubmit={handleSend} className="p-4 border-t border-gray-800 flex gap-3 bg-[#111827]">
+//           <button type="button" onClick={() => setShowEmoji(!showEmoji)} className="p-3 rounded-full bg-[#1f2937]">
+//             <Smile size={18} />
+//           </button>
+
+//           {showEmoji && (
+//             <div className="absolute bottom-24 left-6 z-50">
+//               <EmojiPicker onEmojiClick={(e) => setMessage(prev => prev + e.emoji)} />
+//             </div>
+//           )}
+
+//           <input
+//             value={message}
+//             onChange={(e) => setMessage(e.target.value)}
+//             className="flex-1 p-3 rounded-full bg-[#1f2937] border border-gray-700 focus:outline-none"
+//             placeholder="Type a message..."
+//           />
+
+//           <button className="bg-gradient-to-r from-cyan-400 to-blue-600 px-6 py-3 rounded-full">
+//             Send
+//           </button>
+//         </form>
+//       )}
+
+
+//        {showExchangePopup && (
+//         <div className="fixed inset-0 flex items-center justify-center bg-black/70 z-50">
+//           <div className="bg-[#111827] p-6 rounded-xl space-y-4 w-[90%] max-w-md">
+//             <h2 className="text-xl font-bold">Exchange Completed</h2>
+//             <p>Would you like to leave a review or continue this exchange?</p>
+//             <div className="flex gap-3 justify-end mt-4">
+//               <button onClick={() => router.push(`/review/${exchange_id}`)} className="bg-green-600 hover:bg-green-500 px-4 py-2 rounded-md">Leave Review</button>
+//               <button onClick={() => { setShowExchangePopup(false); setAttachment(null); }} className="bg-blue-600 hover:bg-blue-500 px-4 py-2 rounded-md">Continue Exchange</button>
+//             </div>
+//           </div>
+//         </div>
+//       )}
+
+//       {/* ❗ QUIT POPUP */}
+//       {quitPopup && (
+//         <div className="fixed inset-0 bg-black/80 flex items-center justify-center px-4">
+//           <div className="max-w-md w-full bg-[#111827] border border-red-500/30 rounded-2xl p-6 text-center shadow-xl">
+//             <h2 className="text-xl font-bold text-red-400 mb-3">
+//               Quit Skill Exchange?
+//             </h2>
+//             <p className="text-gray-300 mb-5 text-sm leading-relaxed">
+//               Leaving now will cancel this exchange and may affect your rating.
+//             </p>
+//             <div className="flex gap-3 justify-center">
+//               <button
+//                 onClick={() => setQuitPopup(false)}
+//                 className="px-4 py-2 rounded-xl bg-gray-600 hover:bg-gray-700"
+//               >
+//                 Stay
+//               </button>
+//               <button
+//                 onClick={handleQuitExchange}
+//                 className="px-4 py-2 rounded-xl bg-red-600 hover:bg-red-700"
+//               >
+//                 Quit & Review
+//               </button>
+//             </div>
+//           </div>
+//         </div>
+//       )}
+
+    
+//       {showAttachmentPopup && (
+//         <AttachmentPopup
+//           onClose={() => setShowAttachmentPopup(false)}
+//           onSubmit={handleAttachmentSubmit}
+//         />
+//       )}
+
+//     </div>
+//   );
+// }
+
+
+// // see upgrade this part of the app.
+// // 1. when they press quit exchange show a popup for confirmation not alert in the popup ask if they want to end the exchnage and also tell them they would leave a review add 2 btn contine or remove/x icon add more text oo still do the noraml logic oo redirect toreview/exchange_id
+// // 2.  fix the typing indicatior . i think that all.. if any other thing tell me
+// // use this backend socket to do the typing and remneber dont touch my logic 
+//   /* ================= TYPING ================= */
+//   // socket.on("typing", ({ name }) => {
+//   //   const user = activeUsers.find(u => u.socketId === socket.id);
+//   //   if (!user) return;
+//   //   socket.to(user.socketRoom).emit("typing", { name });
+//   // });
 
 
 
@@ -929,9 +1228,9 @@
 "use client";
 
 import EmojiPicker from "emoji-picker-react";
-import { Phone, Video, Smile, Menu, X, Paperclip } from "lucide-react";
+import { Smile, Paperclip, X } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
-import { useParams } from "next/navigation";
+import { useParams, useRouter } from "next/navigation";
 import { socket } from "@/lib/socketClient";
 import AttachmentPopup from "./AttachmentPopup";
 
@@ -944,47 +1243,57 @@ interface Message {
 
 interface Exchange {
   exchange_id: number;
-  from_user_id: number;
-  to_user_id: number;
   from_username: string;
   to_username: string;
   skill_offered_title: string;
   skill_requested_title: string;
   exchange_status: string;
-  status: string;
-  created_at: string;
-  note?: string;
+  created_at?: string;
+}
+
+interface Attachment {
+  duration: number;
+  intensity: string;
+  steps: number;
+  goal: string;
+  rules: string;
 }
 
 export default function ChatPage() {
   const params = useParams();
+  const router = useRouter();
   const { exchange_id } = params as { exchange_id: string };
-  const API_URL = "https://skillwrap-backend.onrender.com";
 
-  const [connected, setConnected] = useState(false);
+  // const API_URL = "http://localhost:4000";
+   const API_URL = "https://skillwrap-backend.onrender.com"
+
   const [userId, setUserId] = useState<number | null>(null);
   const [username, setUsername] = useState("");
   const [message, setMessage] = useState("");
   const [messages, setMessages] = useState<Message[]>([]);
-  const [typingUser, setTypingUser] = useState("");
-  const [roomUsers, setRoomUsers] = useState<string[]>([]);
-  const [userCount, setUserCount] = useState(0);
-  const [showEmoji, setShowEmoji] = useState(false);
   const [exchange, setExchange] = useState<Exchange | null>(null);
-  const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [attachment, setAttachment] = useState<Attachment | null>(null);
   const [showAttachmentPopup, setShowAttachmentPopup] = useState(false);
+  const [showEmoji, setShowEmoji] = useState(false);
+  const [countdown, setCountdown] = useState("");
+  const [showExchangePopup, setShowExchangePopup] = useState(false);
+  const [showTyping, setShowTyping] = useState(false);
+  const [quitPopup, setQuitPopup] = useState(false);
 
   const chatContainerRef = useRef<HTMLDivElement>(null);
-  const typingTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
   const room = exchange_id;
   const isActive = exchange?.exchange_status === "in progress";
+  const isLocked =
+    exchange?.exchange_status === "cancelled" ||
+    exchange?.exchange_status === "completed";
 
-  // USER LOAD
+  /* ================= LOAD USER ================= */
   useEffect(() => {
     async function fetchUser() {
       const res = await fetch(`${API_URL}/auth/profile`, { credentials: "include" });
-      if (!res.ok) return;
+      // if (!res.ok) return;
+        if (!res.ok) return router.push("/login");
       const data = await res.json();
       setUserId(data.user.id);
       setUsername(data.user.username);
@@ -992,195 +1301,305 @@ export default function ChatPage() {
     fetchUser();
   }, []);
 
-  // EXCHANGE LOAD
+  /* ================= LOAD EXCHANGE ================= */
   useEffect(() => {
     if (!exchange_id) return;
     async function fetchExchange() {
       const res = await fetch(`${API_URL}/exchange/${exchange_id}`, { credentials: "include" });
-      if (!res.ok) return;
+      // if (!res.ok) return;
+        if (!res.ok) return router.push("/dashboard");
       const data = await res.json();
       setExchange(data.exchange);
     }
     fetchExchange();
   }, [exchange_id]);
 
-  // SOCKET
+  /* ================= LOAD ATTACHMENT ================= */
+  useEffect(() => {
+    if (!exchange_id) return;
+    async function fetchAttachment() {
+      const res = await fetch(`${API_URL}/user/attachment/${exchange_id}`, { credentials: "include" });
+      if (!res.ok) return;
+      const data = await res.json();
+      if (data.success && data.attachment) setAttachment(data.attachment);
+    }
+    fetchAttachment();
+  }, [exchange_id]);
+
+  /* ================= SOCKET ================= */
   useEffect(() => {
     if (!userId || !room) return;
-    socket.connect();
-    socket.on("connect", () => {
-      setConnected(true);
-      socket.emit("enterRoom", { roomId: room, userId });
-    });
-    socket.on("disconnect", () => setConnected(false));
+
+    if (!socket.connected) socket.connect();
+
+    const onConnect = () => {
+      socket.emit("enterRoom", { roomId: parseInt(room), userId });
+    };
+
+    socket.on("connect", onConnect);
+
     socket.on("previousMessages", (msgs: Message[]) => setMessages(msgs));
     socket.on("message", (msg: Message) => setMessages(prev => [...prev, msg]));
-    socket.on("typing", ({ name }) => {
-      if (name === username) return;
-      setTypingUser(name);
-      if (typingTimeoutRef.current) clearTimeout(typingTimeoutRef.current);
-      typingTimeoutRef.current = setTimeout(() => setTypingUser(""), 2000);
+    socket.on("countdown", (time: string) => setCountdown(time));
+
+    socket.on("countdownEnded", async () => {
+      await fetch(`${API_URL}/exchange/update-status`, {
+        method: "PATCH",
+        credentials: "include",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ exchange_id, exchange_status: "completed" }),
+      });
+      setShowExchangePopup(true);
     });
-    socket.on("roomUsers", ({ users, count }) => {
-      setRoomUsers(users);
-      setUserCount(count);
+
+    socket.on("exchangeQuit", async () => {
+      router.push(`/review/${exchange_id}`);
+    });
+
+    // ================= TYPING =================
+    socket.on("typing", ({ name }: { name: string }) => {
+      if (name !== username) {
+        setShowTyping(true);
+        setTimeout(() => setShowTyping(false), 2000); // hide after 2s
+      }
     });
 
     return () => {
-      socket.off("connect");
-      socket.off("disconnect");
+      socket.off("connect", onConnect);
       socket.off("previousMessages");
       socket.off("message");
+      socket.off("countdown");
+      socket.off("countdownEnded");
+      socket.off("exchangeQuit");
       socket.off("typing");
-      socket.off("roomUsers");
-      socket.disconnect();
     };
   }, [userId, room, username]);
 
-  // AUTO SCROLL
+  /* ================= AUTO SCROLL ================= */
   useEffect(() => {
     const container = chatContainerRef.current;
     if (!container) return;
     container.scrollTop = container.scrollHeight;
   }, [messages]);
 
-  // SEND MESSAGE
+  /* ================= SEND ================= */
   function handleSend(e: React.FormEvent) {
     e.preventDefault();
-    if (!message.trim()) return;
+    if (isLocked || !message.trim()) return;
     socket.emit("message", { text: message });
     setMessage("");
-  }
-
-  function handleTyping(value: string) {
-    setMessage(value);
     socket.emit("typing", { name: username });
   }
 
-  function handleImageUpload(e: React.ChangeEvent<HTMLInputElement>) {
-    const file = e.target.files?.[0];
-    if (!file) return;
-    const reader = new FileReader();
-    reader.onloadend = () => socket.emit("message", { text: reader.result });
-    reader.readAsDataURL(file);
-  }
+  /* ================= ATTACHMENT ================= */
+  const handleAttachmentSubmit = async (data: any) => {
+    const res = await fetch(`${API_URL}/user/set/attachment`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      credentials: "include",
+      body: JSON.stringify({ ...data, exchange_id }),
+    });
+    const response = await res.json();
+    if (!response.success) return alert("Attachment failed");
+    setAttachment(data);
+    setShowAttachmentPopup(false);
+  };
 
-  function onEmojiClick(emojiData: any) {
-    setMessage(prev => prev + emojiData.emoji);
-  }
+  /* ================= START ================= */
+  const startCountdown = () => {
+    if (isLocked) return;
+    if (attachment && room && exchange) {
+      socket.emit("startCountdown", {
+        roomId: parseInt(room),
+        exchangeId: exchange.exchange_id,
+        duration: attachment.duration,
+      });
+    }
+  };
 
-  const handleAttachmentSubmit = (data: any) => {
-    socket.emit("message", { text: `Attachment: ${JSON.stringify(data)}` });
+  /* ================= QUIT ================= */
+  const handleQuitExchange = () => {
+    if (isLocked) return;
+    setQuitPopup(true);
+  };
+
+  /* ================= CONFIRM QUIT ================= */
+  const confirmQuit = () => {
+    socket.emit("quitExchange", {
+      roomId: parseInt(room),
+      exchangeId: exchange?.exchange_id,
+    });
+    router.push(`/review/${exchange_id}`);
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-[#0f1b3d] via-[#142f5e] to-[#050816] text-white flex flex-col md:flex-row">
-      {/* SIDEBAR */}
-      <div
-        className={`fixed md:relative z-50 top-0 left-0 h-full w-72 bg-blue-950/60 border-r border-blue-900/50 p-6 flex flex-col transform ${sidebarOpen ? "translate-x-0" : "-translate-x-full"} md:translate-x-0 transition-transform duration-300`}
-      >
-        <div className="flex justify-between md:hidden mb-4">
-          <h2 className="text-lg font-bold">Participants</h2>
-          <button onClick={() => setSidebarOpen(false)}>
-            <X size={24} />
-          </button>
-        </div>
+    <div className="min-h-screen bg-[#0b1120] text-white flex flex-col">
 
-        <h2 className="font-semibold text-lg mb-1">Participants</h2>
-        <p className="text-sm text-cyan-400 mb-4">{userCount} Online</p>
-        {roomUsers.map((u, i) => (
-          <div key={i} className="px-4 py-2 rounded-xl bg-blue-900/40 text-sm mb-1 truncate">{u}</div>
-        ))}
-
+      {/* HEADER */}
+      <div className="w-full bg-[#111827] border-b border-gray-800 px-6 py-6 space-y-4">
         {exchange && (
-          <div className="mt-6 border-t border-blue-800/40 pt-4 space-y-2 text-gray-300 text-sm">
-            <p>Exchange ID: {exchange.exchange_id}</p>
-            <p>Status: {exchange.exchange_status}</p>
-            <p>Skill Offered: {exchange.skill_offered_title}</p>
-            <p>Skill Requested: {exchange.skill_requested_title}</p>
-            {exchange.note && <p>Note: {exchange.note}</p>}
+          <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+            <div>
+              <h2 className="text-2xl font-bold">
+                {exchange.from_username} ↔ {exchange.to_username}
+              </h2>
+              <p className="text-sm text-gray-400 mt-1">
+                {exchange.skill_offered_title} ⇄ {exchange.skill_requested_title}
+              </p>
+              <span className="inline-block mt-2 text-xs px-3 py-1 bg-green-600 rounded-full">
+                {exchange.exchange_status}
+              </span>
+            </div>
+
+            {attachment ? (
+              <div className="bg-gradient-to-r from-cyan-500/20 to-blue-600/20 border border-cyan-400/40 p-5 rounded-2xl w-full md:w-[400px] space-y-2">
+                <h3 className="text-cyan-300 font-semibold text-lg">Session Plan</h3>
+                <p><strong>Duration:</strong> {attachment.duration} mins</p>
+                <p><strong>Intensity:</strong> {attachment.intensity}</p>
+                <p><strong>Steps:</strong> {attachment.steps}</p>
+                <p><strong>Goal:</strong> {attachment.goal}</p>
+                {attachment.rules && <p><strong>Rules:</strong> {attachment.rules}</p>}
+                <div className="mt-3 text-center text-sm font-semibold text-yellow-400">
+                  ⏳ {countdown}
+                </div>
+                <div className="flex gap-2 mt-2">
+                  <button disabled={isLocked} onClick={startCountdown} className="bg-green-600 px-4 py-2 rounded-md">
+                    Start Session
+                  </button>
+                  <button disabled={isLocked} onClick={handleQuitExchange} className="bg-red-600 px-4 py-2 rounded-md">
+                    Quit Exchange
+                  </button>
+                </div>
+              </div>
+            ) : (
+              isActive && !isLocked && (
+                <button
+                  onClick={() => setShowAttachmentPopup(true)}
+                  className="bg-cyan-600 hover:bg-cyan-500 px-6 py-3 rounded-xl font-semibold"
+                >
+                  <Paperclip size={16} className="inline mr-2" />
+                  Set Session Plan
+                </button>
+              )
+            )}
           </div>
         )}
       </div>
 
-      {/* CHAT AREA */}
-      <div className="flex-1 flex flex-col md:ml-72">
-        {/* HEADER */}
-        <div className="px-6 py-5 border-b border-blue-900/40 bg-blue-950/60 flex flex-col md:flex-row md:justify-between md:items-center gap-2 md:gap-0">
-          <div className="overflow-hidden">
-            <h2 className="text-xl font-bold truncate">Skill Exchange #{exchange?.exchange_id}</h2>
-            {exchange && (
-              <p className="text-sm text-cyan-300 truncate">{exchange.from_username} ↔ {exchange.to_username}</p>
-            )}
-            <p className="text-xs text-gray-400 truncate">You are: {username}</p>
-          </div>
-
-          {exchange && (
-            <span className={`px-4 py-1 text-xs rounded-full font-semibold ${exchange.exchange_status === "in progress" ? "bg-green-500/20 text-green-400 border border-green-500/40" : exchange.exchange_status === "completed" ? "bg-purple-500/20 text-purple-400 border border-purple-500/40" : "bg-yellow-500/20 text-yellow-400 border border-yellow-500/40"}`}>
-              {exchange.exchange_status}
-            </span>
-          )}
-        </div>
-
-        {/* MESSAGES */}
-        <div ref={chatContainerRef} className="flex-1 overflow-y-auto p-4 md:p-6 space-y-4">
-          {messages.map((msg, i) => {
-            const isMe = msg.username === username;
-            const isImage = typeof msg.text === "string" && msg.text.startsWith("data:image");
-
-            return (
-              <div key={i} className={`flex ${isMe ? "justify-end" : "justify-start"}`}>
-                <div className={`max-w-[70%] p-4 rounded-2xl break-words ${isMe ? "bg-gradient-to-r from-cyan-400 to-blue-600 text-black shadow-lg" : "bg-blue-900/40 border border-blue-800/40 text-white"}`}>
-                  {!isMe && <p className="text-xs opacity-60 mb-1 truncate">{msg.username}</p>}
-                  {isImage ? <img src={msg.text} className="rounded-xl max-h-60" /> : <p className="break-words">{msg.text}</p>}
-                  {msg.created_at && <p className="text-[10px] opacity-40 mt-2 text-right">{new Date(msg.created_at).toLocaleTimeString()}</p>}
-                </div>
+      {/* CHAT */}
+      <div ref={chatContainerRef} className="flex-1 overflow-y-auto p-6 space-y-4">
+        {messages.map((msg, i) => {
+          const isMe = msg.username === username;
+          return (
+            <div key={i} className={`flex ${isMe ? "justify-end" : "justify-start"}`}>
+              <div className={`max-w-[70%] p-4 rounded-2xl ${isMe ? "bg-gradient-to-r from-cyan-400 to-blue-600 text-black" : "bg-[#1f2937]"}`}>
+                <p>{msg.text}</p>
               </div>
-            );
-          })}
-        </div>
-
-        {typingUser && <div className="px-6 text-xs text-cyan-300">{typingUser} is typing...</div>}
-
-        {/* INPUT & ATTACHMENT */}
-        <div className="p-4 bg-blue-950/60 border-t border-blue-900/40 flex flex-col md:flex-row gap-3 relative">
-          <button
-            type="button"
-            onClick={() => setShowAttachmentPopup(true)}
-            className="flex items-center gap-2 bg-cyan-600/20 hover:bg-cyan-500/30 px-4 py-2 rounded-2xl transition text-sm font-semibold"
-            disabled={!isActive}
-          >
-            <Paperclip size={16} /> Set Attachment
-          </button>
-
-          <form onSubmit={handleSend} className="flex-1 flex gap-3 items-center">
-            <button type="button" onClick={() => setShowEmoji(!showEmoji)} className="p-3 rounded-full bg-blue-900/40" disabled={!isActive}>
-              <Smile size={18} />
-            </button>
-            {showEmoji && isActive && <div className="absolute bottom-24 left-4 z-50"><EmojiPicker onEmojiClick={onEmojiClick} /></div>}
-
-            <input
-              value={message}
-              disabled={!isActive}
-              onChange={e => handleTyping(e.target.value)}
-              className="flex-1 p-3 rounded-full bg-blue-900/40 border border-blue-800 focus:outline-none focus:ring-2 focus:ring-cyan-400 transition placeholder-gray-400 min-w-0"
-              placeholder={isActive ? "Type a message..." : "Exchange is not active"}
-            />
-
-            <label className="cursor-pointer bg-blue-800/40 px-4 py-3 rounded-full hover:bg-blue-800/60 transition disabled:opacity-40">
-              📷
-              <input type="file" hidden onChange={handleImageUpload} disabled={!isActive} />
-            </label>
-
-            <button type="submit" disabled={!isActive} className="bg-gradient-to-r from-cyan-400 to-blue-600 px-6 py-3 rounded-full hover:opacity-90 transition disabled:opacity-50">
-              Send
-            </button>
-          </form>
-        </div>
+            </div>
+          );
+        })}
+        {showTyping && <p className="text-gray-400 text-sm">Typing...</p>}
       </div>
 
-      {/* POPUP */}
-      {showAttachmentPopup && <AttachmentPopup onClose={() => setShowAttachmentPopup(false)} onSubmit={handleAttachmentSubmit} />}
+      {/* INPUT */}
+      {isLocked ? (
+        <div className="p-4 border-t border-gray-800 bg-[#111827] text-center text-red-400 font-semibold">
+          This exchange has been {exchange?.exchange_status}. Chat is locked.
+        </div>
+      ) : (
+        <form onSubmit={handleSend} className="p-4 border-t border-gray-800 flex gap-3 bg-[#111827]">
+          <button type="button" onClick={() => setShowEmoji(!showEmoji)} className="p-3 rounded-full bg-[#1f2937]">
+            <Smile size={18} />
+          </button>
+          {showEmoji && (
+            <div className="absolute bottom-24 left-6 z-50">
+              <EmojiPicker onEmojiClick={(e) => setMessage(prev => prev + e.emoji)} />
+            </div>
+          )}
+          <input
+            value={message}
+            onChange={(e) => setMessage(e.target.value)}
+            className="flex-1 p-3 rounded-full bg-[#1f2937] border border-gray-700 focus:outline-none"
+            placeholder="Type a message..."
+          />
+          <button className="bg-gradient-to-r from-cyan-400 to-blue-600 px-6 py-3 rounded-full">
+            Send
+          </button>
+        </form>
+      )}
+
+     
+     {/* QUIT POPUP */}
+{quitPopup && (
+  <div className="fixed inset-0 bg-black/60 flex items-center justify-center px-4 z-50">
+    <div className="max-w-md w-full bg-[#111827] rounded-3xl p-6 space-y-4 shadow-xl relative border border-gray-700">
+      <button
+        onClick={() => setQuitPopup(false)}
+        className="absolute top-4 right-4 text-gray-400 hover:text-white"
+      >
+        <X size={22} />
+      </button>
+
+      <h2 className="text-2xl font-bold text-red-400 text-center">Quit Skill Exchange?</h2>
+      <p className="text-gray-300 text-sm text-center leading-relaxed">
+        Leaving now will cancel this exchange. You will be redirected to leave a review.
+        Make sure you really want to quit before confirming.
+      </p>
+
+      <div className="flex gap-4 justify-center mt-4">
+        <button
+          onClick={() => setQuitPopup(false)}
+          className="flex-1 py-3 rounded-xl bg-gray-700 hover:bg-gray-600 text-white font-semibold shadow-md transition"
+        >
+          Continue Exchange
+        </button>
+        <button
+          onClick={confirmQuit}
+          className="flex-1 py-3 rounded-xl bg-red-600 hover:bg-red-500 text-white font-semibold shadow-md transition"
+        >
+          Quit & Review
+        </button>
+      </div>
+    </div>
+  </div>
+)}
+
+{/* ATTACHMENT POPUP */}
+{showAttachmentPopup && (
+  <div className="fixed inset-0 bg-black/60 flex items-center justify-center px-4 z-50">
+    <AttachmentPopup
+      onClose={() => setShowAttachmentPopup(false)}
+      onSubmit={handleAttachmentSubmit}
+    />
+  </div>
+)}
+
+{/* EXCHANGE COMPLETION POPUP */}
+{showExchangePopup && (
+  <div className="fixed inset-0 bg-black/60 flex items-center justify-center px-4 z-50">
+    <div className="bg-[#111827] p-6 rounded-3xl space-y-4 w-[90%] max-w-md shadow-xl border border-gray-700">
+      <h2 className="text-2xl font-bold text-green-400 text-center">Exchange Completed</h2>
+      <p className="text-gray-300 text-sm text-center leading-relaxed">
+        Would you like to leave a review or continue this exchange? Your feedback helps improve the platform.
+      </p>
+      <div className="flex gap-4 justify-center mt-4">
+        <button
+          onClick={() => router.push(`/review/${exchange_id}`)}
+          className="flex-1 py-3 rounded-xl bg-green-600 hover:bg-green-500 text-white font-semibold shadow-md transition"
+        >
+          Leave Review
+        </button>
+        <button
+          onClick={() => { setShowExchangePopup(false); setAttachment(null); }}
+          className="flex-1 py-3 rounded-xl bg-blue-600 hover:bg-blue-500 text-white font-semibold shadow-md transition"
+        >
+          Continue Exchange
+        </button>
+      </div>
+    </div>
+  </div>
+)}
+
     </div>
   );
 }

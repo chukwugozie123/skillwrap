@@ -425,7 +425,6 @@ export default function ExchangePage() {
   const router = useRouter();
 
       const API_URL = "https://skillwrap-backend.onrender.com";
-
   // const API_URL = "http://localhost:4000";
 
   const [requestedSkill, setRequestedSkill] = useState<Skill | null>(null);
