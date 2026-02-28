@@ -46,6 +46,24 @@ export default function ReceivedRequestsPage() {
   const router = useRouter();
 
   useEffect(() => {
+    const fetchProfile = async () => {
+      try {
+        const res = await fetch(`${API_URL}/auth/profile`, {
+          credentials: "include",
+        });
+     if (!res.ok) return router.push("/login");
+
+        const data = await res.json();
+        // setUser(data.user);
+      } catch (err) {
+        // setErr("Failed to load profile");
+      }
+    };
+
+    fetchProfile();
+  }, []);
+
+  useEffect(() => {
     const loadRequests = async () => {
       try {
         const res = await fetch(`${API_URL}/exchange/recieved`, {

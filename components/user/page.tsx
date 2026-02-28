@@ -169,7 +169,8 @@ export default function UserPage({
 
   const getImageSrc = (skill: Skill) => {
     // Log each skill image
-    return skill.skill_img || skill.image_url || "/default-skill.png";
+        console.log(skill.skill_img)
+    return skill.skill_img || "/default-skill.png";
   };
 
   const handleAction = (skill: Skill) => {
@@ -202,6 +203,7 @@ console.log(userMode)
               fill
               className="object-cover transition-transform duration-500 group-hover:scale-110"
               unoptimized
+                loading="eager" 
             />
 
             {/* HOVER OVERLAY */}

@@ -317,7 +317,7 @@ console.log(skillRequestedId, toUserId)
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
             receiverId: toUserId,
-            message: "Someone sent you a learning request.",
+            message: "Someone sent you a learning request.  Check your request",
           }),
         });
 

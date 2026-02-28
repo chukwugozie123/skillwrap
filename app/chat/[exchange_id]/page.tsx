@@ -1321,10 +1321,21 @@ export default function ChatPage() {
       const res = await fetch(`${API_URL}/user/attachment/${exchange_id}`, { credentials: "include" });
       if (!res.ok) return;
       const data = await res.json();
-      if (data.success && data.attachment) setAttachment(data.attachment);
+      console.log(data)
+if (
+  data.success &&
+  data.attachment &&
+  Object.keys(data.attachment).length > 0
+) {
+  setAttachment(data.attachment)
+} else {
+  setAttachment(null)
+}
     }
     fetchAttachment();
   }, [exchange_id]);
+
+  console.log(attachment, 'cc')
 
   /* ================= SOCKET ================= */
   useEffect(() => {
@@ -1471,18 +1482,18 @@ export default function ChatPage() {
                   </button>
                 </div>
               </div>
-            ) : (
-              isActive && !isLocked && (
-                <button
-                  onClick={() => setShowAttachmentPopup(true)}
-                  className="bg-cyan-600 hover:bg-cyan-500 px-6 py-3 rounded-xl font-semibold"
-                >
-                  <Paperclip size={16} className="inline mr-2" />
-                  Set Session Plan
-                </button>
-              )
-            )}
-          </div>
+) : (
+  (!attachment || Object.values(attachment).every(v => v === null)) &&
+  !isLocked && (
+    <button
+      onClick={() => setShowAttachmentPopup(true)}
+      className="bg-cyan-600 hover:bg-cyan-500 px-6 py-3 rounded-xl font-semibold transition"
+    >
+      <Paperclip size={16} className="inline mr-2" />
+      Set Session Plan
+    </button>
+  )
+)}        </div>
         )}
       </div>
 

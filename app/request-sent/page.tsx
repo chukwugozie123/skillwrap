@@ -749,6 +749,24 @@ export default function RequestPage({ userMode }: Props) {
   const API_URL = "https://skillwrap-backend.onrender.com";
   // const API_URL = "http://localhost:4000";
 
+  useEffect(() => {
+    const fetchProfile = async () => {
+      try {
+        const res = await fetch(`${API_URL}/auth/profile`, {
+          credentials: "include",
+        });
+     if (!res.ok) return router.push("/login");
+
+        const data = await res.json();
+        // setUser(data.user);
+      } catch (err) {
+        // setError("Failed to load profile");
+      }
+    };
+
+    fetchProfile();
+  }, []);
+
   /* ───────────── LOAD REQUESTS ───────────── */
   useEffect(() => {
     async function loadRequests() {

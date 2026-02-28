@@ -563,6 +563,16 @@ export default function ExchangePage() {
         return;
       }
 
+          await fetch(`${API_URL}/send-notification`, {
+          method: "POST",
+          credentials: "include",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            receiverId: toUserId,
+            message: "Someone sent you an exchange request.  Check your request",
+          }),
+        });
+
       setMessage("🎉 Request sent!");
       setTimeout(() => router.push("/dashboard"), 1200);
     } catch {

@@ -30,6 +30,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
 import EditProfile from "@/components/edit_profile/page";
 
 export default function EditPage() {
@@ -37,16 +38,15 @@ export default function EditPage() {
   const [user, setUser] = useState<any>(null);
   const [error, setError] = useState("");
 
+  const router = useRouter();
+
   useEffect(() => {
     const fetchProfile = async () => {
       try {
         const res = await fetch(`${API_URL}/auth/profile`, {
           credentials: "include",
         });
-
-        if (!res.ok) {
-          throw new Error("Unauthorized");
-        }
+     if (!res.ok) return router.push("/login");
 
         const data = await res.json();
         setUser(data.user);

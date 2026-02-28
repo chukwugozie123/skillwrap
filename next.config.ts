@@ -14,14 +14,14 @@ const nextConfig = {
   images: {
     domains: [
       "images.unsplash.com", // allow Unsplash images
-      "randomuser.me",      // allow profile pics
+      "randomuser.me",       // allow profile pics
       "res.cloudinary.com",
+      "www.cleanpng.com",    // <-- remove "https://" here
     ],
   },
 };
 
 module.exports = nextConfig;
-
 
 // import type { NextConfig } from "next";
 

@@ -233,6 +233,9 @@ export default function SettingsPage() {
       const res = await fetch(`${API_URL}/auth/profile`, {
         credentials: "include",
       });
+
+        if (!res.ok) return router.push("/login");
+
       const data = await res.json();
       const u = data.req?.user || data.user;
       setUser(u);
