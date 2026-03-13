@@ -16,7 +16,8 @@ const nextConfig = {
       "images.unsplash.com", // allow Unsplash images
       "randomuser.me",       // allow profile pics
       "res.cloudinary.com",
-      "www.cleanpng.com",    // <-- remove "https://" here
+      "www.cleanpng.com",
+     "cdn.pixabay.com", // Add this line    // <-- remove "https://" here
     ],
   },
 };

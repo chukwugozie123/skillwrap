@@ -15,6 +15,7 @@ interface User {
   bio?: string;
   img_url?: string;
   mode?: string;
+  points?: string
 }
 
 export default function ProfilePage() {
@@ -102,22 +103,33 @@ export default function ProfilePage() {
           </div>
 
           {/* Info */}
-          <div className="flex-1 text-center sm:text-left space-y-2">
-            <h1 className="text-4xl font-extrabold tracking-tight">
-              {user.username}
-            </h1>
-            <p className="text-cyan-400 font-medium">{user.email}</p>
-            <p className="text-gray-300 mt-2 max-w-xl mx-auto sm:mx-0">
-              {user.bio || "No bio yet. Add one from edit profile."}
-            </p>
+<div className="flex-1 text-center sm:text-left space-y-4">
+  <h1 className="text-4xl font-extrabold tracking-tight">{user.username}</h1>
+  <p className="text-cyan-400 font-medium">{user.email}</p>
+  <p className="text-gray-300 mt-2 max-w-xl mx-auto sm:mx-0">
+    {user.bio || "No bio yet. Add one from edit profile."}
+  </p>
 
-            <div className="mt-4 flex flex-wrap gap-2 justify-center sm:justify-start">
-              <Badge text="Member" color="bg-cyan-500/20" />
-              <Badge text="Verified" color="bg-purple-500/20" />
-            </div>
+  <div className="mt-4 flex flex-wrap gap-2 justify-center sm:justify-start">
+    <Badge text="Member" color="bg-cyan-500/20" />
+    <Badge text="Verified" color="bg-purple-500/20" />
+  </div>
 
-            <p className="mt-3 text-sm text-gray-400">Mode: {user.mode || "Default"}</p>
-          </div>
+  {/* Mode & Points Section */}
+  <div className="mt-4 flex flex-wrap gap-4 justify-center sm:justify-start items-center">
+    {/* Mode */}
+    <div className="flex items-center gap-2 px-4 py-2 rounded-xl bg-purple-700/20 text-purple-300 font-semibold border border-white/10">
+      <span className="text-sm uppercase tracking-wider">Mode:</span>
+      <span className="text-white">{user.mode || "Default"}</span>
+    </div>
+
+    {/* Points */}
+    <div className="flex items-center gap-2 px-4 py-2 rounded-xl bg-yellow-500/20 text-yellow-400 font-bold border border-white/10">
+      <span>⭐</span>
+      <span className="text-lg">{user.points || 0}</span>
+    </div>
+  </div>
+</div>
 
           {/* Edit Button */}
           <Link href="/edit-profile">
