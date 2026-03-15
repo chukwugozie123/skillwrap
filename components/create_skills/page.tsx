@@ -194,6 +194,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import FirstAchievementPopup from "@/components/FirstAchievementPopup/page";
 
 export default function UploadSkill() {
   const router = useRouter();
@@ -206,6 +207,10 @@ export default function UploadSkill() {
   const [youtubeLink, setYoutubeLink] = useState(""); // optional YouTube
   const [portfolioLink, setPortfolioLink] = useState(""); // optional Portfolio
   const [learningPoints, setLearningPoints] = useState<string[]>([""]); // dynamic gains
+  const [showFirstSkillPopup, setShowFirstSkillPopup] = useState(false);
+  const [Point, setPoints] = useState("")
+  const [AchievementMessage, setAchievementMessage] = useState("")
+
 
   const [message, setMessage] = useState("");
   const [loading, setLoading] = useState(false);
@@ -262,9 +267,27 @@ export default function UploadSkill() {
       const data = await res.json();
 
       if (res.ok && data.success) {
-        setMessage("✅ Skill uploaded successfully!");
-        // Reset form
-        setSkillname("");
+const res2 = await fetch(`${API_URL}/achievements/check`, {
+  method: "POST",
+  credentials: "include",
+  headers: {
+    "Content-Type": "application/json"
+  },
+  body: JSON.stringify({
+    action: "skill_created"
+  })
+});
+
+const response = await res2.json();
+
+console.log(response, response.points, 'results in acttion')
+
+if (response.success) {
+  setPoints(response.points);
+  setAchievementMessage(response.achievement);
+  setShowFirstSkillPopup(true);
+} else {
+  setSkillname("");
         setDescription("");
         setLevel("");
         setCategory("");
@@ -272,8 +295,10 @@ export default function UploadSkill() {
         setYoutubeLink("");
         setPortfolioLink("");
         setLearningPoints([""]);
+        setMessage("✅ Skill uploaded successfully!");
+  setTimeout(() => router.push("/skills"), 1200);
+}
 
-        setTimeout(() => router.push("/skills"), 1000);
       } else {
         setMessage(`❌ Failed: ${data.error || "Unknown error"}`);
       }
@@ -447,6 +472,15 @@ export default function UploadSkill() {
 
         {message && <p className="text-center">{message}</p>}
       </form>
+
+      
+  <FirstAchievementPopup
+    trigger={showFirstSkillPopup}
+    points={Point}
+    message={AchievementMessage}
+    onClose={() => setShowFirstSkillPopup(false)}
+  />
+
     </div>
   );
 }

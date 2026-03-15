@@ -166,6 +166,7 @@
 
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
+import FirstAchievementPopup from "@/components/FirstAchievementPopup/page";
 
 /* ================= TYPES ================= */
 interface Skill {
@@ -192,6 +193,10 @@ export default function RequestLearning() {
   const [loading, setLoading] = useState(true);
   const [note, setNote] = useState("");
   const [message, setMessage] = useState("");
+  const [showFirstSkillPopup, setShowFirstSkillPopup] = useState(false);
+  const [Point, setPoints] = useState("")
+  const [AchievementMessage, setAchievementMessage] = useState("")
+  
 
   const router = useRouter();
 
@@ -321,8 +326,29 @@ console.log(skillRequestedId, toUserId)
           }),
         });
 
-        setMessage("🎉 Learning request sent successfully!");
-        setTimeout(() => router.push("/dashboard"), 1200);
+const res2 = await fetch(`${API_URL}/achievements/check`, {
+  method: "POST",
+  credentials: "include",
+  headers: {
+    "Content-Type": "application/json"
+  },
+  body: JSON.stringify({
+    action: "request_sent"
+  })
+});
+
+const response = await res2.json();
+
+console.log(response, response.points, 'results in acttion')
+
+if (response.success) {
+  setPoints(response.points);
+  setAchievementMessage(response.achievement);
+  setShowFirstSkillPopup(true);
+} else {
+  setMessage("🎉 Request sent!");
+  setTimeout(() => router.push("/dashboard"), 1200);
+}
       } else {
         setMessage(`❌ ${data.message || "Request failed"}`);
       }
@@ -395,6 +421,13 @@ console.log(skillRequestedId, toUserId)
       >
         Send Request
       </button>
+      <FirstAchievementPopup
+        trigger={showFirstSkillPopup}
+        points={Point}
+        message={AchievementMessage}
+        onClose={() => setShowFirstSkillPopup(false)}
+      />
+      
     </div>
   );
 }

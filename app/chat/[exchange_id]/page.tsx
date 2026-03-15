@@ -1233,6 +1233,7 @@ import { useEffect, useRef, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { socket } from "@/lib/socketClient";
 import AttachmentPopup from "./AttachmentPopup";
+import FirstAchievementPopup from "@/components/FirstAchievementPopup/page";
 
 interface Message {
   id?: number;
@@ -1279,6 +1280,10 @@ export default function ChatPage() {
   const [showExchangePopup, setShowExchangePopup] = useState(false);
   const [showTyping, setShowTyping] = useState(false);
   const [quitPopup, setQuitPopup] = useState(false);
+  const [showFirstSkillPopup, setShowFirstSkillPopup] = useState(false);
+    const [Point, setPoints] = useState("")
+    const [AchievementMessage, setAchievementMessage] = useState("")
+
 
   const chatContainerRef = useRef<HTMLDivElement>(null);
 
@@ -1443,6 +1448,29 @@ if (
     router.push(`/review/${exchange_id}`);
   };
 
+const HandleAchvement = async () => {
+  const res2 = await fetch(`${API_URL}/achievements/check`, {
+    method: "POST",
+    credentials: "include",
+      headers: {
+        "Content-Type": "application/json"
+      },
+    body: JSON.stringify({
+    action: "exchange_completed"
+    })
+});
+
+const response = await res2.json();
+
+if (response.success) {
+  setPoints(response.points);
+  setAchievementMessage(response.achievement);
+  setShowFirstSkillPopup(true);
+} else {
+  setTimeout(() => router.push(`/review/${exchange_id}`), 1000);
+}
+  }
+
   return (
     <div className="min-h-screen bg-[#0b1120] text-white flex flex-col">
 
@@ -1595,7 +1623,7 @@ if (
       </p>
       <div className="flex gap-4 justify-center mt-4">
         <button
-          onClick={() => router.push(`/review/${exchange_id}`)}
+          onClick={() => { HandleAchvement}}
           className="flex-1 py-3 rounded-xl bg-green-600 hover:bg-green-500 text-white font-semibold shadow-md transition"
         >
           Leave Review
@@ -1611,6 +1639,15 @@ if (
   </div>
 )}
 
+<FirstAchievementPopup
+  trigger={showFirstSkillPopup}
+  points={Point}
+  message={AchievementMessage}
+  onClose={() => setShowFirstSkillPopup(false)}
+/>
     </div>
   );
 }
+
+
+// router.push(`/review/${exchange_id}`);

@@ -82,13 +82,13 @@ export default function LearningDashboard({ stats, user }: any) {
     <input
       type="text"
       readOnly
-      value={`https://skillwrap.vercel.app/signup?ref=${user.referral_code}`}
+      value={`https://skillwrap2026.vercel.app/signup?ref=${user.referral_code}`}
       className="flex-1 p-3 rounded-xl bg-blue-900/40 border border-blue-500/30 text-white focus:outline-none placeholder-white/50"
     />
     <button
       onClick={() => {
         navigator.clipboard.writeText(
-          `https://skillwrap.vercel.app/signup?ref=${user.referral_code}`
+          `https://skillwrap2026.vercel.app/signup?ref=${user.referral_code}`
         );
         alert("Referral link copied!");
       }}

@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 
 const API_URL = "https://skillwrap-backend.onrender.com";
+// const API_URL = "http://localhost:4000";
 
 /* ================= HELPERS ================= */
 
