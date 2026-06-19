@@ -21,9 +21,9 @@ import {
   Sparkles,
 } from "lucide-react";
 import { useEffect, useRef, useState, useMemo } from "react";
-// import { useParams, useNavigate } from "react-router-dom";
 import { useParams, useRouter } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
+import EmojiPicker, { Theme } from "emoji-picker-react";
 import { socket } from "@/lib/socketClient";
 import AttachmentPopup from "./AttachmentPopup";
 import FirstAchievementPopup from "@/components/FirstAchievementPopup/page";
@@ -775,12 +775,12 @@ export default function ChatPage() {
                   transition={{ duration: 0.2 }}
                   className="absolute bottom-20 left-3 z-50 rounded-xl overflow-hidden neon-border"
                 >
-                  <EmojiPicker
-                    onEmojiClick={(e) => setMessage((prev) => prev + e.emoji)}
-                    theme="dark"
-                    width={300}
-                    height={350}
-                  />
+              <EmojiPicker
+                onEmojiClick={(e) => setMessage((prev) => prev + e.emoji)}
+                theme={Theme.DARK}
+                width={300}
+                height={350}
+              />
                 </motion.div>
               )}
             </AnimatePresence>
