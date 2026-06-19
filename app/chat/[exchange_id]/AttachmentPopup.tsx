@@ -1,125 +1,129 @@
-"use client";
-
+import { X, Clock, Zap, ListChecks, Target, ScrollText } from "lucide-react";
 import { useState } from "react";
-import { X } from "lucide-react";
+import { motion } from "framer-motion";
 
 interface AttachmentPopupProps {
   onClose: () => void;
-  onSubmit: (data: {
-    duration: string;
-    intensity: string;
-    steps: string;
-    goal: string;
-    rules: string;
-  }) => void;
+  onSubmit: (data: any) => void;
 }
 
 export default function AttachmentPopup({ onClose, onSubmit }: AttachmentPopupProps) {
-  const [duration, setDuration] = useState("");
-  const [intensity, setIntensity] = useState("Beginner");
-  const [steps, setSteps] = useState("");
+  const [duration, setDuration] = useState(30);
+  const [intensity, setIntensity] = useState("moderate");
+  const [steps, setSteps] = useState(5);
   const [goal, setGoal] = useState("");
   const [rules, setRules] = useState("");
-  const [loading, setLoading] = useState(false);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    setLoading(true);
+    if (!goal.trim()) return;
     onSubmit({ duration, intensity, steps, goal, rules });
-    setLoading(false);
-    onClose();
   };
 
   return (
-    <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex justify-center items-center z-50 p-4">
-      <div className="bg-gradient-to-tr from-[#0f1b3d]/80 to-[#142f5e]/80 backdrop-blur-lg border border-blue-800/50 rounded-3xl p-6 w-full max-w-lg shadow-xl relative">
-        {/* Close Button */}
+    <motion.div
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      exit={{ opacity: 0 }}
+      className="fixed inset-0 bg-black/70 flex items-center justify-center px-4 z-50"
+    >
+      <motion.div
+        initial={{ scale: 0.9, opacity: 0 }}
+        animate={{ scale: 1, opacity: 1 }}
+        exit={{ scale: 0.9, opacity: 0 }}
+        transition={{ type: "spring", damping: 25, stiffness: 300 }}
+        className="max-w-lg w-full glass-heavy rounded-2xl p-6 space-y-5 shadow-2xl relative"
+      >
         <button
-          className="absolute top-4 right-4 p-2 rounded-full hover:bg-blue-700/40 transition"
           onClick={onClose}
+          className="absolute top-4 right-4 text-gray-400 hover:text-neon-cyan transition-colors"
         >
-          <X size={22} className="text-white" />
+          <X size={22} />
         </button>
 
-        <h2 className="text-2xl font-bold mb-6 text-white text-center tracking-wide">
-          Set Session Details
-        </h2>
+        <div className="text-center space-y-1">
+          <h2 className="text-xl font-bold text-neon-cyan neon-text">Session Plan Configuration</h2>
+          <p className="text-xs text-gray-400">Design your collaborative skill exchange session</p>
+        </div>
 
-        <form onSubmit={handleSubmit} className="space-y-5">
-          {/* Duration */}
-          <div className="flex flex-col">
-            <label className="text-sm text-gray-300 mb-1 font-medium">
-              Duration of the session
+        <form onSubmit={handleSubmit} className="space-y-4">
+          <div className="grid grid-cols-2 gap-3">
+            <div className="space-y-1">
+              <label className="flex items-center gap-1.5 text-xs text-gray-400 font-medium">
+                <Clock size={12} /> Duration (min)
+              </label>
+              <input
+                type="number"
+                value={duration}
+                onChange={(e) => setDuration(Number(e.target.value))}
+                className="w-full p-2.5 rounded-lg glass-input text-sm text-white focus:outline-none focus:border-neon-cyan/50 transition-colors"
+                min={5}
+              />
+            </div>
+            <div className="space-y-1">
+              <label className="flex items-center gap-1.5 text-xs text-gray-400 font-medium">
+                <Zap size={12} /> Intensity
+              </label>
+              <select
+                value={intensity}
+                onChange={(e) => setIntensity(e.target.value)}
+                className="w-full p-2.5 rounded-lg glass-input text-sm text-white focus:outline-none focus:border-neon-cyan/50 transition-colors bg-transparent"
+              >
+                <option value="light" className="bg-navy-800">Light</option>
+                <option value="moderate" className="bg-navy-800">Moderate</option>
+                <option value="intense" className="bg-navy-800">Intense</option>
+              </select>
+            </div>
+          </div>
+
+          <div className="space-y-1">
+            <label className="flex items-center gap-1.5 text-xs text-gray-400 font-medium">
+              <ListChecks size={12} /> Steps
+            </label>
+            <input
+              type="number"
+              value={steps}
+              onChange={(e) => setSteps(Number(e.target.value))}
+              className="w-full p-2.5 rounded-lg glass-input text-sm text-white focus:outline-none focus:border-neon-cyan/50 transition-colors"
+              min={1}
+            />
+          </div>
+
+          <div className="space-y-1">
+            <label className="flex items-center gap-1.5 text-xs text-gray-400 font-medium">
+              <Target size={12} /> Goal
             </label>
             <input
               type="text"
-              value={duration}
-              onChange={e => setDuration(e.target.value)}
-              placeholder="e.g., 60 minutes or 1 hour"
-              required
-              className="p-3 rounded-xl bg-blue-900/40 border border-blue-700 focus:ring-2 focus:ring-cyan-400 focus:outline-none transition placeholder-gray-400 text-white"
-            />
-          </div>
-
-          {/* Skill intensity */}
-          <div className="flex flex-col">
-            <label className="text-sm text-gray-300 mb-1 font-medium">Skill intensity / level</label>
-            <select
-              value={intensity}
-              onChange={e => setIntensity(e.target.value)}
-              className="p-3 rounded-xl bg-blue-900/40 border border-blue-700 focus:ring-2 focus:ring-cyan-400 focus:outline-none transition text-white"
-            >
-              <option>Beginner</option>
-              <option>Intermediate</option>
-              <option>Advanced</option>
-            </select>
-          </div>
-
-          {/* Steps */}
-          <div className="flex flex-col">
-            <label className="text-sm text-gray-300 mb-1 font-medium">Number of tasks / steps</label>
-            <input
-              type="number"
-              min={1}
-              value={steps}
-              onChange={e => setSteps(e.target.value)}
-              placeholder="Enter number of steps"
-              required
-              className="p-3 rounded-xl bg-blue-900/40 border border-blue-700 focus:ring-2 focus:ring-cyan-400 focus:outline-none transition text-white"
-            />
-          </div>
-
-          {/* Goals */}
-          <div className="flex flex-col">
-            <label className="text-sm text-gray-300 mb-1 font-medium">Goals / objectives (optional)</label>
-            <textarea
               value={goal}
-              onChange={e => setGoal(e.target.value)}
-              placeholder="What’s the main goal of this session?"
-              className="p-3 rounded-xl bg-blue-900/40 border border-blue-700 focus:ring-2 focus:ring-cyan-400 focus:outline-none resize-none h-20 transition text-white"
+              onChange={(e) => setGoal(e.target.value)}
+              className="w-full p-2.5 rounded-lg glass-input text-sm text-white focus:outline-none focus:border-neon-cyan/50 transition-colors"
+              placeholder="What will you achieve?"
+              required
             />
           </div>
 
-          {/* Rules */}
-          <div className="flex flex-col">
-            <label className="text-sm text-gray-300 mb-1 font-medium">Session rules / notes (optional)</label>
+          <div className="space-y-1">
+            <label className="flex items-center gap-1.5 text-xs text-gray-400 font-medium">
+              <ScrollText size={12} /> Rules (optional)
+            </label>
             <textarea
               value={rules}
-              onChange={e => setRules(e.target.value)}
-              placeholder="Any rules or notes for this session"
-              className="p-3 rounded-xl bg-blue-900/40 border border-blue-700 focus:ring-2 focus:ring-cyan-400 focus:outline-none resize-none h-20 transition text-white"
+              onChange={(e) => setRules(e.target.value)}
+              className="w-full p-2.5 rounded-lg glass-input text-sm text-white focus:outline-none focus:border-neon-cyan/50 transition-colors resize-none"
+              rows={2}
+              placeholder="Any session rules..."
             />
           </div>
 
           <button
             type="submit"
-            disabled={loading}
-            className="w-full bg-gradient-to-r from-cyan-400 to-blue-600 py-3 rounded-2xl font-semibold text-black hover:opacity-90 transition disabled:opacity-50"
+            className="w-full py-3 rounded-xl bg-gradient-to-r from-cyan-500 to-blue-600 text-white font-semibold hover:shadow-lg hover:shadow-cyan-500/25 transition-all"
           >
-            {loading ? "Submitting..." : "Submit Session"}
+            Initialize Session Plan
           </button>
         </form>
-      </div>
-    </div>
+      </motion.div>
+    </motion.div>
   );
 }

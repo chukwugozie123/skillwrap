@@ -47,8 +47,8 @@ interface SkillType {
   learningpoint?: string;
 }
 
-const API_URL = "https://skillwrap-backend.onrender.com";
-// const API_URL = "http://localhost:4000";
+// const API_URL = "https://skillwrap-backend.onrender.com";
+const API_URL = "http://localhost:4000";
 
 export default function EditSkill() {
   // const params = useParams(); // ✅ correct usage
@@ -72,7 +72,6 @@ const id = params.skillId as string;
   const [youtubeLink, setYoutubeLink] = useState("");
   const [portfolioLink, setPortfolioLink] = useState("");
   const [learningpoint, setLearningpoint] = useState("");
-console.log(id)
   // 🔹 Fetch skill
   useEffect(() => {
     if (!id) return;
@@ -106,7 +105,7 @@ console.log(id)
 
     fetchSkill();
   }, [id]);
-console.log(skill)
+  
   // 🔹 Submit
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();

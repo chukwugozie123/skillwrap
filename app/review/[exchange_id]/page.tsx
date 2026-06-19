@@ -2,6 +2,8 @@
 
 import { useEffect, useState } from "react";
 import { useRouter, useParams } from "next/navigation";
+import { addXP, XpTransactions } from "@/lib/Xpapi";
+
 
 /* ================= TYPES ================= */
 
@@ -129,6 +131,9 @@ export default function ReviewPage() {
         setSubmitting(false);
         return;
       }
+            await addXP(25);
+            await XpTransactions(25, "For a sucessfull review sent.");
+            console.log("⚡ XP ADDED");
 
       await fetch(`${API_URL}/send-notification`, {
         method: "POST",

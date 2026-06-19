@@ -38,11 +38,12 @@
 import { io, Socket } from "socket.io-client"
 
 export const socket: Socket = io(
-  "https://skillwrap-backend.onrender.com",
-  // "http://localhost:4000",
+  // "https://skillwrap-backend.onrender.com",
+  "http://localhost:4000",
   {
     transports: ["websocket"],
     withCredentials: true,
     autoConnect: false,
   }
 )
+
