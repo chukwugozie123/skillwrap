@@ -22,7 +22,6 @@ import {
 } from "lucide-react";
 import { useEffect, useRef, useState, useMemo } from "react";
 import { useParams, useRouter } from "next/navigation";
-import EmojiPicker from "emoji-picker-react";
 import { motion, AnimatePresence } from "framer-motion";
 import EmojiPicker, { Theme } from "emoji-picker-react";
 import { socket } from "@/lib/socketClient";
