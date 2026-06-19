@@ -23,6 +23,7 @@ import {
 import { useEffect, useRef, useState, useMemo } from "react";
 // import { useParams, useNavigate } from "react-router-dom";
 import { useParams, useRouter } from "next/navigation";
+import EmojiPicker from "emoji-picker-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { socket } from "@/lib/socketClient";
 import AttachmentPopup from "./AttachmentPopup";
