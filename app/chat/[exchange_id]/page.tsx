@@ -19,6 +19,12 @@ import {
   CheckCircle2,
   Trophy,
   Sparkles,
+  Volume2, 
+  VolumeX, 
+  Mic,  
+  BookOpen,
+  Phone 
+
 } from "lucide-react";
 import { useEffect, useRef, useState, useMemo } from "react";
 import { useParams, useRouter } from "next/navigation";
@@ -28,13 +34,30 @@ import { socket } from "@/lib/socketClient";
 import AttachmentPopup from "./AttachmentPopup";
 import FirstAchievementPopup from "@/components/FirstAchievementPopup/page";
 import { addXP, XpTransactions } from "@/lib/Xpapi";
+import {
+  PremiumGlassCard,
+  MessageBubble,
+  AIAssistantCard,
+  NotesCard,
+  SessionTimerCard,
+  PremiumButton,
+  EmptyState,
+} from "./components/PremiumUiControl";
+// import {
+//   SkillBadge,
+//   InputField,
+//   PremiumSection,
+//   LoadingState,
+//   CollaboratorCard,
+//   DialogOverlay,
+// } from "./components/PremiumUIOerlay";
 
-interface Message {
-  id?: number;
-  username: string;
-  text: string;
-  created_at?: string;
-}
+// interface Message {
+//   id?: number;
+//   username: string;
+//   text: string;
+//   created_at?: string;
+// }
 
 interface Exchange {
   exchange_id: number;
@@ -52,6 +75,19 @@ interface Attachment {
   steps: number;
   goal: string;
   rules: string;
+}
+
+interface Message {
+  id?: string;
+  sender_id?: number;
+  username?: string;
+  text?: string;
+  timestamp?: string;
+  attachment?: {
+    type: string;
+    url: string;
+  };
+  created_at?: string;
 }
 
 /* ============ AMBIENT PARTICLE ============ */
@@ -195,7 +231,8 @@ export default function ChatPage() {
   const router = useRouter();
   const { exchange_id } = params as { exchange_id: string };
 
-  const API_URL = "http://localhost:4000";
+  // const API_URL = "http://localhost:4000";
+  const API_URL = "https://skillwrap-backend.onrender.com";
 
   const [userId, setUserId] = useState<number | null>(null);
   const [username, setUsername] = useState("");
@@ -213,8 +250,35 @@ export default function ChatPage() {
   const [Point, setPoints] = useState("");
   const [AchievementMessage, setAchievementMessage] = useState("");
   const [inputFocused, setInputFocused] = useState(false);
+  const [notes, setNotes] = useState<string>("");
+  const [noteSaveStatus, setNoteSaveStatus] = useState<'idle' | 'saving' | 'saved'>('idle');
+  // const [activeTab, setActiveTab] = useState<'chat' | 'ai' | 'notes' | 'voice'>('chat');
+  const [soundEnabled, setSoundEnabled] = useState(true);
+  const [showVoiceModal, setShowVoiceModal] = useState(false);
+  const [aiMessages,setAiMessages] = useState<
+{
+ username:string;
+ text:string;
+ timestamp:string;
+ type?:string;
+}[]
+>([]);
+
+
+const [aiInput,setAiInput] = useState("");
+
+const [aiTyping,setAiTyping] = useState(false);
+
+  // Refs
+  const aiChatRef = useRef<HTMLDivElement>(null);
+  const audioRef = useRef<HTMLAudioElement>(null);
+  // const socketRef = useRef<any>(null);
+  // const noteSaveTimeoutRef = useRef<NodeJS.Timeout>();
+  const noteSaveTimeoutRef = useRef<NodeJS.Timeout | undefined>(undefined);
+  const socketRef = useRef<any>(null);
 
   const chatContainerRef = useRef<HTMLDivElement>(null);
+   const noteSyncIntervalRef = useRef<NodeJS.Timeout | null>(null);
 
   const room = exchange_id;
   const isActive = exchange?.exchange_status === "in progress";
@@ -265,58 +329,317 @@ export default function ChatPage() {
     fetchAttachment();
   }, [exchange_id]);
 
+const handleAIMessage = (message:string)=>{
+
+
+console.log(
+"📤 Sending AI:",
+message
+);
+
+
+
+if(!message.trim()){
+
+console.log(
+"❌ Empty AI message"
+);
+
+return;
+
+}
+
+
+
+setAiMessages(prev=>[
+
+ ...prev,
+
+ {
+  username:"You",
+  text:message,
+  timestamp:new Date().toISOString()
+ }
+
+]);
+
+
+
+socket.emit(
+"exchangeAIMessage",
+{
+ message
+}
+);
+
+
+
+console.log(
+"🚀 exchangeAIMessage emitted"
+);
+
+
+};
+
   /* ================= SOCKET ================= */
-  useEffect(() => {
-    if (!userId || !room) return;
 
-    if (!socket.connected) socket.connect();
+useEffect(() => {
 
-    const onConnect = () => {
-      socket.emit("enterRoom", { roomId: parseInt(room), userId });
-    };
+  if (!userId || !room) {
+    console.log(
+      "❌ Missing socket data",
+      {
+        userId,
+        room
+      }
+    );
+    return;
+  }
 
-    socket.on("connect", onConnect);
 
-    socket.on("previousMessages", (msgs: Message[]) => setMessages(msgs));
-    socket.on("message", (msg: Message) => setMessages((prev) => [...prev, msg]));
-    socket.on("countdown", (time: string) => setCountdown(time));
+  console.log("🔌 SOCKET INIT",{userId,   room});
 
-    socket.on("countdownEnded", async () => {
-      await fetch(`${API_URL}/exchange/update-status`, {
-        method: "PATCH",
+
+  if (!socket.connected) {
+    console.log("🔄 Connecting socket...");
+
+    socket.connect();
+  }
+
+  const onConnect = () => {
+
+    console.log("✅ SOCKET CONNECTED", socket.id);
+
+    socket.emit("enterRoom", {roomId:Number(room), userId});
+
+    console.log("📡 ENTER ROOM SENT",{roomId:Number(room), userId});
+  };
+
+  const handlePreviousMessages = (msgs:Message[] )=>{
+
+    console.log("📜 Previous messages:", msgs);
+
+    setMessages(msgs);
+  };
+
+  const handleMessage = (msg:Message)=>{
+
+    console.log("💬 Message received:", msg);
+
+    setMessages(prev=>[
+      ...prev,
+      msg
+    ]);
+  };
+
+  const handleCountdown = (time:string)=>{
+
+    console.log("⏳ Countdown:", time);
+
+    setCountdown(time);
+  };
+
+  const handleCountdownEnded = async()=>{
+
+    console.log(
+      "🏁 Exchange ended"
+    );
+
+
+    await fetch(
+      `${API_URL}/exchange/update-status`,
+      {
+        method:"PATCH",
+        credentials:"include",
+        headers:{
+          "Content-Type":"application/json"
+        },
+        body:JSON.stringify({
+          exchange_id,
+          exchange_status:"completed"
+        })
+      }
+    );
+
+    await addXP(60);
+    await XpTransactions(60, "Completed exchange.");
+
+    console.log("⚡ XP ADDED");
+
+          // ================= ACTIVITY =================
+      const res3 = await fetch(`${API_URL}/activity`, {
+        method: "POST",
         credentials: "include",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ exchange_id, exchange_status: "completed" }),
+        body: JSON.stringify({
+          activity_type: "skill_created",
+          title: "Completed exchange.",
+          description: "Just completed an exchange.",
+          icon: "sparkles",
+          color: "emerald",
+        }),
       });
 
-      await addXP(30);
-      await XpTransactions(30, "Complted exchange.");
-      console.log("⚡ XP ADDED");
+      const response2 = await res3.json();
+      console.log("🟢 ACTIVITY RESPONSE:", response2);
 
-      setShowExchangePopup(true);
-    });
-
-    socket.on("exchangeQuit", async () => {
-      router.push(`/review/${exchange_id}`);
-    });
-
-    socket.on("typing", ({ name }: { name: string }) => {
-      if (name !== username) {
-        setShowTyping(true);
-        setTimeout(() => setShowTyping(false), 2000);
+      if (res3.ok && response2.success) {
+        console.log("✅ Activity logged successfully");
+      } else {
+        console.log("❌ Activity failed:", response2);
       }
-    });
 
-    return () => {
-      socket.off("connect", onConnect);
-      socket.off("previousMessages");
-      socket.off("message");
-      socket.off("countdown");
-      socket.off("countdownEnded");
-      socket.off("exchangeQuit");
-      socket.off("typing");
-    };
-  }, [userId, room, username]);
+    setShowExchangePopup(true);
+
+
+  };
+
+
+
+
+
+  const handleExchangeQuit =()=>{
+
+
+    console.log(
+      "🚪 Exchange quit"
+    );
+
+
+    router.push(
+      `/review/${exchange_id}`
+    );
+
+
+  };
+
+
+
+
+
+  const handleTyping = (
+    {
+      name
+    }:{
+      name:string
+    }
+  )=>{
+
+
+    if(name !== username){
+
+      setShowTyping(true);
+
+
+      setTimeout(
+        ()=>setShowTyping(false),
+        2000
+      );
+
+    }
+
+
+  };
+
+
+
+
+
+  // ================= AI SEND =================
+
+  const handleAIReply = (
+    data:any
+  )=>{
+
+
+    console.log(
+      "🤖 AI REPLY RECEIVED:",
+      data
+    );
+
+
+    setAiMessages(prev=>[
+
+      ...prev,
+
+      {
+        username:"AI",
+        text:data.message,
+        timestamp:new Date().toISOString()
+      }
+
+    ]);
+
+
+  };
+
+
+
+
+
+  socket.on(
+    "connect",
+    onConnect
+  );
+
+
+  socket.on("previousMessages", handlePreviousMessages);
+
+  socket.on("message", handleMessage);
+
+  socket.on("countdown", handleCountdown);
+
+  socket.on("countdownEnded", handleCountdownEnded);
+
+  socket.on("exchangeQuit", handleExchangeQuit);
+
+  socket.on("typing", handleTyping);
+
+  // AI RESPONSE LISTENER
+  socket.on("exchangeAIReply", handleAIReply);
+
+  return()=>{
+
+    console.log("🧹 CLEAN SOCKET");
+
+    socket.off("connect", onConnect);
+
+
+    socket.off("previousMessages", handlePreviousMessages );
+
+    socket.off("message",handleMessage);
+
+    socket.off("countdown", handleCountdown);
+
+    socket.off("countdownEnded", handleCountdownEnded);
+
+    socket.off(
+      "exchangeQuit",
+      handleExchangeQuit
+    );
+
+
+    socket.off(
+      "typing",
+      handleTyping
+    );
+
+
+    socket.off(
+      "exchangeAIReply",
+      handleAIReply
+    );
+
+
+  };
+
+
+},[
+ userId,
+ room,
+ username,
+ exchange_id
+]);
 
   /* ================= AUTO SCROLL ================= */
   useEffect(() => {
@@ -409,12 +732,137 @@ export default function ChatPage() {
     []
   );
 
+
+  
+  // ================= LOAD NOTES =================
+  useEffect(() => {
+    if (!exchange_id) return;
+    async function fetchNotes() {
+      try {
+        const res = await fetch(`${API_URL}/exchange/get/note/${exchange_id}`, {
+          credentials: 'include',
+        });
+        if (res.ok) {
+          const data = await res.json();
+          if (data.notes) {
+            // setNotes(data.notes);
+            setNotes(data.notes[0].content)
+          }
+        }
+      } catch (error) {
+        console.log('Notes fetch error:', error);
+      }
+    }
+    fetchNotes();
+  }, [exchange_id]);
+
+
+  // ================= NOTIFICATION SOUND =================
+  const playNotificationSound = () => {
+    if (!soundEnabled || !audioRef.current) return;
+    try {
+      audioRef.current.currentTime = 0;
+      audioRef.current.play().catch((err) => {
+        console.log('Sound play error:', err);
+      });
+    } catch (error) {
+      console.log(' Audio error:', error);
+    }
+  };
+
+
+  
+  // ================= READ ALOUD =================
+  const readAloud = (text: string) => {
+    if (!('speechSynthesis' in window)) return;
+    const utterance = new SpeechSynthesisUtterance(text);
+    utterance.rate = 1;
+    window.speechSynthesis.speak(utterance);
+  };
+
   /* ================= FORMAT TIME ================= */
   const formatMessageTime = (ts?: string) => {
     if (!ts) return "";
     const d = new Date(ts);
     return d.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
   };
+
+
+  
+// ================= SAVE NOTES =================
+const handleNotesChange = (newNotes: string) => {
+  setNotes(newNotes);
+  
+  setNoteSaveStatus('saving');
+
+  console.log('[NOTES] User typing detected...');
+
+  if (noteSaveTimeoutRef.current) {
+    clearTimeout(noteSaveTimeoutRef.current);
+  }
+
+  noteSaveTimeoutRef.current = setTimeout(async () => {
+    try {
+
+const getRes = await fetch(
+  `${API_URL}/exchange/get/note/${exchange_id}`,
+  { credentials: 'include' }
+);
+
+const getData = await getRes.json();
+
+const noteExists = Boolean(
+  getData.success && getData.notes && getData.notes.length > 0
+);
+
+      const method = noteExists ? 'PUT' : 'POST';
+      const endpoint = noteExists
+        ? '/exchange/put/note'
+        : '/exchange/post/note';
+
+      await fetch(`${API_URL}${endpoint}`, {
+        method,
+        credentials: 'include',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          exchange_id,
+          content: newNotes,
+        }),
+      });
+
+
+      setNoteSaveStatus('saved');
+      setTimeout(() => setNoteSaveStatus('idle'), 2000);
+
+      // ================= AUTO SYNC EVERY 10s =================
+      if (!noteSyncIntervalRef.current) {
+        console.log('[NOTES] Starting 10s autosave sync...');
+
+        noteSyncIntervalRef.current = setInterval(async () => {
+          try {
+
+            await fetch(`${API_URL}${endpoint}`, {
+              method: 'PUT',
+              credentials: 'include',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({
+                id: exchange_id,
+                content: newNotes,
+              }),
+            });
+            
+          } catch (err) {
+            console.log('[NOTES] Auto-sync error:', err);
+          }
+        }, 10000);
+      }
+    } catch (error) {
+      console.log('[NOTES] Save error:', error);
+      setNoteSaveStatus('idle');
+    }
+  }, 1000);
+};
+
 
   return (
     <div className="min-h-screen bg-navy-950 text-white flex flex-col relative overflow-hidden">
@@ -891,6 +1339,360 @@ export default function ChatPage() {
         )}
       </AnimatePresence>
 
+
+  {/* Right Panel - AI & Notes */}
+           <div className="w-96 flex flex-col gap-4 min-w-0">
+             {/* AI Assistant Panel - Premium Redesign */}
+{/* Right Panel - AI & Notes */}
+<div className="w-96 flex flex-col gap-4 min-w-0 h-full">
+
+  {/* AI Assistant Panel */}
+  <motion.div
+    initial={{ opacity: 0, x: 20 }}
+    animate={{ opacity: 1, x: 0 }}
+    transition={{ duration: 0.5 }}
+    className="
+      flex-1
+      glass-enhanced
+      rounded-xl
+      border border-cyan-500/30
+      overflow-hidden
+      flex
+      flex-col
+      min-h-0
+    "
+  >
+
+    {/* AI Header */}
+    <div
+      className="
+      shrink-0
+      bg-gradient-to-r 
+      from-cyan-500/10 
+      to-blue-500/10
+      border-b border-cyan-500/20
+      px-4 py-3
+      flex items-center justify-between
+      "
+    >
+
+      <div className="flex items-center gap-3">
+
+        <motion.div
+          animate={{scale:[1,1.1,1]}}
+          transition={{
+            duration:2,
+            repeat:Infinity
+          }}
+          className="
+          w-8 h-8
+          rounded-full
+          bg-gradient-to-br
+          from-cyan-500
+          to-blue-500
+          flex
+          items-center
+          justify-center
+          text-white
+          text-sm
+          font-bold
+          "
+        >
+          AI
+        </motion.div>
+
+
+        <div>
+          <p className="text-sm font-bold text-cyan-300">
+            SkillWrap AI
+          </p>
+
+          <p className="text-xs text-cyan-400/60">
+            Tutor Ready
+          </p>
+        </div>
+
+      </div>
+
+
+      {
+        aiTyping && (
+
+          <motion.div
+          animate={{
+            rotate:360
+          }}
+          transition={{
+            duration:2,
+            repeat:Infinity,
+            ease:"linear"
+          }}
+          >
+            <Sparkles 
+             size={16}
+             className="text-cyan-400"
+            />
+          </motion.div>
+
+        )
+      }
+
+    </div>
+
+
+
+    {/* Messages Area */}
+    <div
+      ref={aiChatRef}
+      className="
+      flex-1
+      min-h-0
+      overflow-y-auto
+      flex
+      flex-col
+      gap-2
+      p-4
+      scrollbar-hide
+      "
+    >
+
+      {
+        aiMessages.length === 0 ? (
+
+          <motion.div
+          initial={{
+            opacity:0,
+            y:20
+          }}
+          animate={{
+            opacity:1,
+            y:0
+          }}
+          className="
+          flex
+          flex-col
+          items-center
+          justify-center
+          h-full
+          text-center
+          text-xs
+          text-cyan-400/60
+          gap-2
+          "
+          >
+
+            <div
+            className="
+            w-12 h-12
+            rounded-lg
+            bg-cyan-500/10
+            border
+            border-cyan-500/20
+            flex
+            items-center
+            justify-center
+            "
+            >
+              <Sparkles 
+              size={20}
+              className="text-cyan-400"
+              />
+            </div>
+
+
+            <p>
+              Ask the AI for help with your skill exchange
+            </p>
+
+
+          </motion.div>
+
+
+        ) : (
+
+          aiMessages.map((msg,idx)=>(
+
+            <motion.div
+            key={idx}
+            initial={{
+              opacity:0,
+              y:10
+            }}
+            animate={{
+              opacity:1,
+              y:0
+            }}
+
+            className={`
+            text-xs
+            p-2.5
+            rounded-lg
+
+            ${
+              msg.username==="You"
+
+              ?
+
+              "bg-gradient-to-br from-purple-500/20 to-indigo-500/20 border border-purple-500/30 text-purple-200 ml-auto max-w-[85%]"
+
+              :
+
+              "bg-gradient-to-br from-cyan-500/15 to-blue-500/15 border border-cyan-500/30 text-cyan-100"
+
+            }
+
+            `}
+            >
+
+              <p className="leading-relaxed">
+                {msg.text}
+              </p>
+
+
+            </motion.div>
+
+
+          ))
+
+        )
+      }
+
+
+
+      {
+        aiTyping && (
+
+          <div
+          className="
+          text-xs
+          p-2.5
+          rounded-lg
+          bg-cyan-500/10
+          border border-cyan-500/30
+          text-cyan-100
+          "
+          >
+
+            Tutor thinking...
+
+          </div>
+
+        )
+      }
+
+
+    </div>
+
+
+
+
+    {/* INPUT */}
+    <div
+    className="
+    shrink-0
+    border-t
+    border-cyan-500/20
+    p-3
+    bg-gradient-to-t
+    from-cyan-500/5
+    "
+    >
+
+      <input
+
+      value={aiInput}
+
+      onChange={(e)=>
+        setAiInput(e.target.value)
+      }
+
+
+      onKeyDown={(e)=>{
+
+        if(
+          e.key==="Enter" &&
+          aiInput.trim()
+        ){
+
+          handleAIMessage(aiInput);
+
+          setAiInput("");
+
+        }
+
+      }}
+
+
+      type="text"
+
+      placeholder="Ask AI for guidance..."
+
+      className="
+      w-full
+      bg-slate-900/50
+      border
+      border-cyan-500/20
+      rounded-lg
+      px-3
+      py-2
+      text-xs
+      outline-none
+      focus:border-cyan-500/50
+      focus:ring-2
+      focus:ring-cyan-500/20
+      transition-all
+      text-white
+      placeholder-cyan-400/40
+      "
+      />
+
+
+    </div>
+
+
+  </motion.div>
+
+</div>
+
+            {/* Notes Panel - Premium Redesign */}
+            <motion.div 
+               initial={{ opacity: 0, x: 20 }}
+               animate={{ opacity: 1, x: 0 }}
+               transition={{ duration: 0.5, delay: 0.1 }}
+               className="flex-1 glass-enhanced rounded-xl border border-emerald-500/30 overflow-hidden flex flex-col min-h-0"
+            >
+              {/* Notes Header */}
+              <div className="bg-gradient-to-r from-emerald-500/10 to-green-500/10 border-b border-emerald-500/20 px-4 py-3 flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <BookOpen size={16} className="text-emerald-400" />
+                  <p className="text-sm font-bold text-emerald-300">Study Notes</p>
+                </div>
+                <motion.div
+                  animate={{ opacity: [0.6, 1] }}
+                  transition={{ duration: 1, repeat: Infinity }}
+                  className={`text-xs font-medium ${
+                    noteSaveStatus === 'saving'
+                      ? 'text-yellow-400'
+                      : noteSaveStatus === 'saved'
+                        ? 'text-emerald-400'
+                        : 'text-orange-400'
+                  }`}
+                >
+                  {noteSaveStatus === 'saving' ? '💾 Saving...' : noteSaveStatus === 'saved' ? '✓ Saved' : 'Unsaved'}
+                </motion.div>
+              </div>
+
+              {/* Notes Input */}
+              <textarea
+                value={notes}
+                onChange={(e) => handleNotesChange(e.target.value)}
+                placeholder="Add your study notes, key insights, and learning points here..."
+                className="flex-1 bg-white/5 border-0 rounded-none p-4 text-sm outline-none focus:ring-0 resize-none placeholder-emerald-400/40 text-gray-100 scrollbar-hide"
+              />
+            </motion.div>
+          </div>
+        {/* </div> */}
+
       {/* ===== ATTACHMENT POPUP ===== */}
       {showAttachmentPopup && (
         <AttachmentPopup
@@ -961,6 +1763,7 @@ export default function ChatPage() {
         )}
       </AnimatePresence>
 
+
       {/* ===== ACHIEVEMENT POPUP ===== */}
       <FirstAchievementPopup
         trigger={showFirstSkillPopup}
@@ -971,3 +1774,6 @@ export default function ChatPage() {
     </div>
   );
 }
+
+
+

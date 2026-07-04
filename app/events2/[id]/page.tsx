@@ -23,7 +23,8 @@ import {
   ArrowRight,
 } from "lucide-react";
 
-const API_URL = "http://localhost:4000";
+// const API_URL = "http://localhost:4000";
+const API_URL = "https://skillwrap-backend.onrender.com";
 
 // Animation variants for staggered reveals
 const containerVariants = {
@@ -221,6 +222,11 @@ export default function EventDetailsPage() {
 
   const modules = event.modules || [];
 
+  const sidebarItemVariants = {
+  hidden: { opacity: 0, x: -10 },
+  visible: { opacity: 1, x: 0 },
+};
+
   return (
     <div className="min-h-screen bg-[#0a0a0f] text-white overflow-hidden relative">
       {/* ================= BACKGROUND ================= */}
@@ -269,7 +275,7 @@ export default function EventDetailsPage() {
         />
 
         <motion.div
-          variants={glowVariants}
+          // variants={glowVariants}
           initial="initial"
           animate="animate"
           className="absolute top-1/2 left-10 w-[250px] h-[250px] bg-blue-500/5 blur-[100px] rounded-full"
@@ -304,7 +310,8 @@ export default function EventDetailsPage() {
 
         {/* Floating glow effects */}
         <motion.div 
-          variants={glowVariants}
+            variants={sidebarItemVariants}
+  transition={{ type: "spring", stiffness: 300, damping: 30 }}
           initial="initial"
           animate="animate"
           className="absolute inset-0 bg-[radial-gradient(ellipse_at_top_right,rgba(6,182,212,0.15),transparent_50%)]" 
@@ -369,7 +376,8 @@ export default function EventDetailsPage() {
             ].map((stat, i) => (
               <motion.div
                 key={i}
-                variants={itemVariants}
+                 variants={sidebarItemVariants}
+  transition={{ type: "spring", stiffness: 300, damping: 30 }}
                 whileHover={{ 
                   scale: 1.05, 
                   y: -2,
@@ -439,7 +447,8 @@ export default function EventDetailsPage() {
                 return (
                   <motion.div
                     key={i}
-                    variants={itemVariants}
+                      variants={sidebarItemVariants}
+  transition={{ type: "spring", stiffness: 300, damping: 30 }}
                     whileHover={{ 
                       scale: 1.01,
                       transition: { type: "spring", stiffness: 300, damping: 20 }

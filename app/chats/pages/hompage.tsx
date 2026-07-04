@@ -14,9 +14,9 @@ type Room = {
   created_at: string;
 };
 
-const API_URL = "http://localhost:4000";
+// const API_URL = "http://localhost:4000";
 // 
-// const API_URL = "https://skillwrap-backend.onrender.com";
+const API_URL = "https://skillwrap-backend.onrender.com";
 
 export default function MyRoomsPage() {
   const [rooms, setRooms] = useState<Room[]>([]);

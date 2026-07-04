@@ -29,6 +29,10 @@ export default function EventModuleCard({
   module,
   eventId,
 }: ModuleCardProps) {
+
+  if (!module) {
+    return null;
+  }
   return (
     <motion.div
       initial={{

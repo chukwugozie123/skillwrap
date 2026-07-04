@@ -35,6 +35,7 @@ import EditProfile from "@/components/edit_profile/page";
 
 export default function EditPage() {
   const API_URL = "https://skillwrap-backend.onrender.com";
+  
   const [user, setUser] = useState<any>(null);
   const [error, setError] = useState("");
 

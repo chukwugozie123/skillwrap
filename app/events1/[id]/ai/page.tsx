@@ -19,18 +19,26 @@ import {
   PanelLeftClose,
 } from "lucide-react";
 import { socket } from "@/lib/socketClient";
+import { useRouter } from "next/navigation";
 import AIMessageCard, { Message } from "./components/AIMessageCard";
 import NotesPanel from "./components/NotesPanel";
 import ModuleSidebar from "./components/ModuleSidebar";
+import { addXP, XpTransactions } from "@/lib/Xpapi";
+
+const API_URL = "https://skillwrap-backend.onrender.com";
+// const API_URL = "http://localhost:4000";
 
 export default function AIEventChatPage() {
   const params = useParams();
   const eventId = Number(params?.id);
-  const userId = 4;
+  // const userId = 4;
+
+  const router = useRouter();
 
   const [messages, setMessages] = useState<Message[]>([]);
   const [input, setInput] = useState("");
   const [connected, setConnected] = useState(false);
+  const [userId, setUserId] = useState<number | null>(null);
 
   // Desktop: sidebars part of layout; Mobile: drawers triggered by buttons
   const [sidebarOpen, setSidebarOpen] = useState(true);
@@ -41,6 +49,9 @@ export default function AIEventChatPage() {
   const [progressTotal, setProgressTotal] = useState(0);
   void _progressCurrent;
 
+  const [hasPreviousMessages, setHasPreviousMessages] = useState(false);
+  const [chatLoaded, setChatLoaded] = useState(false);
+
   const chatEndRef = useRef<HTMLDivElement | null>(null);
 
   const handleModuleProgress = useCallback((completed: number, current: number, total: number) => {
@@ -49,16 +60,43 @@ export default function AIEventChatPage() {
     setProgressTotal(total);
   }, []);
 
+  
+    /* ================= FETCH USER ================= */
+    useEffect(() => {
+      async function fetchProfile() {
+        try {
+          const res = await fetch(`${API_URL}/auth/profile`, {
+            credentials: "include",
+          });
+  
+          if (!res.ok) {
+            router.push("/login");
+            return;
+          }
+  
+          const data = await res.json();
+          console.log(data.user.id, 'id')
+          // const userId = data.user.id
+                    setUserId(data.user.id);
+        } catch (err) {
+          console.error("Profile fetch failed", err);
+          router.push("/login");
+        } 
+      }
+  
+      fetchProfile();
+    }, [router]);
+
   // ================= SOCKET =================
-  useEffect(() => {
+  useEffect (() => {
     console.log("AI CHAT INIT");
     console.log("Event:", eventId);
     console.log("User:", userId);
 
-    if (!eventId) {
-      console.log("Missing eventId");
-      return;
-    }
+  if (!eventId || !userId) {
+    console.log("Waiting for user...");
+    return;
+  }
 
     const onConnect = () => {
       console.log("CONNECTED:", socket.id);
@@ -67,23 +105,79 @@ export default function AIEventChatPage() {
       socket.emit("joinAIEvent", { eventId, userId });
     };
 
+      async function handleEventJoinReward() {
+
+    try {
+
+      await addXP(35, "EVENT_COMPLETION");
+      await XpTransactions(35,"Joined an AI Event.");
+      console.log("⚡ XP ADDED");
+
+      const res3 = await fetch(
+        `${API_URL}/activity`,
+        {
+          method:"POST",
+          credentials:"include",
+          headers:{
+            "Content-Type":"application/json"
+          },
+          body:JSON.stringify({
+            activity_type:"event_joined",
+            title:"Joined an AI Event",
+            description:"Joined an AI learning event",
+            icon:"sparkles",
+            color:"emerald"
+          })
+        }
+      );
+
+      const response2 = await res3.json();
+
+      console.log("🟢 ACTIVITY RESPONSE:", response2);
+
+    }
+    catch(error){
+      console.error("Join reward error:", error);
+    }
+  }
+
+
+  handleEventJoinReward();
+
+
     const receivePreviousMessage = (data: any) => {
-      console.log("PREVIOUS CHAT RECEIVED:", data);
 
-      if (!Array.isArray(data.messages)) {
-        console.log("No previous messages found");
-        return;
-      }
+  if (!Array.isArray(data.messages)) {
+    console.log("No previous messages found");
 
-      const oldMessages = data.messages.map((msg: any) => ({
-        type: msg.type || "reply",
-        message: msg.message,
-        sender: msg.sender || "ai",
-      }));
+    setHasPreviousMessages(false);
+    setChatLoaded(true);
+    return;
+  }
 
-      setMessages((prev) => [...oldMessages, ...prev]);
-    };
 
+  const oldMessages: Message[] = data.messages.map((msg: any) => ({
+    type: msg.type || "reply",
+    message: msg.message,
+    sender: msg.sender || "ai",
+  }));
+
+
+  console.log(
+    "Previous message count:",
+    oldMessages.length
+  );
+
+
+  if(oldMessages.length > 0){
+    setHasPreviousMessages(true);
+  }
+
+
+  setMessages(oldMessages);
+
+  setChatLoaded(true);
+};
     const onDisconnect = () => {
       console.log("DISCONNECTED");
       setConnected(false);
@@ -132,7 +226,7 @@ export default function AIEventChatPage() {
       socket.off("aiMessage", onAIMessage);
       socket.off("prevMessage", receivePreviousMessage);
     };
-  }, [eventId]);
+  }, [eventId, userId]);
 
   // ================= AUTO SCROLL =================
   useEffect(() => {

@@ -171,7 +171,7 @@ function UserCard({ user, rank, index }: { user: LeaderboardUser; rank: number; 
         />
       )}
 
-      <Link href={`/profile/${user.username || user.id}`}
+      <Link href={`/profiles/${user.id}`}
         className={`block rounded-2xl overflow-hidden transition-all duration-300 ${
           isTop3
             ? "glass border-2"

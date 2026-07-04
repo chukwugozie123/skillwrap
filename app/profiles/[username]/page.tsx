@@ -1,6 +1,5 @@
 "use client"
 import { useEffect, useState, useMemo } from "react";
-// import { useParams, useNavigate, Link } from "react-router-dom";
 import { useParams, useRouter } from "next/navigation";
 import Link from "next/link";
 import Image from "next/image";
@@ -439,7 +438,8 @@ export default function ProfilePage() {
   const router = useRouter();
   // const navigate = useNavigate();
 
-  const API_URL = "http://localhost:4000";
+  // const API_URL = "http://localhost:4000";
+    const API_URL = "https://skillwrap-backend.onrender.com";
 
   const [data, setData] = useState<ProfileResponse | null>(null);
   const [loading, setLoading] = useState(true);
@@ -860,7 +860,7 @@ useEffect(() => {
                       key={skill.skill_id}
                       skill={skill}
                       myMode={myMode}
-                      router={router}
+                      navigate={(path: string) => router.push(path)}
                       index={index}
                     />
                   ))}

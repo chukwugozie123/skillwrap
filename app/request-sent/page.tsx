@@ -52,9 +52,9 @@ interface Props {
   userMode: "learning" | "teaching" | "exchange";
 }
 
-// const API_URL = "https://skillwrap-backend.onrender.com";
+const API_URL = "https://skillwrap-backend.onrender.com";
 
-  const API_URL = "http://localhost:4000";
+  // const API_URL = "http://localhost:4000";
 
 /* ─── helpers ─── */
 

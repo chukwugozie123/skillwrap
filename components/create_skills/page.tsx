@@ -28,8 +28,8 @@ import {
   Star,
 } from "lucide-react";
 
-// const API_URL = "https://skillwrap-backend.onrender.com";
-  const API_URL = "http://localhost:4000";
+const API_URL = "https://skillwrap-backend.onrender.com";
+  // const API_URL = "http://localhost:4000";
 
 /* ─── helpers ─── */
 
@@ -462,24 +462,18 @@ export default function UploadSkill() {
     setLoading(true);
     setMessage("Uploading skill...");
 
-    console.log("🌐 SENDING REQUEST...");
-    console.log("URL:", `${API_URL}/create-skills`);
-
     const res = await fetch(`${API_URL}/create-skills`, {
       method: "POST",
       body: formData,
       credentials: "include",
     });
 
-    console.log("📡 RESPONSE RECEIVED");
-    console.log("STATUS:", res.status);
-    console.log("OK:", res.ok);
 
     let data;
 
     try {
       data = await res.json();
-      console.log("📦 RESPONSE JSON:", data);
+      // console.log("📦 RESPONSE JSON:", data);
     } catch (err) {
       console.log("❌ FAILED TO PARSE JSON:", err);
     }
@@ -491,7 +485,6 @@ export default function UploadSkill() {
 
     // ================= SUCCESS FLOW =================
     if (res.ok && data.success) {
-      console.log("🎉 SKILL CREATED SUCCESSFULLY");
 
       const res2 = await fetch(`${API_URL}/achievements/check`, {
         method: "POST",
@@ -504,8 +497,8 @@ export default function UploadSkill() {
       console.log("🏆 ACHIEVEMENT RESPONSE:", response);
 
 
-      await XpTransactions(10, "Creating a skill.");
-      await addXP(10);
+      await XpTransactions(35, "Creating a skill.");
+      await addXP(35, "SKILL_CREATED");
       console.log("⚡ XP ADDED");
 
       if (response.success) {

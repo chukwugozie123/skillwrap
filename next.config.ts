@@ -13,14 +13,18 @@ const nextConfig = {
   reactStrictMode: true,
   images: {
     domains: [
-      "images.unsplash.com", // allow Unsplash images
-      "randomuser.me",       // allow profile pics
+      "images.unsplash.com",
+      "randomuser.me",
       "res.cloudinary.com",
       "www.cleanpng.com",
-     "cdn.pixabay.com", // Add this line    // <-- remove "https://" here
+      "cdn.pixabay.com",
+      "lh3.googleusercontent.com", // ✅ add this
     ],
   },
 };
+
+module.exports = nextConfig;
+
 
 module.exports = nextConfig;
 

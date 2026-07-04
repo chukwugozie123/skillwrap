@@ -1,9 +1,22 @@
 "use client";
 
 import { useEffect, useState, useMemo } from "react";
-import { motion, AnimatePresence } from "framer-motion";
+import { motion, AnimatePresence, Variants } from "framer-motion";
 import UserPage from "@/components/user/page";
 import AISkillMatchModal from "@/components/AIskillSMatchModel/page";
+// import { easeLinear, Variants } from "framer-motion";
+
+// const floatVariants: Variants = {
+//   animate: {
+//     y: [0, -20, 0],
+//     transition: {
+//       duration: 6,
+//       repeat: Infinity,
+//       ease: easeLinear,
+//     },
+//   },
+// };
+
 
 /* ================= TYPES ================= */
 export type Skill = {
@@ -32,8 +45,12 @@ const containerVariants = {
   },
 };
 
-const itemVariants = {
-  hidden: { opacity: 0, y: 20 },
+const itemVariants: Variants = {
+  hidden: {
+    opacity: 0,
+    y: 20,
+  },
+
   visible: {
     opacity: 1,
     y: 0,
@@ -44,8 +61,7 @@ const itemVariants = {
     },
   },
 };
-
-const floatVariants = {
+const floatVariants: Variants = {
   animate: {
     y: [0, -20, 0],
     transition: {
@@ -56,7 +72,8 @@ const floatVariants = {
   },
 };
 
-const glowPulse = {
+
+const glowPulse: Variants = {
   animate: {
     opacity: [0.4, 0.8, 0.4],
     scale: [1, 1.1, 1],
@@ -81,8 +98,8 @@ export default function SkillsPage() {
   const [selectedCategory, setSelectedCategory] = useState("All");
   const [selectedLevel, setSelectedLevel] = useState("All");
 
-  // const API_URL = "https://skillwrap-backend.onrender.com";
-  const API_URL = "http://localhost:4000";
+  const API_URL = "https://skillwrap-backend.onrender.com";
+  // const API_URL = "http://localhost:4000";
 
   /* ================= FETCH USER MODE ================= */
   useEffect(() => {
@@ -151,6 +168,7 @@ export default function SkillsPage() {
       return matchesCategory && matchesLevel && matchesSearch;
     });
   }, [skills, selectedCategory, selectedLevel, searchTerm]);
+  
 
   /* ================= UI ================= */
   return (

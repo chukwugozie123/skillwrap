@@ -2,6 +2,9 @@
 import { useRouter, useSearchParams } from "next/navigation";
 import { useEffect, useState } from "react";
 const API_URL = "https://skillwrap-backend.onrender.com";
+// const API_URL = "http://localhost:4000";
+
+
 // type SignupSearch = { ref?: string };
 // export const Route = createFileRoute("/signup")({
 //   validateSearch: (search: Record<string, unknown>): SignupSearch => ({

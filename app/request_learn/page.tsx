@@ -4,7 +4,7 @@ import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import FirstAchievementPopup from "@/components/FirstAchievementPopup/page";
 import { motion, AnimatePresence } from "framer-motion";
-import { addXP } from "@/lib/Xpapi";
+import { addXP, XpTransactions } from "@/lib/Xpapi";
 import { CheckCircle2, BookOpen, ArrowRight, AlertCircle } from "lucide-react";
 
 /* ================= TYPES ================= */
@@ -43,7 +43,9 @@ export default function RequestLearning() {
 
   const router = useRouter();
 
-  const API_URL = "http://localhost:4000";
+  // const API_URL = "http://localhost:4000";
+    const API_URL = "https://skillwrap-backend.onrender.com";
+
   const MAX_NOTE_LENGTH = 500;
   const characterCount = note.length;
 
@@ -188,6 +190,7 @@ export default function RequestLearning() {
         });
 
         await addXP(2);
+        await XpTransactions(2, "Sending a Learning reqiest.");
 
         const res2 = await fetch(`${API_URL}/achievements/check`, {
           method: "POST",

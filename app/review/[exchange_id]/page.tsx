@@ -131,9 +131,30 @@ export default function ReviewPage() {
         setSubmitting(false);
         return;
       }
-            await addXP(25);
+            await addXP(25, "REVIEW_SUBMITTED");
             await XpTransactions(25, "For a sucessfull review sent.");
             console.log("⚡ XP ADDED");
+
+              const res3 = await fetch(`${API_URL}/activity`,{
+                  method:"POST",
+                  credentials:"include",
+                  headers:{
+                    "Content-Type":"application/json"
+                  },
+                  body:JSON.stringify({
+                  activity_type:"review_submitted",
+                  title:"Submitted Event Review",
+                  description:"Shared feedback after completing an AI event",
+                  icon:"star",
+                  color:"amber"
+                  })
+                }
+              );
+
+
+              const response2 = await res3.json();
+
+              console.log("🟢 REVIEW ACTIVITY RESPONSE:", response2);
 
       await fetch(`${API_URL}/send-notification`, {
         method: "POST",

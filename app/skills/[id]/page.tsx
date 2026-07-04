@@ -148,7 +148,8 @@ export default function SkillDetailsPage() {
   const [bookmarked, setBookmarked] = useState(false);
   const [imageLoaded, setImageLoaded] = useState(false);
 
-  const API_URL = "http://localhost:4000";
+  // const API_URL = "http://localhost:4000";
+    const API_URL = "https://skillwrap-backend.onrender.com";
 
   // Fetch skill data
   useEffect(() => {
@@ -232,7 +233,7 @@ export default function SkillDetailsPage() {
             initial={{ opacity: 0, x: -20 }}
             animate={{ opacity: 1, x: 0 }}
             whileHover={{ x: -3 }}
-            onClick={() => navigate(-1)}
+            onClick={() => router.back()}
             className="flex items-center gap-2 px-4 py-2 rounded-xl glass-input text-sm text-gray-400 hover:text-white transition-colors"
           >
             <ChevronLeft size={18} />

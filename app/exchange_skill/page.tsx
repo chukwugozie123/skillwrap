@@ -21,6 +21,7 @@ import {
   Globe,
   Lock,
 } from "lucide-react";
+import { addXP, XpTransactions } from "@/lib/Xpapi";
 
 /* ================= TYPES ================= */
 
@@ -278,7 +279,9 @@ function ExchangeFlowVisualizer({ myMode, receiverMode }: { myMode: string; rece
 
 export default function ExchangeSkillPage() {
   const router = useRouter();
-  const API_URL = "http://localhost:4000";
+  
+  // const API_URL = "http://localhost:4000";
+  const API_URL = "https://skillwrap-backend.onrender.com";
 
   const [requestedSkill, setRequestedSkill] = useState<Skill | null>(null);
   const [myMode, setMyMode] = useState<"learning" | "teaching" | "exchanging" | null>(null);
@@ -399,6 +402,10 @@ export default function ExchangeSkillPage() {
         }),
       });
 
+            await addXP(35);
+            await XpTransactions(35,"Sent an exchnage request.");
+            console.log("⚡ XP ADDED");
+
 await fetch(`${API_URL}/activity`, {
   method: "POST",
   credentials: "include",
@@ -414,7 +421,7 @@ await fetch(`${API_URL}/activity`, {
 
     message: "New skill exchange request sent!",
 
-    icon: "handshake", // or whatever icon system you're using
+    icon: "refresh-cw", // or whatever icon system you're using
     color: "blue",     // e.g. info / success / warning
   }),
 });
