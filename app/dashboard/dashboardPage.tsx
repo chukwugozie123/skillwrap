@@ -55,8 +55,8 @@ import TeachingDashboard from "./dashboards/TeachingDashboard";
 import ExchangeDashboard from "./dashboards/ExchangeingDashboard";
 import { useRouter } from "next/navigation";
 
-const API_URL = "http://localhost:4000";
-// const API_URL = "https://skillwrap-backend.onrender.com";
+// const API_URL = "http://localhost:4000";
+const API_URL = "https://skillwrap-backend.onrender.com";
 
 /* ================= TYPES ================= */
 interface RoadmapStep {

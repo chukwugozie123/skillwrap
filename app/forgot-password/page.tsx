@@ -15,7 +15,8 @@ export default function ForgotPassword() {
   const [sent, setSent] = useState(false);
   const [error, setError] = useState("");
 
-  const API_URL = "http://localhost:4000";
+  // const API_URL = "http://localhost:4000";
+  const API_URL = "https://skillwrap-backend.onrender.com"
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
