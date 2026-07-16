@@ -28,8 +28,8 @@ import {
   Star,
 } from "lucide-react";
 
-const API_URL = "https://skillwrap-backend.onrender.com";
-  // const API_URL = "http://localhost:4000";
+// const API_URL = "https://skillwrap-backend.onrender.com";
+  const API_URL = "http://localhost:4000";
 
 /* ─── helpers ─── */
 
@@ -469,13 +469,14 @@ export default function UploadSkill() {
     });
 
 
-    let data;
+    const data = await res.json();
 
+    console.log(data," ...d.d.")
     try {
-      data = await res.json();
-      // console.log("📦 RESPONSE JSON:", data);
+      console.log("📦 RESPONSE JSON:", data);
     } catch (err) {
       console.log("❌ FAILED TO PARSE JSON:", err);
+       console.log("❌  RESPONSE JSON:", data.error);
     }
 
     if (!res.ok) {
